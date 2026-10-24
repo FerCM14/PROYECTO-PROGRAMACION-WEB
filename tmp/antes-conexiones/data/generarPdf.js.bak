@@ -1,0 +1,136 @@
+// src/utils/generarPdf.js
+// Genera la constancia de entrega como PDF (A4) sin librerías externas.
+
+const ALTO = 842
+
+const limpiar = (t) => String(t ?? '').replace(/→/g, '-').replace(/[^\x00-\xFF]/g, '?')
+const esc = (t) => limpiar(t).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)')
+
+function envolver(texto, max) {
+  const lineas = []
+  let actual = ''
+  texto.split(' ').forEach((palabra) => {
+    if ((actual + ' ' + palabra).trim().length > max) {
+      lineas.push(actual)
+      actual = palabra
+    } else {
+      actual = (actual + ' ' + palabra).trim()
+    }
+  })
+  if (actual) lineas.push(actual)
+  return lineas
+}
+
+// c: { codigo, estudiante, estudianteSub, curso, docente, equipo, unidad, almacen,
+//      entrega, devolucion, accesorios: [{ nombre, entregado }], penalidad }
+export function construirPdf(c) {
+  const out = []
+  const Y = (y) => (ALTO - y).toFixed(2)
+
+  const texto = (x, y, t, { size = 10, fuente = 'F1', gris = 0 } = {}) =>
+    out.push(`BT ${gris} g /${fuente} ${size} Tf ${x} ${Y(y)} Td (${esc(t)}) Tj ET`)
+
+  const linea = (x1, y, x2, ancho = 0.5, gris = 0.75) =>
+    out.push(`${gris} G ${ancho} w ${x1} ${Y(y)} m ${x2} ${Y(y)} l S`)
+
+  const rect = (x, y, w, h, relleno) => {
+    if (relleno !== undefined) out.push(`${relleno} g ${x} ${Y(y + h)} ${w} ${h} re f`)
+    out.push(`0.75 G 0.5 w ${x} ${Y(y + h)} ${w} ${h} re S`)
+  }
+
+  const L = 50
+  const R = 545
+  const C2 = 300
+  const etiqueta = { size: 7.5, gris: 0.45 }
+  const sub = { size: 8.5, gris: 0.45 }
+
+  // Encabezado
+  texto(L, 62, 'UNIVERSIDAD DE LIMA · FACULTAD DE INGENIERÍA', etiqueta)
+  texto(400, 62, 'CÓDIGO DE PRÉSTAMO', etiqueta)
+  texto(L, 84, 'Constancia de entrega de equipo', { size: 17, fuente: 'F2' })
+  texto(400, 84, c.codigo, { size: 14, fuente: 'F3' })
+  linea(L, 94, R, 1.5, 0.1)
+
+  // Datos
+  const bloque = (x, y, titulo, lineas) => {
+    texto(x, y, titulo, etiqueta)
+    lineas.forEach(([t, op], i) => texto(x, y + 15 + i * 13, t, op || { size: 10 }))
+  }
+  bloque(L, 120, 'ESTUDIANTE', [[c.estudiante], [c.estudianteSub, sub]])
+  bloque(
+    C2,
+    120,
+    'CURSO ASOCIADO',
+    [[c.curso || '-'], c.docente ? [`Docente: ${c.docente}`, sub] : null].filter(Boolean)
+  )
+  bloque(L, 178, 'EQUIPO Y UNIDAD', [[c.equipo], [`${c.unidad} · ${c.almacen}`]])
+  bloque(C2, 178, 'FECHAS', [[`Entrega: ${c.entrega}`], [`Devolución: ${c.devolucion}`]])
+
+  // Tabla de accesorios
+  let y = 238
+  texto(L, y, 'ACCESORIOS ENTREGADOS', etiqueta)
+  y += 10
+  rect(L, y, R - L, 22, 0.94)
+  texto(L + 10, y + 14, 'ACCESORIO', etiqueta)
+  texto(R - 90, y + 14, 'ENTREGADO', etiqueta)
+  y += 22
+  c.accesorios.forEach((a) => {
+    rect(L, y, R - L, 24)
+    texto(L + 10, y + 15, a.nombre)
+    texto(R - 90, y + 15, a.entregado ? 'Sí' : 'No')
+    y += 24
+  })
+
+  // Declaración y firmas
+  y += 26
+  envolver(
+    `Declaro recibir el equipo en las condiciones descritas y me comprometo a devolverlo en la fecha pactada. El retraso genera una penalidad de S/ ${Number(
+      c.penalidad
+    ).toFixed(2)} por día y suspende nuevos préstamos.`,
+    98
+  ).forEach((l, i) => texto(L, y + i * 13, l, { size: 9 }))
+
+  y += 80
+  linea(L, y, L + 215, 0.8, 0.1)
+  linea(R - 215, y, R, 0.8, 0.1)
+  texto(L, y + 13, 'Firma del estudiante', { size: 8, gris: 0.45 })
+  texto(R - 215, y + 13, 'Firma del encargado de almacén', { size: 8, gris: 0.45 })
+
+  // Ensamblado del PDF (cada carácter = 1 byte, Latin-1)
+  const contenido = out.join('\n')
+  const fuentes = ['Helvetica', 'Helvetica-Bold', 'Courier']
+  const objs = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >> >> /Contents 4 0 R >>',
+    `<< /Length ${contenido.length} >>\nstream\n${contenido}\nendstream`,
+    ...fuentes.map((f) => `<< /Type /Font /Subtype /Type1 /BaseFont /${f} /Encoding /WinAnsiEncoding >>`)
+  ]
+
+  let pdf = '%PDF-1.4\n'
+  const posiciones = []
+  objs.forEach((o, i) => {
+    posiciones.push(pdf.length)
+    pdf += `${i + 1} 0 obj\n${o}\nendobj\n`
+  })
+  const xref = pdf.length
+  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`
+  pdf += posiciones.map((p) => `${String(p).padStart(10, '0')} 00000 n \n`).join('')
+  pdf += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`
+
+  const bytes = new Uint8Array(pdf.length)
+  for (let i = 0; i < pdf.length; i++) bytes[i] = pdf.charCodeAt(i) & 0xff
+  return bytes
+}
+
+export function descargarConstanciaPdf(datos) {
+  const blob = new Blob([construirPdf(datos)], { type: 'application/pdf' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `Constancia-${datos.codigo}.pdf`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
