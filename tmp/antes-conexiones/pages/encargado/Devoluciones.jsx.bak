@@ -1,0 +1,629 @@
+// src/pages/encargado/Devoluciones.jsx
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import HeaderEncargado from '../../components/Header/Header-Encargado'
+import FooterEncargado from '../../components/Footer/Footer-Encargado'
+import Operacion from '../../components/Extra/Operacion'
+import { obtenerPrestamo, registrarDevolucion, renovarPrestamo } from '../../data/Identificacion'
+import { obtenerCuenta, asignarDeuda } from '../../data/cuentas'
+import { cambiarEstadoUnidad } from '../../data/Producto'
+import './Devoluciones.css'
+
+const MS_DIA = 1000 * 60 * 60 * 24
+const TARIFA_DIA = 15
+const MAX_DIAS = 10
+const MAX_FOTOS = 3
+const MAX_BYTES = 1.5 * 1024 * 1024
+
+// Ajusta estas rutas a las de tu proyecto
+const RUTAS = {
+  inventario: '/encargado/inventario',
+  solicitudes: '/encargado/solicitudes',
+  prestamos: '/encargado/prestamos',
+  vencidos: '/encargado/vencidos',
+  devoluciones: '/encargado/devoluciones'
+}
+
+/* ---------- fechas ---------- */
+function parsear(texto) {
+  const [anio, mes, dia] = String(texto).split('-').map(Number)
+  return new Date(anio, mes - 1, dia)
+}
+
+function aISO(fecha) {
+  const m = String(fecha.getMonth() + 1).padStart(2, '0')
+  const d = String(fecha.getDate()).padStart(2, '0')
+  return `${fecha.getFullYear()}-${m}-${d}`
+}
+
+function hoyISO() {
+  return aISO(new Date())
+}
+
+function sumarDias(texto, dias) {
+  const fecha = parsear(texto)
+  fecha.setDate(fecha.getDate() + dias)
+  return aISO(fecha)
+}
+
+function diferenciaDias(desde, hasta) {
+  return Math.round((parsear(hasta) - parsear(desde)) / MS_DIA)
+}
+
+function formatear(texto) {
+  if (!texto) return '—'
+  const [anio, mes, dia] = String(texto).split('-')
+  return `${dia}/${mes}/${anio}`
+}
+
+function soles(monto) {
+  return `S/ ${monto.toFixed(2)}`
+}
+
+function nombreEstudiante(correo) {
+  const cuenta = obtenerCuenta(correo)
+  return cuenta ? `${cuenta.nombres} ${cuenta.apellidos}`.trim() : correo
+}
+
+const ESTADOS = [
+  { id: 'sin', etiqueta: 'Sin novedades' },
+  { id: 'danos', etiqueta: 'Con daños' },
+  { id: 'faltantes', etiqueta: 'Faltantes' }
+]
+
+function Devoluciones() {
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const inputFotos = useRef(null)
+
+  const [codigo, setCodigo] = useState('')
+  const [errorBusqueda, setErrorBusqueda] = useState('')
+  const [prestamo, setPrestamo] = useState(null)
+
+  const [estado, setEstado] = useState('sin')
+  const [faltantes, setFaltantes] = useState([])
+  const [descripcion, setDescripcion] = useState('')
+  const [fotos, setFotos] = useState([])
+  const [errorFoto, setErrorFoto] = useState('')
+  const [derivar, setDerivar] = useState(true)
+  const [errorForm, setErrorForm] = useState('')
+
+  const [retornoReal, setRetornoReal] = useState(hoyISO())
+  const [modalAbierto, setModalAbierto] = useState(false)
+  const [nuevaFecha, setNuevaFecha] = useState('')
+
+  const [resultado, setResultado] = useState(null)
+
+  /* ---------- buscar ---------- */
+  const buscar = (valor = codigo) => {
+    const buscado = String(valor).trim().toUpperCase()
+    setResultado(null)
+    setErrorForm('')
+
+    if (!buscado) {
+      setPrestamo(null)
+      setErrorBusqueda('Escribe el código del préstamo.')
+      return
+    }
+
+    const encontrado = obtenerPrestamo(buscado)
+
+    if (!encontrado) {
+      setPrestamo(null)
+      setErrorBusqueda(`No existe el préstamo ${buscado}.`)
+      return
+    }
+
+    if (encontrado.estado !== 'Entregado') {
+      setPrestamo(null)
+      setErrorBusqueda(`El préstamo ${buscado} no está vigente (estado: ${encontrado.estado}).`)
+      return
+    }
+
+    setErrorBusqueda('')
+    setPrestamo(encontrado)
+    setEstado('sin')
+    setFaltantes([])
+    setDescripcion('')
+    setFotos([])
+    setDerivar(true)
+    setRetornoReal(hoyISO())
+  }
+
+  // Si llegan desde Préstamos vigentes con ?prestamo=PRE-...
+  useEffect(() => {
+    const desdeUrl = params.get('prestamo')
+    if (desdeUrl) {
+      setCodigo(desdeUrl)
+      buscar(desdeUrl)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  /* ---------- datos derivados ---------- */
+  const accesorios = prestamo
+    ? (prestamo.entrega?.accesorios || []).filter((a) => a.entregado).map((a) => a.nombre)
+    : []
+
+  const diasRetraso = prestamo ? Math.max(0, diferenciaDias(prestamo.hasta, retornoReal)) : 0
+  const penalidad = diasRetraso * TARIFA_DIA
+  const mostrarPanel = estado === 'danos' || estado === 'faltantes'
+
+  /* ---------- acciones del formulario ---------- */
+  const alternarFaltante = (nombre) => {
+    if (estado !== 'faltantes') return
+    setFaltantes((actual) =>
+      actual.includes(nombre) ? actual.filter((n) => n !== nombre) : [...actual, nombre]
+    )
+  }
+
+  const cambiarEstado = (id) => {
+    setEstado(id)
+    setErrorForm('')
+    if (id !== 'faltantes') setFaltantes([])
+  }
+
+  const agregarFotos = (e) => {
+    const archivos = Array.from(e.target.files || [])
+    e.target.value = ''
+    setErrorFoto('')
+
+    archivos.slice(0, Math.max(0, MAX_FOTOS - fotos.length)).forEach((archivo) => {
+      if (!archivo.type.startsWith('image/')) return
+
+      if (archivo.size > MAX_BYTES) {
+        setErrorFoto('Cada foto debe pesar menos de 1.5 MB.')
+        return
+      }
+
+      const lector = new FileReader()
+      lector.onload = () =>
+        setFotos((previas) => (previas.length < MAX_FOTOS ? [...previas, lector.result] : previas))
+      lector.readAsDataURL(archivo)
+    })
+  }
+
+  const quitarFoto = (indice) => setFotos((previas) => previas.filter((_, i) => i !== indice))
+
+  const guardar = () => {
+    if (!prestamo) return
+
+    if (mostrarPanel && !descripcion.trim()) {
+      setErrorForm('Describe el daño o lo que falta antes de guardar.')
+      return
+    }
+
+    if (estado === 'faltantes' && faltantes.length === 0) {
+      setErrorForm('Marca al menos un accesorio faltante.')
+      return
+    }
+
+    const res = registrarDevolucion(prestamo.codigo, {
+      fechaRetorno: retornoReal,
+      estadoRetorno: estado,
+      accesoriosFaltantes: faltantes,
+      descripcion: descripcion.trim(),
+      fotos,
+      diasRetraso,
+      penalidad
+    })
+
+    if (!res.ok) {
+      setErrorForm('No se pudo registrar la devolución.')
+      return
+    }
+
+    // Actualiza el estado de la unidad en Productos.js
+    const estadoUnidad = mostrarPanel && derivar ? 'En mantenimiento' : 'Disponible'
+    cambiarEstadoUnidad(prestamo.unidad, estadoUnidad)
+
+    // Penalidad: deja la cuenta con deuda hasta regularizar
+    if (penalidad > 0) {
+      asignarDeuda(prestamo.correo, { monto: penalidad, prestamo: prestamo.codigo })
+    }
+
+    // Historial del estudiante: retraso acumulado y penalidad pendiente
+    if (diasRetraso > 0) {
+      registrarRetraso(prestamo.correo, { codigo: prestamo.codigo, dias: diasRetraso })
+      registrarDeuda(prestamo.correo, { codigo: prestamo.codigo, dias: diasRetraso })
+    }
+
+    setResultado({ codigo: prestamo.codigo, unidad: prestamo.unidad, estadoUnidad, penalidad })
+    setPrestamo(null)
+    setCodigo('')
+  }
+
+  const cancelar = () => {
+    setPrestamo(null)
+    setCodigo('')
+    setErrorForm('')
+    setErrorBusqueda('')
+  }
+
+  /* ---------- modal de renovación ---------- */
+  const abrirModal = () => {
+    if (!prestamo) return
+    const tope = sumarDias(prestamo.desde, MAX_DIAS)
+    const sugerida = sumarDias(prestamo.hasta, 5)
+    setNuevaFecha(sugerida > tope ? tope : sugerida)
+    setModalAbierto(true)
+  }
+
+  const vencido = prestamo ? diferenciaDias(prestamo.hasta, hoyISO()) > 0 : false
+  const totalDias = prestamo && nuevaFecha ? diferenciaDias(prestamo.desde, nuevaFecha) : 0
+  const fechaPosterior = prestamo && nuevaFecha ? nuevaFecha > prestamo.hasta : false
+  const dentroDelLimite = totalDias <= MAX_DIAS
+  const renovacionValida = !vencido && fechaPosterior && dentroDelLimite
+
+  const renovar = () => {
+    if (!renovacionValida) return
+    const res = renovarPrestamo(prestamo.codigo, nuevaFecha)
+    if (res.ok) {
+      setPrestamo(res.prestamo)
+      setRetornoReal(nuevaFecha)
+      setModalAbierto(false)
+    }
+  }
+
+  /* ---------- render ---------- */
+  return (
+    <div className="dv-pagina">
+      <HeaderEncargado />
+
+      <div className="dv-cuerpo">
+        <aside className="dv-lateral">
+          <Operacion activo="devoluciones" onCambiar={(id) => navigate(RUTAS[id])} />
+        </aside>
+
+        <main className="dv-main">
+          <div className={`dv-grid ${prestamo && mostrarPanel ? 'dv-grid--dos' : ''}`}>
+            {/* ---------- Columna principal ---------- */}
+            <section className="dv-tarjeta-pagina">
+              <h1 className="dv-titulo">Registrar devolución</h1>
+              <p className="dv-subtitulo">Devolución con retraso y accesorio faltante</p>
+
+              {resultado && (
+                <div className="dv-mensaje dv-mensaje--verde" role="status">
+                  <strong>Devolución registrada · {resultado.codigo}.</strong> La unidad{' '}
+                  <span className="dv-mono">{resultado.unidad}</span> pasa al estado «
+                  {resultado.estadoUnidad}».
+                  {resultado.penalidad > 0 &&
+                    ` Se asignó una penalidad de ${soles(resultado.penalidad)} a la cuenta del estudiante.`}
+                </div>
+              )}
+
+              <label className="dv-etiqueta" htmlFor="dv-buscar">
+                Buscar préstamo
+              </label>
+              <div className="dv-buscar">
+                <input
+                  id="dv-buscar"
+                  className="dv-input dv-input--mono"
+                  value={codigo}
+                  placeholder="PRE-2026-0291"
+                  onChange={(e) => setCodigo(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && buscar()}
+                />
+                <button type="button" className="dv-boton dv-boton--primario" onClick={() => buscar()}>
+                  Buscar
+                </button>
+              </div>
+              {errorBusqueda && <p className="dv-error">{errorBusqueda}</p>}
+
+              {prestamo && (
+                <>
+                  {/* Datos del préstamo */}
+                  <div className="dv-datos">
+                    <div>
+                      <span className="dv-dato-etiqueta">Estudiante</span>
+                      <span className="dv-dato-valor">{nombreEstudiante(prestamo.correo)}</span>
+                    </div>
+                    <div>
+                      <span className="dv-dato-etiqueta">Equipo y unidad</span>
+                      <span className="dv-dato-valor">
+                        {prestamo.equipo || 'Equipo'} ·{' '}
+                        <span className="dv-mono dv-negrita">{prestamo.unidad}</span>
+                      </span>
+                    </div>
+                    <div>
+                      <span className="dv-dato-etiqueta">Devolución pactada</span>
+                      <span className="dv-dato-valor dv-mono">{formatear(prestamo.hasta)}</span>
+                    </div>
+                    <div>
+                      <span className="dv-dato-etiqueta">Retorno real</span>
+                      <span className="dv-dato-valor dv-mono">{formatear(retornoReal)}</span>
+                    </div>
+                  </div>
+
+                  {/* Verificación de accesorios */}
+                  <p className="dv-etiqueta">Verificación de accesorios</p>
+                  <ul className="dv-accesorios">
+                    {accesorios.length === 0 && (
+                      <li className="dv-vacio">Este préstamo no registró accesorios en la entrega.</li>
+                    )}
+                    {accesorios.map((nombre) => {
+                      const falta = estado === 'faltantes' && faltantes.includes(nombre)
+                      return (
+                        <li key={nombre}>
+                          <button
+                            type="button"
+                            className={`dv-acc dv-acc--${estado} ${falta ? 'dv-acc--falta' : ''}`}
+                            onClick={() => alternarFaltante(nombre)}
+                            disabled={estado !== 'faltantes'}
+                            aria-pressed={falta}
+                          >
+                            <span className="dv-check">{falta ? '' : '✓'}</span>
+                            <span className="dv-acc-nombre">{nombre}</span>
+                            {falta && <span className="dv-acc-tag">faltante</span>}
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+
+                  {/* Estado de retorno + fecha */}
+                  <div className="dv-fila-estado">
+                    <div className="dv-estado-bloque">
+                      <p className="dv-etiqueta">Estado de retorno</p>
+                      <div className="dv-estados">
+                        {ESTADOS.map((e) => (
+                          <button
+                            key={e.id}
+                            type="button"
+                            className={`dv-estado dv-estado--${e.id} ${estado === e.id ? 'is-activo' : ''}`}
+                            onClick={() => cambiarEstado(e.id)}
+                          >
+                            {estado === e.id ? '◉' : '○'} {e.etiqueta}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="dv-fecha-bloque">
+                      <label className="dv-etiqueta" htmlFor="dv-fecha">
+                        Fecha de retorno
+                      </label>
+                      <input
+                        id="dv-fecha"
+                        className="dv-input dv-input--mono dv-input--click"
+                        value={formatear(retornoReal)}
+                        readOnly
+                        onClick={abrirModal}
+                        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && abrirModal()}
+                        title="Haz clic para renovar el préstamo"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Mensajes de retraso / a tiempo */}
+                  {diasRetraso > 0 ? (
+                    <div className="dv-mensaje dv-mensaje--rojo" role="alert">
+                      <strong>
+                        {diasRetraso} {diasRetraso === 1 ? 'día' : 'días'} de retraso.
+                      </strong>{' '}
+                      Penalidad calculada: <strong className="dv-mono">{soles(penalidad)}</strong> (
+                      {soles(TARIFA_DIA)} por día). La cuenta quedará bloqueada hasta regularizar.
+                    </div>
+                  ) : (
+                    estado === 'sin' && (
+                      <div className="dv-mensaje dv-mensaje--verde" role="status">
+                        <strong>Devolución a tiempo · 0 días de retraso.</strong> Sin penalidad. La unidad{' '}
+                        <span className="dv-mono">{prestamo.unidad}</span> vuelve al estado «Disponible».
+                      </div>
+                    )
+                  )}
+
+                  {errorForm && <p className="dv-error">{errorForm}</p>}
+
+                  <div className="dv-pie">
+                    <button type="button" className="dv-boton" onClick={cancelar}>
+                      Cancelar
+                    </button>
+                    <button type="button" className="dv-boton dv-boton--primario" onClick={guardar}>
+                      Registrar devolución
+                    </button>
+                  </div>
+                </>
+              )}
+            </section>
+
+            {/* ---------- 5.2 Daños o faltantes ---------- */}
+            {prestamo && mostrarPanel && (
+              <section className="dv-panel">
+                <h2 className="dv-panel-titulo">5.2 Registrar daños o faltantes</h2>
+                <p className="dv-panel-sub">Aparece siguiente cuando el retorno no es «sin novedades»</p>
+
+                <label className="dv-etiqueta" htmlFor="dv-desc">
+                  Descripción del daño
+                </label>
+                <textarea
+                  id="dv-desc"
+                  className="dv-textarea"
+                  rows={4}
+                  value={descripcion}
+                  placeholder="Describe el daño o lo que falta..."
+                  onChange={(e) => setDescripcion(e.target.value)}
+                />
+
+                <div className="dv-panel-cols">
+                  {estado === 'faltantes' && (
+                    <div>
+                      <p className="dv-etiqueta">Accesorios faltantes</p>
+                      <ul className="dv-accesorios">
+                        {accesorios.map((nombre) => {
+                          const falta = faltantes.includes(nombre)
+                          return (
+                            <li key={nombre}>
+                              <button
+                                type="button"
+                                className={`dv-acc dv-acc--chico ${falta ? 'dv-acc--falta' : ''}`}
+                                onClick={() => alternarFaltante(nombre)}
+                                aria-pressed={falta}
+                              >
+                                <span className="dv-check dv-check--cuadro">{falta ? '✓' : ''}</span>
+                                <span className="dv-acc-nombre">{nombre}</span>
+                              </button>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className={estado === 'faltantes' ? '' : 'dv-panel-fotos--ancho'}>
+                    <p className="dv-etiqueta">Fotografía del daño</p>
+
+                    <input
+                      ref={inputFotos}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      hidden
+                      onChange={agregarFotos}
+                    />
+
+                    <div className="dv-fotos">
+                      {fotos.map((src, i) => (
+                        <div className="dv-foto" key={i}>
+                          <img src={src} alt={`Daño ${i + 1}`} />
+                          <button
+                            type="button"
+                            className="dv-foto-quitar"
+                            onClick={() => quitarFoto(i)}
+                            aria-label="Quitar foto"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+
+                      {fotos.length < MAX_FOTOS && (
+                        <button
+                          type="button"
+                          className="dv-subir"
+                          onClick={() => inputFotos.current && inputFotos.current.click()}
+                        >
+                          <span className="dv-subir-icono">+</span>
+                          Subir desde tu PC
+                          <small>
+                            {fotos.length}/{MAX_FOTOS} fotos
+                          </small>
+                        </button>
+                      )}
+                    </div>
+                    {errorFoto && <p className="dv-error">{errorFoto}</p>}
+                  </div>
+                </div>
+
+                <label className="dv-interruptor">
+                  <input
+                    type="checkbox"
+                    checked={derivar}
+                    onChange={(e) => setDerivar(e.target.checked)}
+                  />
+                  <span className="dv-interruptor-pista" aria-hidden="true" />
+                  Derivar la unidad a mantenimiento
+                </label>
+
+                <div className="dv-mensaje dv-mensaje--ambar">
+                  <strong>Efecto sobre el inventario.</strong> La unidad{' '}
+                  <span className="dv-mono">{prestamo.unidad}</span>{' '}
+                  {derivar
+                    ? 'pasará a «En mantenimiento» y dejará de estar disponible.'
+                    : 'volverá a «Disponible» sin pasar por mantenimiento.'}
+                </div>
+
+                <div className="dv-pie">
+                  <button type="button" className="dv-boton" onClick={cancelar}>
+                    Cancelar
+                  </button>
+                  <button type="button" className="dv-boton dv-boton--primario" onClick={guardar}>
+                    Guardar y cerrar devolución
+                  </button>
+                </div>
+              </section>
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* ---------- Modal de renovación ---------- */}
+      {modalAbierto && prestamo && (
+        <div className="dv-overlay" onClick={() => setModalAbierto(false)}>
+          <div
+            className="dv-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dv-modal-titulo"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="dv-modal-titulo" className="dv-modal-titulo">
+              Renovar préstamo
+            </h3>
+            <p className="dv-modal-sub">
+              <span className="dv-mono">{prestamo.codigo}</span> · {prestamo.equipo || 'Equipo'} ·{' '}
+              {nombreEstudiante(prestamo.correo)}
+            </p>
+
+            <div className="dv-modal-campos">
+              <div>
+                <label className="dv-etiqueta">Vencimiento actual</label>
+                <input className="dv-input dv-input--mono" value={formatear(prestamo.hasta)} readOnly />
+              </div>
+              <div>
+                <label className="dv-etiqueta" htmlFor="dv-nueva">
+                  Nueva fecha
+                </label>
+                <input
+                  id="dv-nueva"
+                  type="date"
+                  className="dv-input dv-input--mono"
+                  value={nuevaFecha}
+                  min={sumarDias(prestamo.hasta, 1)}
+                  max={sumarDias(prestamo.desde, MAX_DIAS)}
+                  onChange={(e) => setNuevaFecha(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {vencido ? (
+              <div className="dv-mensaje dv-mensaje--ambar">
+                El préstamo ya venció, así que no admite renovación. Registra la devolución.
+              </div>
+            ) : !fechaPosterior ? (
+              <div className="dv-mensaje dv-mensaje--ambar">
+                La nueva fecha debe ser posterior al vencimiento actual.
+              </div>
+            ) : !dentroDelLimite ? (
+              <div className="dv-mensaje dv-mensaje--ambar">
+                Duración total {totalDias} días: supera los {MAX_DIAS} permitidos.
+              </div>
+            ) : (
+              <div className="dv-mensaje dv-mensaje--verde">
+                Duración total {totalDias} de {MAX_DIAS} días permitidos.
+              </div>
+            )}
+
+            <div className="dv-pie">
+              <button type="button" className="dv-boton" onClick={() => setModalAbierto(false)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="dv-boton dv-boton--primario"
+                onClick={renovar}
+                disabled={!renovacionValida}
+              >
+                Renovar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <FooterEncargado />
+    </div>
+  )
+}
+
+export default Devoluciones
