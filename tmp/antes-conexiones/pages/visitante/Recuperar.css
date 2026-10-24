@@ -1,0 +1,290 @@
+/* --- PÁGINA RECUPERAR CONTRASEÑA --- */
+.recuperar-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f4f7f7;
+  padding: 48px var(--pad-x);
+}
+
+.recuperar-card {
+  width: 100%;
+  max-width: 590px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 32px 36px 28px;
+}
+
+.recuperar-card h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 8px;
+}
+
+.recuperar-subtitulo {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: 22px;
+}
+
+/* --- INDICADOR DE PASOS (decorativo) --- */
+.recuperar-pasos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+
+.recuperar-paso {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  user-select: none;
+}
+
+.recuperar-paso-activo {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.recuperar-paso-hecho {
+  background-color: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.recuperar-linea {
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+.recuperar-linea-hecha {
+  background-color: var(--color-primary);
+}
+
+/* --- CAMPOS --- */
+.recuperar-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.recuperar-campo label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.recuperar-campo input {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+}
+
+.recuperar-campo input::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+.recuperar-campo input:focus {
+  border-color: var(--color-primary);
+}
+
+.recuperar-campo input.recuperar-input-error {
+  border-color: var(--color-danger);
+}
+
+.recuperar-ayuda {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.recuperar-error {
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
+/* --- BOTÓN Y ENLACES --- */
+.recuperar-btn {
+  width: 100%;
+  height: 46px;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recuperar-btn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.recuperar-pie {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.recuperar-enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.recuperar-enlace:hover {
+  text-decoration: underline;
+}
+
+.recuperar-mono {
+  font-family: var(--font-mono);
+}
+
+/* --- ESTADO: ALERTA (no registrado / error al guardar) --- */
+.recuperar-alerta {
+  background-color: #fbeceb;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--border-radius);
+  color: var(--color-danger);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.recuperar-enlace-alerta {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-info);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* --- PASO 2: CONFIRMACIÓN DE ENVÍO / ÉXITO --- */
+.recuperar-envio {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.recuperar-envio-icono {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary-soft);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  color: var(--color-primary);
+}
+
+.recuperar-icono-exito {
+  background-color: #e6f2ec;
+  border-color: var(--color-success);
+  color: var(--color-success);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.recuperar-envio h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 8px;
+}
+
+.recuperar-envio p {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+/* --- PASO 3: BARRA DE SEGURIDAD --- */
+.recuperar-seguridad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 18px;
+}
+
+.recuperar-barra {
+  flex: 1;
+  height: 4px;
+  background-color: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.recuperar-barra-relleno {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+
+.recuperar-nivel-debil {
+  background-color: var(--color-danger);
+}
+
+.recuperar-nivel-media {
+  background-color: var(--color-warning);
+}
+
+.recuperar-nivel-segura {
+  background-color: var(--color-success);
+}
+
+.recuperar-etiqueta {
+  min-width: 44px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.recuperar-texto-debil {
+  color: var(--color-danger);
+}
+
+.recuperar-texto-media {
+  color: var(--color-warning);
+}
+
+.recuperar-texto-segura {
+  color: var(--color-success);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 560px) {
+  .recuperar-card {
+    padding: 26px 20px 22px;
+  }
+}

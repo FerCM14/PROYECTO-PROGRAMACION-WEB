@@ -1,0 +1,260 @@
+/* --- PÁGINA MI CUENTA --- */
+.micuenta-main {
+  background-color: #f4f7f7;
+  padding: 24px var(--pad-x) 64px;
+  min-height: 60vh;
+}
+
+.micuenta-ruta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+}
+
+.micuenta-main h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 16px;
+}
+
+/* --- AVISO DE PENALIDAD --- */
+.micuenta-aviso {
+  background-color: #fdf3df;
+  border: 1px solid #e3c27a;
+  border-radius: var(--border-radius);
+  color: var(--color-text);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+}
+
+.micuenta-mono {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  font-weight: 700;
+}
+
+/* --- LAYOUT --- */
+.micuenta-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.micuenta-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.micuenta-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 18px 20px 20px;
+}
+
+.micuenta-card h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 16px;
+}
+
+/* --- CAMPOS --- */
+.micuenta-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.micuenta-fila-una {
+  grid-template-columns: 1fr;
+}
+
+.micuenta-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.micuenta-campo label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.micuenta-campo input,
+.micuenta-campo select {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  font-size: 12px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+}
+
+.micuenta-campo select {
+  cursor: pointer;
+}
+
+.micuenta-campo input:focus,
+.micuenta-campo select:focus {
+  border-color: var(--color-primary);
+}
+
+.micuenta-campo input::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+.micuenta-campo .micuenta-input-error {
+  border-color: var(--color-danger);
+}
+
+.micuenta-input-lectura {
+  background-color: #eef2f2 !important;
+  color: var(--color-text-muted) !important;
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  cursor: default;
+}
+
+.micuenta-mono-input {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+}
+
+.micuenta-ayuda {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.micuenta-error {
+  font-size: 10.5px;
+  color: var(--color-danger);
+}
+
+/* --- ACCIONES --- */
+.micuenta-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.micuenta-acciones .micuenta-mensaje {
+  margin: 0 auto 0 0;
+}
+
+.micuenta-btn-primario,
+.micuenta-btn-secundario,
+.micuenta-btn-bloque {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: var(--border-radius);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.micuenta-btn-primario {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border: 1px solid var(--color-primary);
+}
+
+.micuenta-btn-primario:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.micuenta-btn-secundario,
+.micuenta-btn-bloque {
+  background-color: var(--color-surface);
+  color: var(--color-primary-dark);
+  border: 1px solid var(--color-primary);
+}
+
+.micuenta-btn-secundario:hover,
+.micuenta-btn-bloque:hover {
+  background-color: #eef2f2;
+}
+
+.micuenta-btn-bloque {
+  width: 100%;
+}
+
+/* --- MENSAJES --- */
+.micuenta-mensaje {
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.micuenta-mensaje-exito {
+  color: #2e7d4f;
+}
+
+.micuenta-mensaje-error {
+  color: var(--color-danger);
+}
+
+/* --- RESUMEN DE PRÉSTAMOS --- */
+.micuenta-resumen {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.micuenta-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.micuenta-dato span {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.micuenta-num {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-primary-dark);
+}
+
+.micuenta-num-retraso {
+  color: var(--color-danger);
+}
+
+.micuenta-num-deuda {
+  color: #c27a12;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 860px) {
+  .micuenta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .micuenta-fila {
+    grid-template-columns: 1fr;
+  }
+  .micuenta-acciones {
+    flex-wrap: wrap;
+  }
+}
