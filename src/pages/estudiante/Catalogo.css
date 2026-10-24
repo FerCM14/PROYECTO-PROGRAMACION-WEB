@@ -1,0 +1,425 @@
+/* --- PÁGINA CATÁLOGO --- */
+.catalogo-main {
+  background-color: #f4f7f7;
+  padding: 24px var(--pad-x) 56px;
+  min-height: 70vh;
+}
+
+.catalogo-layout {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+/* --- FILTROS --- */
+.catalogo-filtros {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 16px 14px 14px;
+}
+
+.catalogo-filtros h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 14px;
+}
+
+.catalogo-filtros fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.catalogo-filtros legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.catalogo-opcion {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.catalogo-opcion input {
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.catalogo-opcion em {
+  font-style: normal;
+  color: var(--color-text-muted);
+}
+
+.catalogo-btn-filtrar {
+  width: 100%;
+  height: 32px;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.catalogo-btn-filtrar:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.catalogo-enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.catalogo-enlace-centro {
+  display: block;
+  margin: 12px auto 0;
+}
+
+/* --- CABECERA --- */
+.catalogo-cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.catalogo-cabecera h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 4px;
+}
+
+.catalogo-subtitulo {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.catalogo-herramientas {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.catalogo-buscador,
+.catalogo-orden {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: 11px;
+  outline: none;
+}
+
+.catalogo-buscador {
+  width: 230px;
+}
+
+.catalogo-orden {
+  cursor: pointer;
+}
+
+.catalogo-buscador:focus,
+.catalogo-orden:focus {
+  border-color: var(--color-primary);
+}
+
+.catalogo-buscador::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+/* --- CHIPS DE FILTROS ACTIVOS --- */
+.catalogo-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.catalogo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background-color: #e3f1ec;
+  border: 1px solid #b9dccf;
+  border-radius: var(--border-radius);
+  font-size: 10.5px;
+  color: #1d5a45;
+}
+
+.catalogo-chip button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* --- RETÍCULA DE PRODUCTOS --- */
+.catalogo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.catalogo-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.catalogo-foto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  background: repeating-linear-gradient(
+    135deg,
+    #f1f4f4,
+    #f1f4f4 6px,
+    #e8eded 6px,
+    #e8eded 12px
+  );
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  font-size: 9px;
+  color: var(--color-text-muted);
+}
+
+.catalogo-info {
+  padding: 10px 12px 12px;
+}
+
+.catalogo-info h3 {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 3px;
+}
+
+.catalogo-modelo {
+  font-size: 9.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.catalogo-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.catalogo-etiqueta {
+  padding: 3px 7px;
+  background-color: #e3eef2;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--color-primary-dark);
+}
+
+.catalogo-libres {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  font-size: 10px;
+  color: #1d7a4e;
+}
+
+.catalogo-libres-cero {
+  color: var(--color-danger);
+}
+
+.catalogo-card-link {
+  cursor: pointer;
+}
+
+.catalogo-card-link:hover,
+.catalogo-card-link:focus-visible {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* --- ESTADO: SIN RESULTADOS --- */
+.catalogo-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 56px 20px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.catalogo-vacio-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.catalogo-vacio strong {
+  font-size: 12.5px;
+  color: var(--color-text);
+}
+
+.catalogo-vacio p {
+  font-size: 11px;
+  color: #b07a3a;
+}
+
+.catalogo-vacio .catalogo-enlace {
+  margin-top: 8px;
+}
+
+/* --- ESTADO: CARGANDO (ESQUELETOS) --- */
+.catalogo-cargando-texto {
+  margin-bottom: 12px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.catalogo-esqueleto .catalogo-foto {
+  background: #eef1f1;
+  animation: catalogo-pulso 1.1s ease-in-out infinite;
+}
+
+.catalogo-barra {
+  height: 8px;
+  margin-bottom: 8px;
+  background-color: #e8eded;
+  border-radius: 3px;
+  animation: catalogo-pulso 1.1s ease-in-out infinite;
+}
+
+.catalogo-barra-larga {
+  width: 80%;
+}
+
+.catalogo-barra-media {
+  width: 55%;
+  margin-bottom: 0;
+}
+
+.catalogo-barra-corta {
+  width: 40%;
+}
+
+@keyframes catalogo-pulso {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* --- PAGINACIÓN --- */
+.catalogo-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.catalogo-paginacion p {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.catalogo-paginacion nav {
+  display: flex;
+  gap: 4px;
+}
+
+.catalogo-paginacion nav button {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 10.5px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.catalogo-paginacion nav button.activa {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.catalogo-paginacion nav button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1100px) {
+  .catalogo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .catalogo-layout {
+    grid-template-columns: 1fr;
+  }
+  .catalogo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .catalogo-grid {
+    grid-template-columns: 1fr;
+  }
+  .catalogo-buscador {
+    width: 100%;
+  }
+  .catalogo-paginacion {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
