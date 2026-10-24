@@ -1,0 +1,313 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import HeaderEncargado from '../../components/Header/Header-Encargado'
+import FooterEncargado from '../../components/Footer/Footer-Encargado'
+import Operacion from '../../components/Extra/Operacion'
+import { PRODUCTOS, obtenerCategoria, obtenerProducto } from '../../data/Producto'
+import './Inventario.css'
+
+const ESTADOS = ['Disponible', 'Prestada', 'Mantenimiento', 'De baja']
+const CLAVE_CAMBIOS = 'inventario-estados'
+const POR_PAGINA = 8
+const RUTA_EDITAR = '/encargado/editar-equipo'
+const RUTA_CONDICION = '/encargado/condicion-prestamo'
+
+function leerCambios() {
+  try {
+    const datos = JSON.parse(localStorage.getItem(CLAVE_CAMBIOS))
+    return datos && typeof datos === 'object' ? datos : {}
+  } catch {
+    return {}
+  }
+}
+
+// Unidades del producto con los cambios de estado ya aplicados
+function unidadesDe(productoId, cambios) {
+  const producto = obtenerProducto(productoId)
+  if (!producto) return []
+  return producto.unidades.map((u) => ({
+    ...u,
+    estado: cambios[u.codigo]?.estado || u.estado,
+    nota: cambios[u.codigo]?.nota || ''
+  }))
+}
+
+function contar(unidades) {
+  const c = { Disponible: 0, Prestada: 0, Mantenimiento: 0, 'De baja': 0 }
+  unidades.forEach((u) => {
+    c[u.estado] = (c[u.estado] || 0) + 1
+  })
+  return c
+}
+
+function ResumenUnidades({ conteo }) {
+  const partes = []
+  if (conteo.Disponible) partes.push({ k: 'libres', t: `${conteo.Disponible} libres` })
+  if (conteo.Prestada) partes.push({ k: 'prestadas', t: `${conteo.Prestada} ${conteo.Prestada === 1 ? 'prestada' : 'prestadas'}` })
+  if (conteo.Mantenimiento) partes.push({ k: 'mant', t: `${conteo.Mantenimiento} mant.` })
+  if (conteo['De baja']) partes.push({ k: 'baja', t: `${conteo['De baja']} de baja` })
+
+  if (!partes.length) return <span className="inv-resumen__vacio">Sin unidades</span>
+
+  return partes.map((p, i) => (
+    <span key={p.k}>
+      {i > 0 && <span className="inv-resumen__sep"> · </span>}
+      <span className={`inv-resumen inv-resumen--${p.k}`}>{p.t}</span>
+    </span>
+  ))
+}
+
+function ModalEstado({ producto, unidades, onCerrar, onGuardar }) {
+  const [codigo, setCodigo] = useState(unidades[0]?.codigo || '')
+  const unidad = unidades.find((u) => u.codigo === codigo)
+  const [estado, setEstado] = useState(unidad?.estado || 'Disponible')
+  const [nota, setNota] = useState(unidad?.nota || '')
+
+  useEffect(() => {
+    const alTeclear = (e) => e.key === 'Escape' && onCerrar()
+    window.addEventListener('keydown', alTeclear)
+    return () => window.removeEventListener('keydown', alTeclear)
+  }, [onCerrar])
+
+  function elegirUnidad(nuevoCodigo) {
+    const u = unidades.find((x) => x.codigo === nuevoCodigo)
+    setCodigo(nuevoCodigo)
+    setEstado(u?.estado || 'Disponible')
+    setNota(u?.nota || '')
+  }
+
+  return (
+    <div className="inv-modal__fondo" onClick={onCerrar}>
+      <div
+        className="inv-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="inv-modal-titulo"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="inv-modal-titulo" className="inv-modal__titulo">Cambiar el estado de la unidad</h2>
+        <p className="inv-modal__sub">{producto.nombre}</p>
+
+        <label className="inv-modal__label" htmlFor="inv-unidad">Unidad</label>
+        <select
+          id="inv-unidad"
+          className="inv-modal__select"
+          value={codigo}
+          onChange={(e) => elegirUnidad(e.target.value)}
+        >
+          {unidades.map((u) => (
+            <option key={u.codigo} value={u.codigo}>
+              {u.codigo}
+            </option>
+          ))}
+        </select>
+
+        <div className="inv-modal__estados" role="radiogroup" aria-label="Nuevo estado">
+          {ESTADOS.map((e) => (
+            <button
+              key={e}
+              type="button"
+              role="radio"
+              aria-checked={estado === e}
+              className={`inv-modal__estado ${estado === e ? 'is-activo' : ''}`}
+              onClick={() => setEstado(e)}
+            >
+              {e}
+            </button>
+          ))}
+        </div>
+
+        <label className="inv-modal__label" htmlFor="inv-nota">Motivo (opcional)</label>
+        <textarea
+          id="inv-nota"
+          className="inv-modal__nota"
+          rows={2}
+          value={nota}
+          onChange={(e) => setNota(e.target.value)}
+          placeholder="Ej.: lente con hongos; enviada al servicio técnico."
+        />
+
+        <div className="inv-modal__acciones">
+          <button type="button" className="inv-btn inv-btn--sec" onClick={onCerrar}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="inv-btn inv-btn--pri"
+            disabled={!codigo}
+            onClick={() => onGuardar(codigo, estado, nota)}
+          >
+            Guardar estado
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Inventario() {
+  const [cambios, setCambios] = useState(leerCambios)
+  const [seleccionado, setSeleccionado] = useState(null)
+  const [pagina, setPagina] = useState(1)
+
+  const filas = useMemo(
+    () =>
+      PRODUCTOS.map((p) => {
+        const unidades = unidadesDe(p.id, cambios)
+        return { producto: p, unidades, conteo: contar(unidades) }
+      }),
+    [cambios]
+  )
+
+  function guardar(codigo, estado, nota) {
+    const siguiente = { ...cambios, [codigo]: { estado, nota } }
+    setCambios(siguiente)
+    try {
+      localStorage.setItem(CLAVE_CAMBIOS, JSON.stringify(siguiente))
+    } catch {
+      /* sin almacenamiento: el cambio vive solo en pantalla */
+    }
+    setSeleccionado(null)
+  }
+
+  const filaModal = seleccionado && filas.find((f) => f.producto.id === seleccionado)
+  const totalUnidades = filas.reduce((a, f) => a + f.unidades.length, 0)
+
+  const totalPaginas = Math.max(1, Math.ceil(filas.length / POR_PAGINA))
+  const inicio = (pagina - 1) * POR_PAGINA
+  const filasPagina = filas.slice(inicio, inicio + POR_PAGINA)
+  const desde = filas.length ? inicio + 1 : 0
+  const hasta = inicio + filasPagina.length
+
+  return (
+    <div className="inv-pagina">
+      <HeaderEncargado />
+
+      <div className="inv-cuerpo">
+        <aside className="inv-lateral">
+          <Operacion activo="inventario" totalInventario={totalUnidades} />
+        </aside>
+
+        <main className="inv-contenido">
+        <div className="inv-encabezado">
+          <div>
+            <h1 className="inv-titulo">Inventario de equipos</h1>
+            <p className="inv-subtitulo">
+              {PRODUCTOS.length} modelos · {totalUnidades} unidades registradas en el Almacén H-102
+            </p>
+          </div>
+          <Link to={RUTA_EDITAR} className="inv-btn inv-btn--pri inv-btn--link">
+            Nuevo equipo
+          </Link>
+        </div>
+
+        <div className="inv-tabla__marco">
+          <table className="inv-tabla">
+            <thead>
+              <tr>
+                <th>Foto</th>
+                <th>Equipo</th>
+                <th>Marca y modelo</th>
+                <th>Categoría</th>
+                <th>Unidades por estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filasPagina.map(({ producto: p, conteo }) => (
+                <tr key={p.id}>
+                  <td>
+                    <div className="inv-foto" aria-hidden="true">
+                      {p.fotos?.[0] && <img src={p.fotos[0]} alt="" />}
+                    </div>
+                  </td>
+                  <td className="inv-equipo">{p.nombre}</td>
+                  <td className="inv-marca">
+                    {p.marca} · {p.modelo}
+                  </td>
+                  <td>{obtenerCategoria(p.categoria)?.nombre || '—'}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="inv-celda-estados"
+                      onClick={() => setSeleccionado(p.id)}
+                      aria-label={`Cambiar estado de unidades de ${p.nombre}`}
+                    >
+                      <ResumenUnidades conteo={conteo} />
+                    </button>
+                  </td>
+                  <td>
+                    <span className="inv-acciones">
+                      <Link to={`${RUTA_CONDICION}?id=${p.id}`}>Unidades</Link>
+                      <span className="inv-acciones__sep"> · </span>
+                      <Link to={`${RUTA_CONDICION}?id=${p.id}`}>Condiciones</Link>
+                      <span className="inv-acciones__sep"> · </span>
+                      <Link to={`${RUTA_EDITAR}?id=${p.id}`}>Editar</Link>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {!filas.length && (
+                <tr>
+                  <td colSpan={6} className="inv-vacio">
+                    No hay equipos registrados.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          <div className="inv-pie">
+            <span className="inv-pie__texto">
+              Mostrando {desde} a {hasta} de {filas.length} equipos
+            </span>
+            <div className="inv-paginacion" role="navigation" aria-label="Paginación">
+              <button
+                type="button"
+                className="inv-pag"
+                disabled={pagina === 1}
+                onClick={() => setPagina(pagina - 1)}
+                aria-label="Página anterior"
+              >
+                ‹
+              </button>
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`inv-pag ${n === pagina ? 'is-activo' : ''}`}
+                  aria-current={n === pagina ? 'page' : undefined}
+                  onClick={() => setPagina(n)}
+                >
+                  {n}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="inv-pag"
+                disabled={pagina === totalPaginas}
+                onClick={() => setPagina(pagina + 1)}
+                aria-label="Página siguiente"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+        </div>
+        </main>
+      </div>
+
+      <FooterEncargado />
+
+      {filaModal && (
+        <ModalEstado
+          key={filaModal.producto.id}
+          producto={filaModal.producto}
+          unidades={filaModal.unidades}
+          onCerrar={() => setSeleccionado(null)}
+          onGuardar={guardar}
+        />
+      )}
+    </div>
+  )
+}
