@@ -1,0 +1,247 @@
+/* --- PÁGINA DE REGISTRO --- */
+.registro-main {
+  background-color: #f4f7f7;
+  padding: 48px var(--pad-x) 64px;
+}
+
+.registro-card {
+  max-width: 940px;
+  margin: 0 auto;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 40px 44px 32px;
+}
+
+.registro-card h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 8px;
+}
+
+.registro-subtitulo {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.registro-seccion {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  margin: 24px 0 18px;
+}
+
+/* --- CAMPOS --- */
+.registro-fila {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+  margin-bottom: 18px;
+}
+
+.registro-fila-una {
+  grid-template-columns: 1fr;
+}
+
+.registro-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.registro-campo label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.registro-campo input,
+.registro-campo select {
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+}
+
+.registro-campo input::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+.registro-campo input:focus,
+.registro-campo select:focus {
+  border-color: var(--color-primary);
+}
+
+.registro-campo input.registro-input-error,
+.registro-campo select.registro-input-error {
+  border-color: var(--color-danger);
+}
+
+.registro-ayuda {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.registro-error {
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
+/* --- CHECKBOX --- */
+.registro-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+.registro-check input {
+  margin-top: 3px;
+  accent-color: var(--color-primary);
+}
+
+/* --- ACCIONES --- */
+.registro-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-border);
+}
+
+.registro-resumen-error {
+  margin-right: auto;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-danger);
+}
+
+.registro-btn-primario,
+.registro-btn-secundario {
+  height: 42px;
+  padding: 0 22px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-primary);
+  cursor: pointer;
+}
+
+.registro-btn-primario {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.registro-btn-primario:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.registro-btn-secundario {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+}
+
+.registro-btn-secundario:hover {
+  background-color: var(--color-primary-soft);
+}
+
+/* --- ESTADO: NOTIFICACIÓN (CORREO YA REGISTRADO) --- */
+.registro-alerta {
+  background-color: #fbeceb;
+  border: 1px solid var(--color-danger);
+  border-radius: var(--border-radius);
+  color: var(--color-danger);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 12px 16px;
+  margin: 16px 0 4px;
+}
+
+.registro-enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-info);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.registro-mono {
+  font-family: var(--font-mono);
+}
+
+/* --- ESTADO: ÉXITO --- */
+.registro-exito {
+  max-width: 520px;
+  margin: 40px auto;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 40px 36px;
+  text-align: center;
+}
+
+.registro-exito-icono {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e6f2ec;
+  border: 1px solid var(--color-success);
+  border-radius: var(--border-radius);
+  color: var(--color-success);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.registro-exito h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: 8px;
+}
+
+.registro-exito p {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 700px) {
+  .registro-card {
+    padding: 28px 20px 24px;
+  }
+  .registro-fila {
+    grid-template-columns: 1fr;
+  }
+  .registro-acciones {
+    flex-wrap: wrap;
+  }
+  .registro-resumen-error {
+    width: 100%;
+  }
+}

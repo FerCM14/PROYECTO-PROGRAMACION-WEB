@@ -1,0 +1,130 @@
+/* src/pages/RegistroEntrega.css */
+.re-app {
+  --verde: #1d4a52;
+  --verde-claro: #e3eeee;
+  --rojo: #c0392b;
+  --ambar: #b7791f;
+  --ambar-fondo: #fdf3dc;
+  --texto: #1c2428;
+  --suave: #68757b;
+  --borde: #d9dfe1;
+  --fondo: #f4f6f6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+}
+.re-app button { font-family: inherit; cursor: pointer; }
+.re-mono { font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+
+/* Estructura: menú Operación + contenido */
+.re-body { flex: 1; display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 0; }
+.re-side { width: 230px; min-width: 0; overflow: hidden; background: #fff; border-right: 1px solid var(--borde); }
+.re-side > * { width: 100%; max-width: 100%; box-sizing: border-box; }
+.re-main { display: block; min-width: 0; padding: 22px 28px 40px; }
+.re-main > * { max-width: 100%; }
+
+.re-migas { margin: 0 0 4px; font-size: 11px; color: var(--suave); }
+.re-migas a { color: var(--suave); text-decoration: none; }
+.re-migas a:hover { text-decoration: underline; }
+.re-titulo { margin: 0 0 18px; font-size: 22px; font-weight: 700; }
+.re-vacio { margin: 0; padding: 20px 24px; max-width: 640px; line-height: 1.5; background: #fff; border: 1px solid var(--borde); border-radius: 4px; }
+
+/* Rejilla: un panel, o dos cuando aparece la constancia */
+.re-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; max-width: 560px; }
+.re-grid.con-constancia { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: none; }
+
+.re-panel { background: #fff; border: 1px solid var(--borde); border-radius: 4px; padding: 16px; }
+.re-etiqueta {
+  display: block; margin-bottom: 4px; font-size: 10px; font-weight: 600; color: var(--suave);
+  text-transform: uppercase; letter-spacing: .05em;
+}
+
+/* Resumen */
+.re-resumen {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; margin-bottom: 18px;
+  padding: 14px 16px; background: var(--fondo); border: 1px solid var(--borde); border-radius: 3px;
+}
+.re-resumen p { margin: 0; }
+
+/* Accesorios con checks: sin marcar se pintan en amarillo */
+.re-accesorios { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 18px; padding-top: 8px; border-top: 1px solid var(--borde); }
+.re-accesorio {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer;
+  background: #fff; border: 1px solid var(--borde); border-radius: 4px;
+}
+.re-accesorio span { flex: 1; }
+.re-accesorio em { font-style: normal; font-size: 11px; color: var(--suave); }
+.re-accesorio input { accent-color: var(--verde); width: 14px; height: 14px; }
+.re-accesorio.no { background: var(--ambar-fondo); border-color: #e6cd8f; }
+.re-accesorio.no em { color: var(--ambar); font-weight: 600; }
+.re-nota { margin: 0; color: var(--suave); }
+
+/* Campos */
+.re-fila { display: grid; grid-template-columns: 170px 1fr; gap: 14px; }
+.re-campo { display: block; }
+.re-campo input, .re-campo textarea {
+  width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit;
+  border: 1px solid var(--borde); border-radius: 4px; background: #fff; resize: vertical;
+}
+.re-campo input:disabled, .re-campo textarea:disabled { background: var(--fondo); color: var(--suave); }
+.re-error { margin: 12px 0 0; color: var(--rojo); font-weight: 600; }
+
+.re-pie { display: flex; justify-content: flex-end; align-items: center; gap: 18px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--borde); }
+.re-cancelar { background: none; border: 0; padding: 0; color: var(--texto); font-size: 12px; text-decoration: underline; }
+
+/* Botones */
+.re-btn { padding: 9px 16px; border-radius: 4px; border: 1px solid transparent; font-size: 12px; font-weight: 600; }
+.re-btn.primario { background: var(--verde); color: #fff; }
+.re-btn.primario:hover:not(:disabled) { background: #163b41; }
+.re-btn.primario:disabled { background: #7e9ba0; cursor: default; }
+.re-btn.outline { background: #fff; color: var(--verde); border-color: var(--verde); }
+.re-btn.outline:hover { background: var(--verde-claro); }
+.re-app button:focus-visible, .re-app input:focus-visible, .re-app textarea:focus-visible {
+  outline: 2px solid #2b5fa8; outline-offset: 2px;
+}
+
+/* Constancia */
+.re-constancia-cab { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.re-constancia-cab h2 { margin: 0; font-size: 14px; }
+.re-acciones { display: flex; gap: 8px; }
+
+.re-hoja { border: 1px solid var(--borde); padding: 22px 24px; background: #fff; }
+.re-hoja-cab { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--texto); margin-bottom: 16px; }
+.re-hoja-cab h3 { margin: 2px 0 0; font-size: 18px; color: var(--verde); }
+.re-hoja-codigo { text-align: right; }
+.re-hoja-codigo p { margin: 0; font-size: 15px; font-weight: 600; }
+.re-hoja-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 24px; margin-bottom: 16px; }
+.re-hoja-datos p { margin: 0 0 2px; }
+.re-hoja small { color: var(--suave); font-size: 11px; }
+
+.re-tabla { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 12px; }
+.re-tabla th, .re-tabla td { text-align: left; padding: 9px 12px; border: 1px solid var(--borde); }
+.re-tabla th { background: var(--fondo); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--suave); }
+.re-tabla td:last-child, .re-tabla th:last-child { width: 130px; }
+
+.re-declaracion { margin: 18px 0 0; font-size: 11.5px; line-height: 1.55; }
+.re-firmas { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 44px; }
+.re-firmas hr { margin: 0 0 6px; border: 0; border-top: 1px solid var(--texto); }
+
+@media (max-width: 1100px) {
+  .re-grid.con-constancia { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 860px) {
+  .re-body { grid-template-columns: minmax(0, 1fr); }
+  .re-side { width: 100%; border-right: 0; border-bottom: 1px solid var(--borde); }
+  .re-main { padding: 18px 14px 32px; }
+  .re-fila, .re-resumen { grid-template-columns: 1fr; }
+}
+
+/* Impresión: solo la constancia */
+@media print {
+  @page { margin: 14mm; }
+  body * { visibility: hidden; }
+  .re-hoja, .re-hoja * { visibility: visible; }
+  .re-hoja { position: absolute; left: 0; top: 0; width: 100%; border: 0; padding: 0; box-sizing: border-box; }
+  .re-no-print { display: none !important; }
+}

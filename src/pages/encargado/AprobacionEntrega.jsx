@@ -1,0 +1,565 @@
+// src/pages/AprobacionEntrega.jsx
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
+import { obtenerCuenta } from '../../data/cuentas'
+import { crearPrestamo } from '../../data/Identificacion'
+import { PRODUCTOS, CATEGORIAS, obtenerProducto } from '../../data/Producto'
+import HeaderEncargado from '../../components/Header/Header-Encargado'
+import Operacion from '../../components/Extra/Operacion'
+import FooterEncargado from '../../components/Footer/Footer-Encargado'
+import './AprobacionEntrega.css'
+
+const CLAVE_SOLICITUDES = 'solicitudes'
+const POR_PAGINA = 7
+const DIAS_PROPUESTA = 5
+
+const MOTIVOS_RECHAZO = [
+  'Penalidad pendiente',
+  'Sin unidades disponibles',
+  'Equipo en mantenimiento',
+  'Datos incompletos',
+  'Otro'
+]
+
+/* ---------- Utilidades ---------- */
+
+// Los nombres de campo de la solicitud pueden variar: se toma el primero que exista
+const pick = (obj, claves, defecto = '') => {
+  for (const c of claves) if (obj[c] !== undefined && obj[c] !== null && obj[c] !== '') return obj[c]
+  return defecto
+}
+const claveDe = (obj, claves, defecto) => claves.find((c) => obj[c] !== undefined) || defecto
+
+const desdeDe = (s) => pick(s, ['fechaInicio', 'desde', 'inicio', 'fechaRecojo'])
+const hastaDe = (s) => pick(s, ['fechaFin', 'hasta', 'fin', 'fechaDevolucion', 'devolucion'])
+const equipoDe = (s) => pick(s, ['equipo', 'nombreEquipo', 'producto', 'nombreProducto'])
+const motivoDe = (s) => pick(s, ['motivo', 'proposito', 'uso', 'descripcion'])
+
+function buscarProducto(s) {
+  const id = pick(s, ['productoId', 'idProducto', 'equipoId', 'idEquipo'], null)
+  if (id !== null) return obtenerProducto(id)
+  const codigo = pick(s, ['codigoProducto', 'codigoEquipo'], null)
+  const nombre = String(equipoDe(s)).toLowerCase()
+  const p = PRODUCTOS.find(
+    (x) => (codigo && x.codigo === codigo) || (nombre && x.nombre.toLowerCase() === nombre)
+  )
+  return p ? obtenerProducto(p.id) : null
+}
+
+const fmt = (iso, conAnio = true) => {
+  if (!iso) return '—'
+  const [a, m, d] = String(iso).slice(0, 10).split('-')
+  return conAnio ? `${d}/${m}/${a}` : `${d}/${m}`
+}
+
+const sumarDias = (iso, dias) => {
+  const f = new Date(`${iso}T12:00:00`)
+  f.setDate(f.getDate() + dias)
+  return f.toISOString().slice(0, 10)
+}
+
+const soles = (n) => `S/ ${Number(n || 0).toFixed(2)}`
+
+function antiguedad(s) {
+  const base = s.creada || s.fecha
+  if (!base) return '—'
+  const ms = Date.now() - new Date(String(base).length > 10 ? base : `${base}T00:00:00`).getTime()
+  const horas = Math.floor(ms / 36e5)
+  if (horas < 1) return 'hace un momento'
+  if (horas < 24) return `hace ${horas} h`
+  return `hace ${Math.floor(horas / 24)} d`
+}
+
+function guardarCambios(codigo, cambios) {
+  try {
+    const lista = JSON.parse(localStorage.getItem(CLAVE_SOLICITUDES)) || []
+    localStorage.setItem(
+      CLAVE_SOLICITUDES,
+      JSON.stringify(lista.map((s) => (s.codigo === codigo ? { ...s, ...cambios } : s)))
+    )
+  } catch {
+    /* sin acceso a localStorage */
+  }
+}
+
+// Unidades "Disponible" que no están asignadas a otra solicitud que se cruce con el rango
+function unidadesLibres(producto, desde, hasta, todas, codigoActual) {
+  if (!producto) return []
+  return producto.unidades.filter((u) => {
+    if (u.estado !== 'Disponible') return false
+    return !todas.some(
+      (o) =>
+        o.codigo !== codigoActual &&
+        ['Aprobada', 'Entregada'].includes(o.estado) &&
+        o.unidad === u.codigo &&
+        desdeDe(o) <= hasta &&
+        hastaDe(o) >= desde
+    )
+  })
+}
+
+/* ---------- Componente ---------- */
+
+export default function AprobacionEntrega() {
+  const navigate = useNavigate()
+  const [solicitudes, setSolicitudes] = useState(() => obtenerTodasLasSolicitudes())
+  const [filtroEstado, setFiltroEstado] = useState('Enviada')
+  const [filtroCategoria, setFiltroCategoria] = useState('todas')
+  const [busqueda, setBusqueda] = useState('')
+  const [pagina, setPagina] = useState(1)
+  const [modal, setModal] = useState(null) // { tipo, fila }
+  const [unidadElegida, setUnidadElegida] = useState('')
+  const [motivoRechazo, setMotivoRechazo] = useState(MOTIVOS_RECHAZO[0])
+  const [detalleRechazo, setDetalleRechazo] = useState('')
+
+  const recargar = () => setSolicitudes(obtenerTodasLasSolicitudes())
+
+  // Solo solicitudes de usuarios registrados (existen en Cuentas)
+  const filas = useMemo(
+    () =>
+      solicitudes
+        .map((s) => {
+          const cuenta = obtenerCuenta(s.correo || '')
+          if (!cuenta) return null
+          return { s, cuenta, producto: buscarProducto(s), deuda: cuenta.deuda || null }
+        })
+        .filter(Boolean)
+        .sort((a, b) => String(b.s.creada || b.s.fecha).localeCompare(String(a.s.creada || a.s.fecha))),
+    [solicitudes]
+  )
+
+  // Aviso rojo: suma de la deuda de los solicitantes con deuda
+  const deudores = useMemo(() => {
+    const porCorreo = new Map()
+    filas.forEach(({ cuenta, deuda }) => {
+      if (deuda && Number(deuda.monto) > 0) porCorreo.set(cuenta.correo, Number(deuda.monto))
+    })
+    return { cantidad: porCorreo.size, total: [...porCorreo.values()].reduce((a, b) => a + b, 0) }
+  }, [filas])
+
+  const conteo = (estado) => filas.filter((f) => f.s.estado === estado).length
+
+  const visibles = filas.filter(({ s, cuenta, producto }) => {
+    if (filtroEstado !== 'todas' && s.estado !== filtroEstado) return false
+    if (filtroCategoria !== 'todas' && producto?.categoria !== filtroCategoria) return false
+    const q = busqueda.trim().toLowerCase()
+    if (!q) return true
+    const texto = `${cuenta.nombres} ${cuenta.apellidos} ${cuenta.carrera} ${equipoDe(s)} ${motivoDe(s)} ${s.codigo}`
+    return texto.toLowerCase().includes(q)
+  })
+
+  const totalPaginas = Math.max(1, Math.ceil(visibles.length / POR_PAGINA))
+  const paginaActual = Math.min(pagina, totalPaginas)
+  const pagVisibles = visibles.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA)
+
+  /* ----- Acciones ----- */
+
+  const cerrar = () => setModal(null)
+
+  const alAprobar = (fila) => {
+    const desde = desdeDe(fila.s)
+    const hasta = hastaDe(fila.s)
+    const libres = unidadesLibres(fila.producto, desde, hasta, solicitudes, fila.s.codigo)
+    const tipo = fila.deuda || libres.length === 0 ? 'bloqueo' : 'aprobar'
+    setUnidadElegida(libres[0]?.codigo || '')
+    setModal({ tipo, fila, libres })
+  }
+
+  const alRechazar = (fila) => {
+    setMotivoRechazo(fila.deuda ? 'Penalidad pendiente' : MOTIVOS_RECHAZO[1])
+    setDetalleRechazo('')
+    setModal({ tipo: 'rechazar', fila })
+  }
+
+  const confirmarAprobacion = () => {
+    if (!unidadElegida) return
+    const { s, cuenta, producto } = modal.fila
+    const { prestamo } = crearPrestamo({
+      solicitud: s.codigo,
+      correo: cuenta.correo,
+      productoId: producto?.id ?? null,
+      equipo: equipoDe(s) || producto?.nombre || '',
+      unidad: unidadElegida,
+      desde: desdeDe(s),
+      hasta: hastaDe(s)
+    })
+    guardarCambios(s.codigo, { estado: 'Aprobada', unidad: unidadElegida, prestamo: prestamo.codigo })
+    recargar()
+    cerrar()
+    setFiltroEstado('Aprobada')
+  }
+
+  const confirmarRechazo = () => {
+    const detalle = detalleRechazo.trim()
+    guardarCambios(modal.fila.s.codigo, {
+      estado: 'Rechazada',
+      motivoRechazo: detalle ? `${motivoRechazo}: ${detalle}` : motivoRechazo
+    })
+    recargar()
+    cerrar()
+    setFiltroEstado('Rechazada')
+  }
+
+  // Posponer: propone un rango de 5 días y reprograma la solicitud
+  const propuestaDe = (fila) => {
+    const desde = desdeDe(fila.s)
+    const liberacion = fila.producto?.proximaLiberacion
+    const inicio = liberacion && liberacion > desde ? liberacion : sumarDias(desde || new Date().toISOString().slice(0, 10), 1)
+    return { inicio, fin: sumarDias(inicio, DIAS_PROPUESTA) }
+  }
+
+  const confirmarPropuesta = () => {
+    const { inicio, fin } = propuestaDe(modal.fila)
+    const s = modal.fila.s
+    guardarCambios(s.codigo, {
+      [claveDe(s, ['fechaInicio', 'desde', 'inicio'], 'fechaInicio')]: inicio,
+      [claveDe(s, ['fechaFin', 'hasta', 'fin'], 'fechaFin')]: fin,
+      reprogramada: true
+    })
+    recargar()
+    cerrar()
+  }
+
+  const irARegistrarEntrega = (fila) => navigate(`/encargado/registro-entrega?codigo=${encodeURIComponent(fila.s.prestamo)}`)
+
+  /* ----- Render ----- */
+
+  return (
+    <div className="ae-app">
+      <HeaderEncargado />
+
+      <div className="ae-body">
+        <div className="ae-side">
+          <Operacion />
+        </div>
+
+        <main className="ae-main">
+          <div className="ae-head">
+            <div>
+              <h1>Bandeja de solicitudes</h1>
+              <p className="ae-sub">{filas.length} solicitudes · Almacén H-102</p>
+            </div>
+            <div className="ae-tabs">
+              {[
+                ['Enviada', 'Enviadas'],
+                ['Aprobada', 'Aprobadas'],
+                ['Rechazada', 'Rechazadas']
+              ].map(([valor, texto]) => (
+                <button
+                  key={valor}
+                  type="button"
+                  className={filtroEstado === valor ? 'activo' : ''}
+                  onClick={() => {
+                    setFiltroEstado(valor)
+                    setPagina(1)
+                  }}
+                >
+                  {texto} {conteo(valor)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <br />    
+          {deudores.cantidad > 0 && (
+            <div className="ae-alerta" role="alert">
+              <strong>Aviso de deuda pendiente.</strong> {deudores.cantidad}{' '}
+              {deudores.cantidad === 1 ? 'solicitante de esta bandeja tiene' : 'solicitantes de esta bandeja tienen'}{' '}
+              penalidades sin regularizar por <span className="ae-mono">{soles(deudores.total)}</span> en total. Sus filas
+              están marcadas con el indicador de deuda.
+            </div>
+          )}
+          <br />
+          <div className="ae-filtros">
+            <label>
+              <span>Estado:</span>
+              <select
+                value={filtroEstado}
+                onChange={(e) => {
+                  setFiltroEstado(e.target.value)
+                  setPagina(1)
+                }}
+              >
+                <option value="Enviada">enviadas</option>
+                <option value="Aprobada">aprobadas</option>
+                <option value="Rechazada">rechazadas</option>
+                <option value="Entregada">entregadas</option>
+                <option value="todas">todas</option>
+              </select>
+            </label>
+            <label>
+              <span>Categoría:</span>
+              <select
+                value={filtroCategoria}
+                onChange={(e) => {
+                  setFiltroCategoria(e.target.value)
+                  setPagina(1)
+                }}
+              >
+                <option value="todas">todas</option>
+                {CATEGORIAS.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <input
+              type="search"
+              placeholder="Buscar por estudiante, curso o equipo"
+              value={busqueda}
+              onChange={(e) => {
+                setBusqueda(e.target.value)
+                setPagina(1)
+              }}
+            />
+          </div>
+
+          <div className="ae-tabla-wrap">
+            <table className="ae-tabla">
+              <thead>
+                <tr>
+                  <th>Solicitante</th>
+                  <th>Equipo</th>
+                  <th>Fechas</th>
+                  <th>Motivo</th>
+                  <th>Antigüedad</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pagVisibles.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="ae-vacio">
+                      No hay solicitudes con estos filtros.
+                    </td>
+                  </tr>
+                )}
+                {pagVisibles.map((fila) => {
+                  const { s, cuenta, deuda } = fila
+                  return (
+                    <tr key={s.codigo} className={deuda ? 'con-deuda' : ''}>
+                      <td>
+                        <div className="ae-nombre">
+                          {cuenta.nombres} {cuenta.apellidos}
+                        </div>
+                        <div className="ae-meta">
+                          {cuenta.carrera}
+                          {cuenta.ciclo ? ` · ${cuenta.ciclo}` : ''}
+                        </div>
+                        {deuda && <div className="ae-deuda">Deuda {soles(deuda.monto)}</div>}
+                      </td>
+                      <td>{equipoDe(s) || fila.producto?.nombre || '—'}</td>
+                      <td className="ae-mono">
+                        {fmt(desdeDe(s), false)} → {fmt(hastaDe(s))}
+                      </td>
+                      <td className="ae-motivo">{motivoDe(s) || '—'}</td>
+                      <td className="ae-mono ae-meta">{antiguedad(s)}</td>
+                      <td>
+                        <span className={`ae-chip ${s.estado.toLowerCase()}`}>{s.estado}</span>
+                      </td>
+                      <td>
+                        {s.estado === 'Enviada' && (
+                          <div className="ae-acciones">
+                            <button type="button" className="ae-btn primario" onClick={() => alAprobar(fila)}>
+                              Aprobar
+                            </button>
+                            <button type="button" className="ae-btn peligro-borde" onClick={() => alRechazar(fila)}>
+                              Rechazar
+                            </button>
+                          </div>
+                        )}
+                        {s.estado === 'Aprobada' && (
+                          <>
+                            <button
+                              type="button"
+                              className="ae-link"
+                              disabled={!s.prestamo}
+                              onClick={() => irARegistrarEntrega(fila)}
+                            >
+                              Registrar entrega
+                            </button>
+                            {s.prestamo && <div className="ae-meta ae-mono">{s.prestamo}</div>}
+                          </>
+                        )}
+                        {s.estado === 'Rechazada' && (
+                          <button type="button" className="ae-link" onClick={() => setModal({ tipo: 'motivo', fila })}>
+                            Ver motivo
+                          </button>
+                        )}
+                        {s.estado === 'Entregada' && <span className="ae-meta ae-mono">{s.prestamo || s.unidad}</span>}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+
+            <div className="ae-pie-tabla">
+              <span className="ae-meta">
+                {visibles.length === 0
+                  ? 'Sin resultados'
+                  : `Mostrando ${(paginaActual - 1) * POR_PAGINA + 1} a ${Math.min(
+                      paginaActual * POR_PAGINA,
+                      visibles.length
+                    )} de ${visibles.length} solicitudes`}
+              </span>
+              <div className="ae-paginas">
+                <button type="button" disabled={paginaActual === 1} onClick={() => setPagina(paginaActual - 1)}>
+                  ‹
+                </button>
+                {Array.from({ length: totalPaginas }, (_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={paginaActual === i + 1 ? 'activo' : ''}
+                    onClick={() => setPagina(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button type="button" disabled={paginaActual === totalPaginas} onClick={() => setPagina(paginaActual + 1)}>
+                  ›
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <FooterEncargado />
+
+      {/* ---------- Modales ---------- */}
+      {modal && (
+        <div className="ae-overlay" onClick={cerrar}>
+          <div className="ae-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            {/* 4.2 Aprobar: asignar unidad */}
+            {modal.tipo === 'aprobar' && (
+              <>
+                <h2>Aprobar solicitud</h2>
+                <p className="ae-modal-sub">
+                  {modal.fila.cuenta.nombres} {modal.fila.cuenta.apellidos} · {equipoDe(modal.fila.s)} ·{' '}
+                  {fmt(desdeDe(modal.fila.s), false)} → {fmt(hastaDe(modal.fila.s))}
+                </p>
+                <p className="ae-etiqueta">Unidad a asignar</p>
+                <div className="ae-unidades">
+                  {modal.libres.map((u) => (
+                    <label key={u.codigo} className={unidadElegida === u.codigo ? 'sel' : ''}>
+                      <input
+                        type="radio"
+                        name="unidad"
+                        checked={unidadElegida === u.codigo}
+                        onChange={() => setUnidadElegida(u.codigo)}
+                      />
+                      <span className="ae-mono">{u.codigo}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="ae-meta">
+                  {modal.libres.length} {modal.libres.length === 1 ? 'unidad libre' : 'unidades libres'} en todo el rango
+                  solicitado.
+                </p>
+                <div className="ae-modal-pie">
+                  <button type="button" className="ae-btn neutro" onClick={cerrar}>
+                    Cancelar
+                  </button>
+                  <button type="button" className="ae-btn primario" onClick={confirmarAprobacion}>
+                    Aprobar y asignar
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* 4.3 Sin unidades en el rango o solicitante con deuda */}
+            {modal.tipo === 'bloqueo' && (
+              <>
+                <h2>Aprobar solicitud</h2>
+                <p className="ae-modal-sub">
+                  {modal.fila.cuenta.nombres} {modal.fila.cuenta.apellidos} · {equipoDe(modal.fila.s)} ·{' '}
+                  {fmt(desdeDe(modal.fila.s), false)} → {fmt(hastaDe(modal.fila.s))}
+                </p>
+                {modal.fila.deuda && (
+                  <div className="ae-aviso rojo">
+                    La solicitante tiene una penalidad pendiente de <b className="ae-mono">{soles(modal.fila.deuda.monto)}</b>.
+                  </div>
+                )}
+                {modal.libres.length === 0 && (
+                  <div className="ae-aviso amarillo">
+                    No hay unidades libres en todo el rango.{' '}
+                    {modal.fila.producto?.proximaLiberacion
+                      ? `La primera se libera el ${fmt(modal.fila.producto.proximaLiberacion)}.`
+                      : 'No hay fecha de liberación registrada.'}
+                  </div>
+                )}
+                <button type="button" className="ae-btn deshabilitado" disabled>
+                  Aprobar y asignar
+                </button>
+                <button type="button" className="ae-btn outline" onClick={confirmarPropuesta}>
+                  Proponer del {fmt(propuestaDe(modal.fila).inicio, false)} al {fmt(propuestaDe(modal.fila).fin, false)}
+                </button>
+                <div className="ae-modal-pie">
+                  <button type="button" className="ae-btn neutro" onClick={cerrar}>
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* 4.4 Rechazar */}
+            {modal.tipo === 'rechazar' && (
+              <>
+                <h2>Rechazar solicitud</h2>
+                <p className="ae-modal-sub">
+                  {modal.fila.cuenta.nombres} {modal.fila.cuenta.apellidos} · {equipoDe(modal.fila.s)}
+                </p>
+                <label className="ae-campo">
+                  <span className="ae-etiqueta">Motivo *</span>
+                  <select value={motivoRechazo} onChange={(e) => setMotivoRechazo(e.target.value)}>
+                    {MOTIVOS_RECHAZO.map((m) => (
+                      <option key={m}>{m}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="ae-campo">
+                  <span className="ae-etiqueta">Detalle</span>
+                  <textarea
+                    rows={4}
+                    value={detalleRechazo}
+                    onChange={(e) => setDetalleRechazo(e.target.value)}
+                    placeholder="Explica el motivo a la estudiante"
+                  />
+                </label>
+                <div className="ae-aviso amarillo">Este texto será visible para la estudiante en su detalle de solicitud.</div>
+                <div className="ae-modal-pie">
+                  <button type="button" className="ae-btn neutro" onClick={cerrar}>
+                    Cancelar
+                  </button>
+                  <button type="button" className="ae-btn peligro" onClick={confirmarRechazo}>
+                    Rechazar
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Ver motivo */}
+            {modal.tipo === 'motivo' && (
+              <>
+                <h2>Motivo del rechazo</h2>
+                <p className="ae-modal-sub">
+                  {modal.fila.cuenta.nombres} {modal.fila.cuenta.apellidos} · {equipoDe(modal.fila.s)}
+                </p>
+                <p>{modal.fila.s.motivoRechazo || 'Sin motivo registrado.'}</p>
+                <div className="ae-modal-pie">
+                  <button type="button" className="ae-btn neutro" onClick={cerrar}>
+                    Cerrar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

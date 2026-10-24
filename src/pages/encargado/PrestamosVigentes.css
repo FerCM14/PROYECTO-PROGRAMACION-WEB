@@ -1,0 +1,223 @@
+/* src/pages/encargado/PrestamosVigentes.css */
+.pv-pagina {
+  --pv-teal: #1d4f5c;
+  --pv-texto: #16222a;
+  --pv-gris: #6b7780;
+  --pv-borde: #dfe3e6;
+  --pv-fondo: #f4f6f7;
+  --pv-rojo: #b3261e;
+  --pv-rojo-fondo: #fbe9e8;
+  --pv-ambar: #c98a0b;
+  --pv-ambar-fondo: #fdf3dc;
+  --pv-verde: #2e7d4f;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--pv-fondo);
+  color: var(--pv-texto);
+  font-family: 'Barlow', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Cuerpo: menú lateral + contenido */
+.pv-cuerpo {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Columna del menú: ancho fijo, no se estira */
+.pv-lateral {
+  flex: 0 0 220px;
+  width: 220px;
+  max-width: 220px;
+  background: #fff;
+  border-right: 1px solid var(--pv-borde);
+  overflow: hidden;
+}
+
+.pv-lateral > * {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Contenido principal: toma el resto del ancho */
+.pv-main {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 20px 20px 40px;
+}
+
+.pv-titulo {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.pv-subtitulo {
+  margin: 4px 0 22px;
+  font-size: 12px;
+  color: var(--pv-gris);
+}
+
+.pv-vacio {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--pv-gris);
+}
+
+.pv-seccion {
+  margin-bottom: 22px;
+}
+
+.pv-etiqueta {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--pv-gris);
+}
+
+.pv-etiqueta--rojo {
+  color: var(--pv-rojo);
+}
+
+.pv-etiqueta--ambar {
+  color: var(--pv-ambar);
+}
+
+/* Tablas */
+.pv-tabla {
+  background: #fff;
+  border: 1px solid var(--pv-borde);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pv-tabla--vencidos {
+  border-color: var(--pv-rojo);
+  background: var(--pv-rojo-fondo);
+}
+
+.pv-tabla--hoy {
+  border-color: var(--pv-ambar);
+  background: var(--pv-ambar-fondo);
+}
+
+.pv-fila {
+  display: grid;
+  grid-template-columns: 1.1fr 1.1fr 2fr 1.1fr 1.1fr 1.4fr;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  min-height: 35px;
+  font-size: 11px;
+  border-top: 1px solid var(--pv-borde);
+}
+
+.pv-tabla--vencidos .pv-fila {
+  background: #fff;
+}
+
+.pv-tabla--hoy .pv-fila {
+  border-top: 0;
+}
+
+.pv-fila--cabecera {
+  border-top: 0;
+  background: var(--pv-fondo);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pv-gris);
+}
+
+.pv-tabla--vencidos .pv-fila--cabecera {
+  background: var(--pv-rojo-fondo);
+  color: var(--pv-rojo);
+}
+
+.pv-codigo {
+  font-family: 'IBM Plex Mono', 'Consolas', monospace;
+  font-weight: 700;
+}
+
+.pv-mono {
+  font-family: 'IBM Plex Mono', 'Consolas', monospace;
+  color: var(--pv-gris);
+}
+
+/* Chips */
+.pv-chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: 'IBM Plex Mono', 'Consolas', monospace;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.pv-chip--retraso {
+  background: var(--pv-rojo);
+  color: #fff;
+  font-weight: 700;
+}
+
+.pv-chip--hoy {
+  border: 1px solid var(--pv-ambar);
+  color: var(--pv-ambar);
+  background: #fff;
+}
+
+.pv-chip--curso {
+  border: 1px solid #bcd9c8;
+  color: var(--pv-verde);
+  background: #fff;
+}
+
+/* Acciones */
+.pv-accion {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pv-teal);
+  cursor: pointer;
+}
+
+.pv-accion:hover {
+  text-decoration: underline;
+}
+
+.pv-punto {
+  color: var(--pv-gris);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .pv-cuerpo {
+    flex-direction: column;
+  }
+
+  .pv-lateral {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--pv-borde);
+  }
+
+  .pv-tabla {
+    overflow-x: auto;
+  }
+
+  .pv-fila {
+    min-width: 760px;
+  }
+}

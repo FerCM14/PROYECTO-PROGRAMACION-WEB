@@ -1,0 +1,239 @@
+/* RegistroEncargado.css */
+
+.re-page {
+  --re-primary: #1a4d5c;
+  --re-primary-dark: #143c48;
+  --re-text: #1c2530;
+  --re-muted: #6b7680;
+  --re-border: #d5dade;
+  --re-bg: #f3f4f5;
+  --re-card: #ffffff;
+  --re-error: #b3261e;
+  --re-ok-bg: #e8f3ec;
+  --re-ok-border: #2e7d4f;
+  --re-warn-bg: #fdf1dc;
+  --re-warn-border: #d9a21b;
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--re-bg);
+  color: var(--re-text);
+  font-family: 'Barlow', 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.re-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 26px 16px 10px;
+}
+
+/* Tarjeta */
+.re-card {
+  width: 100%;
+  max-width: 610px;
+  box-sizing: border-box;
+  padding: 24px 22px 22px;
+  background: var(--re-card);
+  border: 1px solid var(--re-border);
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.re-title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.re-subtitle {
+  margin: 0 0 18px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--re-muted);
+}
+
+/* Secciones */
+.re-section {
+  margin: 0 0 14px;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.re-section-title {
+  display: block;
+  width: 100%;
+  padding: 0 0 5px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--re-border);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--re-primary);
+  float: left; /* hace que el legend ocupe todo el ancho y respete el borde */
+}
+
+.re-section-title + * {
+  clear: both;
+}
+
+/* Filas y campos */
+.re-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.re-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  min-width: 0;
+}
+
+.re-label {
+  margin-bottom: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--re-text);
+}
+
+.re-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--re-text);
+  background: #fff;
+  border: 1px solid var(--re-border);
+  border-radius: 3px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.re-input:focus {
+  outline: none;
+  border-color: var(--re-primary);
+  box-shadow: 0 0 0 3px rgba(26, 77, 92, 0.18);
+}
+
+.re-input--error {
+  border-color: var(--re-error);
+}
+
+.re-input--error:focus {
+  border-color: var(--re-error);
+  box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.15);
+}
+
+.re-select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+.re-hint,
+.re-error {
+  margin-top: 5px;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.re-hint {
+  color: var(--re-muted);
+}
+
+.re-error {
+  color: var(--re-error);
+}
+
+/* Avisos */
+.re-alert {
+  margin: 4px 0 14px;
+  padding: 8px 10px;
+  font-size: 10px;
+  line-height: 1.45;
+  border: 1px solid;
+  border-left-width: 3px;
+  border-radius: 3px;
+}
+
+.re-alert--warn {
+  background: var(--re-warn-bg);
+  border-color: var(--re-warn-border);
+  color: #4a3a12;
+}
+
+.re-alert--ok {
+  background: var(--re-ok-bg);
+  border-color: var(--re-ok-border);
+  color: #17462c;
+}
+
+/* Botones */
+.re-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--re-border);
+}
+
+.re-btn {
+  height: 28px;
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.re-btn:focus-visible {
+  outline: 2px solid var(--re-primary);
+  outline-offset: 2px;
+}
+
+.re-btn--outline {
+  color: var(--re-primary);
+  background: #fff;
+  border: 1px solid var(--re-primary);
+}
+
+.re-btn--outline:hover {
+  background: #eef4f6;
+}
+
+.re-btn--primary {
+  color: #fff;
+  background: var(--re-primary);
+  border: 1px solid var(--re-primary);
+}
+
+.re-btn--primary:hover {
+  background: var(--re-primary-dark);
+}
+
+/* Responsive */
+@media (max-width: 560px) {
+  .re-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .re-card {
+    padding: 20px 16px;
+  }
+}
