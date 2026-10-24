@@ -1,0 +1,303 @@
+/* --- PÁGINA SOLICITAR PRÉSTAMO --- */
+.solicitud-main {
+  background-color: #f4f7f7;
+  padding: 20px var(--pad-x) 56px;
+  min-height: 70vh;
+}
+
+.solicitud-ruta {
+  margin-bottom: 6px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.solicitud-ruta a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.solicitud-ruta a:hover {
+  text-decoration: underline;
+}
+
+.solicitud-main h1 {
+  margin-bottom: 16px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+
+.solicitud-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.6fr) minmax(220px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.solicitud-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 18px 20px 20px;
+}
+
+/* --- SECCIONES --- */
+.solicitud-seccion {
+  margin: 0 0 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.solicitud-seccion:not(:first-child) {
+  margin-top: 20px;
+}
+
+/* --- CAMPOS --- */
+.solicitud-fila {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.solicitud-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.solicitud-campo-bloque {
+  margin-bottom: 14px;
+}
+
+.solicitud-campo label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.solicitud-campo input,
+.solicitud-campo select,
+.solicitud-campo textarea {
+  width: 100%;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: 11.5px;
+  outline: none;
+}
+
+.solicitud-campo input,
+.solicitud-campo select {
+  height: 34px;
+}
+
+.solicitud-campo input[type='date'] {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+}
+
+.solicitud-campo textarea {
+  padding: 10px;
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.solicitud-campo input:focus,
+.solicitud-campo select:focus,
+.solicitud-campo textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.solicitud-campo .solicitud-input-error {
+  border-color: var(--color-danger);
+}
+
+/* Duración: solo lectura */
+.solicitud-campo .solicitud-duracion {
+  background-color: #eef2f2;
+  border-color: var(--color-border);
+  color: #1d7a4e;
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  cursor: default;
+}
+
+.solicitud-campo .solicitud-duracion-excedida {
+  color: var(--color-danger);
+}
+
+.solicitud-ayuda {
+  margin-bottom: 10px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.solicitud-campo-bloque .solicitud-ayuda {
+  margin: 0;
+}
+
+.solicitud-error {
+  margin-bottom: 8px;
+  font-size: 10.5px;
+  color: var(--color-danger);
+}
+
+.solicitud-campo-bloque .solicitud-error {
+  margin: 0;
+}
+
+/* --- ESTADOS: AVISO ROJO Y AMARILLO --- */
+.solicitud-aviso {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: var(--border-radius);
+  font-size: 10.5px;
+  line-height: 1.6;
+}
+
+.solicitud-aviso-rojo {
+  background-color: #fbeceb;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.solicitud-aviso-amarillo {
+  background-color: #fdf3df;
+  border-color: #e3b04f;
+  color: #8a5a0b;
+}
+
+.solicitud-enlace {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* --- ACCIONES --- */
+.solicitud-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.solicitud-cancelar {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.solicitud-btn {
+  height: 34px;
+  padding: 0 18px;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--border-radius);
+  color: var(--color-surface);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.solicitud-btn:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* --- RESUMEN DEL EQUIPO --- */
+.solicitud-equipo-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.solicitud-equipo-cabecera strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.solicitud-equipo-cabecera p {
+  font-size: 9.5px;
+  color: var(--color-primary);
+}
+
+.solicitud-miniatura {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background: repeating-linear-gradient(
+    135deg,
+    #f1f4f4,
+    #f1f4f4 5px,
+    #e8eded 5px,
+    #e8eded 10px
+  );
+}
+
+.solicitud-subtitulo {
+  margin-bottom: 8px;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.solicitud-condiciones {
+  margin-bottom: 14px;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+.solicitud-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.solicitud-check input {
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 900px) {
+  .solicitud-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .solicitud-fila {
+    grid-template-columns: 1fr;
+  }
+}

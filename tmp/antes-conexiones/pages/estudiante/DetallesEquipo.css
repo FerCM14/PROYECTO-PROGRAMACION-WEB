@@ -1,0 +1,346 @@
+/* --- PÁGINA DETALLE DEL EQUIPO --- */
+.detalle-main {
+  background-color: #f4f7f7;
+  padding: 20px var(--pad-x) 56px;
+  min-height: 70vh;
+}
+
+.detalle-ruta {
+  margin-bottom: 14px;
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+}
+
+.detalle-ruta a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.detalle-ruta a:hover {
+  text-decoration: underline;
+}
+
+.detalle-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr) 250px;
+  gap: 20px;
+  align-items: start;
+}
+
+.detalle-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+}
+
+.detalle-mono {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  font-weight: 700;
+}
+
+/* --- GALERÍA --- */
+.detalle-foto-principal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background: repeating-linear-gradient(
+    135deg,
+    #f1f4f4,
+    #f1f4f4 6px,
+    #e8eded 6px,
+    #e8eded 12px
+  );
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  font-size: 9.5px;
+  color: var(--color-text-muted);
+}
+
+.detalle-miniaturas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.detalle-miniaturas button {
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background: repeating-linear-gradient(
+    135deg,
+    #f1f4f4,
+    #f1f4f4 5px,
+    #e8eded 5px,
+    #e8eded 10px
+  );
+  cursor: pointer;
+}
+
+.detalle-miniaturas button.activa {
+  border: 2px solid var(--color-primary);
+}
+
+/* --- INFORMACIÓN --- */
+.detalle-info {
+  padding: 22px 24px 24px;
+}
+
+.detalle-info h1 {
+  margin-bottom: 6px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+
+.detalle-meta {
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.detalle-meta strong {
+  color: var(--color-primary-dark);
+}
+
+.detalle-descripcion {
+  margin-bottom: 18px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.detalle-subtitulo {
+  margin-bottom: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.detalle-accesorios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.detalle-accesorios li {
+  padding: 5px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  font-size: 10.5px;
+  color: var(--color-text);
+}
+
+.detalle-condiciones {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  background-color: #f4f7f7;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+}
+
+.detalle-condiciones > strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10.5px;
+  color: var(--color-primary-dark);
+}
+
+.detalle-condiciones p {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+/* --- UNIDADES --- */
+.detalle-unidades {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  gap: 10px;
+}
+
+.detalle-unidad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border: 1px solid;
+  border-radius: var(--border-radius);
+  font-size: 9px;
+  text-align: center;
+}
+
+.detalle-unidad strong {
+  font-size: 9px;
+}
+
+.detalle-unidad-disponible {
+  background-color: #eaf5ef;
+  border-color: #6fb892;
+  color: #1d6a45;
+}
+
+.detalle-unidad-prestada {
+  background-color: #eaf0fa;
+  border-color: #8fb0e0;
+  color: #2b4f8c;
+}
+
+.detalle-unidad-mantenimiento {
+  background-color: #fdf3df;
+  border-color: #e3b04f;
+  color: #8a5a0b;
+}
+
+/* --- PANEL DE DISPONIBILIDAD --- */
+.detalle-panel {
+  padding: 18px 18px 16px;
+}
+
+.detalle-etiqueta {
+  margin-bottom: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: #1d7a4e;
+}
+
+.detalle-contador {
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #1d7a4e;
+}
+
+.detalle-contador-cero {
+  color: var(--color-danger);
+}
+
+.detalle-contador-nota {
+  margin: 4px 0 14px;
+  font-size: 10px;
+  color: #b07a3a;
+}
+
+.detalle-aviso {
+  margin-bottom: 12px;
+  padding: 9px 11px;
+  border: 1px solid;
+  border-radius: var(--border-radius);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.detalle-aviso-deuda {
+  background-color: #fbeceb;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.detalle-aviso-sin-unidades {
+  background-color: #fdf3df;
+  border-color: #e3b04f;
+  color: #8a5a0b;
+}
+
+.detalle-btn-primario,
+.detalle-btn-secundario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
+  margin-bottom: 8px;
+  border-radius: var(--border-radius);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.detalle-btn-primario {
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  color: var(--color-surface);
+}
+
+.detalle-btn-primario:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.detalle-btn-secundario {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.detalle-btn-secundario:hover {
+  background-color: #eef2f2;
+}
+
+.detalle-btn-enlace {
+  display: inline-flex;
+  width: auto;
+  padding: 0 16px;
+  margin: 8px 0 0;
+  text-decoration: none;
+}
+
+.detalle-recojo {
+  margin-top: 10px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.detalle-recojo strong {
+  color: var(--color-primary-dark);
+}
+
+/* --- ESTADO: EQUIPO NO ENCONTRADO --- */
+.detalle-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 64px 20px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  text-align: center;
+}
+
+.detalle-vacio strong {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.detalle-vacio p {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1000px) {
+  .detalle-layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .detalle-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .detalle-layout {
+    grid-template-columns: 1fr;
+  }
+}
