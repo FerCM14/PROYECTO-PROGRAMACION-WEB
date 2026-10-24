@@ -1,0 +1,272 @@
+// Catálogo de equipos del almacén (datos de ejemplo).
+// duracionMax: días máximos de préstamo (null = sin límite)
+
+export const CATEGORIAS = [
+  { id: 'robotica', nombre: 'Robótica', etiqueta: 'ROBÓTICA' },
+  { id: 'medicion', nombre: 'Medición', etiqueta: 'MEDICIÓN' },
+  { id: 'audiovisual', nombre: 'Audiovisual', etiqueta: 'AUDIOVISUAL' },
+  { id: 'computo', nombre: 'Cómputo', etiqueta: 'CÓMPUTO' },
+  { id: 'redes', nombre: 'Redes', etiqueta: 'REDES' },
+  { id: 'fisica', nombre: 'Laboratorio de física', etiqueta: 'LAB. FÍSICA' }
+]
+
+export const PRODUCTOS = [
+  { id: 1, codigo: 'INV-0001', nombre: 'Kit de robótica Arduino Mega', marca: 'Arduino', modelo: 'Mega 2560', categoria: 'robotica', libres: 6, total: 6, duracionMax: 7 },
+  { id: 2, codigo: 'INV-0002', nombre: 'Brazo robótico Dobot', marca: 'Dobot', modelo: 'Magician Lite', categoria: 'robotica', libres: 2, total: 3, duracionMax: 7 },
+  { id: 3, codigo: 'INV-0003', nombre: 'Kit de sensores Raspberry Pi', marca: 'Raspberry', modelo: 'Pi 4 Model B', categoria: 'robotica', libres: 4, total: 5, duracionMax: 7 },
+  { id: 4, codigo: 'INV-0004', nombre: 'Osciloscopio TBS1052B', marca: 'Tektronix', modelo: 'TBS1052B', categoria: 'medicion', libres: 3, total: 5, duracionMax: 7 },
+  { id: 5, codigo: 'INV-0005', nombre: 'Cámara Canon EOS 90D', marca: 'Canon', modelo: 'EOS 90D', categoria: 'audiovisual', libres: 2, total: 4, duracionMax: 7 },
+  { id: 6, codigo: 'INV-0006', nombre: 'Tableta gráfica Wacom Intuos', marca: 'Wacom', modelo: 'CTL-4100', categoria: 'computo', libres: 1, total: 3, duracionMax: 7 },
+  { id: 7, codigo: 'INV-0007', nombre: 'Trípode Manfrotto MT055', marca: 'Manfrotto', modelo: 'MT055', categoria: 'audiovisual', libres: 4, total: 5, duracionMax: 7 },
+  { id: 8, codigo: 'INV-0008', nombre: 'Fuente de poder regulable', marca: 'Korad', modelo: 'KA3005P', categoria: 'fisica', libres: 3, total: 4, duracionMax: 7 },
+  { id: 9, codigo: 'INV-0009', nombre: 'Multímetro digital Fluke 115', marca: 'Fluke', modelo: '115', categoria: 'medicion', libres: 8, total: 10, duracionMax: 15 },
+  { id: 10, codigo: 'INV-0010', nombre: 'Laptop Dell Latitude 5420', marca: 'Dell', modelo: 'Latitude 5420', categoria: 'computo', libres: 0, total: 6, duracionMax: 15 },
+  { id: 11, codigo: 'INV-0011', nombre: 'Switch Cisco Catalyst 2960', marca: 'Cisco', modelo: 'Catalyst 2960', categoria: 'redes', libres: 2, total: 4, duracionMax: 15 },
+  { id: 12, codigo: 'INV-0012', nombre: 'Router MikroTik hAP ac²', marca: 'MikroTik', modelo: 'hAP ac2', categoria: 'redes', libres: 3, total: 5, duracionMax: 15 },
+  { id: 13, codigo: 'INV-0013', nombre: 'Micrófono Shure SM58', marca: 'Shure', modelo: 'SM58', categoria: 'audiovisual', libres: 5, total: 6, duracionMax: 7 },
+  { id: 14, codigo: 'INV-0014', nombre: 'Kit de óptica Pasco', marca: 'Pasco', modelo: 'OS-8515C', categoria: 'fisica', libres: 1, total: 2, duracionMax: null },
+  { id: 15, codigo: 'INV-0015', nombre: 'Analizador lógico Saleae', marca: 'Saleae', modelo: 'Logic Pro 8', categoria: 'medicion', libres: 0, total: 2, duracionMax: 15 },
+  { id: 16, codigo: 'INV-0016', nombre: 'Mini PC Intel NUC 11', marca: 'Intel', modelo: 'NUC 11 Pro', categoria: 'computo', libres: 3, total: 4, duracionMax: null }
+]
+
+/* ---------- Datos para la página de detalle ---------- */
+
+export const RECOJO = {
+  lugar: 'Almacén H-102',
+  horario: 'lunes a viernes de 08:00 a 19:00'
+}
+
+// prefijo + inicio generan los códigos de cada unidad (INV-OSC-0042, ...)
+// autorizacion: requiere autorización del docente
+// renovable: admite renovación
+// proximaLiberacion: fecha (AAAA-MM-DD) en que se libera la próxima unidad
+// estados: estado de cada unidad en orden (si se omite, se generan solos)
+const DETALLES = {
+  1: { prefijo: 'ARD', inicio: 10, descripcion: 'Kit con placa Arduino Mega 2560, protoboard, sensores y cables para prácticas de robótica y automatización.', accesorios: ['Cable USB', 'Protoboard', 'Kit de sensores', 'Estuche rígido'], autorizacion: false },
+  2: { prefijo: 'DOB', inicio: 20, descripcion: 'Brazo robótico de escritorio de 4 ejes para prácticas de manipulación, dibujo y control de movimiento.', accesorios: ['Fuente de poder', 'Cable USB', 'Pinza neumática', 'Estuche rígido'], autorizacion: true },
+  3: { prefijo: 'RPI', inicio: 30, descripcion: 'Raspberry Pi 4 con módulo de sensores para proyectos de IoT, visión y adquisición de datos.', accesorios: ['Fuente USB-C', 'Tarjeta microSD', 'Módulo de sensores', 'Estuche rígido'], autorizacion: false },
+  4: { prefijo: 'OSC', inicio: 42, titulo: 'Osciloscopio Tektronix TBS1052B', descripcion: 'Osciloscopio digital de 2 canales y 50 MHz con pantalla a color. Para las prácticas de circuitos electrónicos y el laboratorio de señales.', accesorios: ['2 sondas de medición', 'Cable USB', 'Estuche rígido'], autorizacion: true, estados: ['Disponible', 'Disponible', 'Prestada', 'Mantenimiento', 'Disponible'] },
+  5: { prefijo: 'CAM', inicio: 50, descripcion: 'Cámara réflex de 32.5 MP con grabación 4K para los cursos de producción audiovisual.', accesorios: ['Lente 18-135 mm', 'Batería y cargador', 'Tarjeta SD', 'Correa'], autorizacion: true },
+  6: { prefijo: 'TAB', inicio: 60, descripcion: 'Tableta gráfica para diseño, bocetado y edición digital.', accesorios: ['Lápiz', 'Cable USB', 'Puntas de repuesto'], autorizacion: false },
+  7: { prefijo: 'TRI', inicio: 70, descripcion: 'Trípode de aluminio con cabezal de 3 vías para cámaras y filmación en exteriores.', accesorios: ['Cabezal 3 vías', 'Placa rápida', 'Bolsa de transporte'], autorizacion: false },
+  8: { prefijo: 'FUE', inicio: 80, descripcion: 'Fuente de poder DC regulable de 0-30 V y 0-5 A para prácticas de electrónica y física.', accesorios: ['Cable de alimentación', 'Cables banana-caimán'], autorizacion: false },
+  9: { prefijo: 'MUL', inicio: 90, descripcion: 'Multímetro digital True RMS para medición de voltaje, corriente y resistencia.', accesorios: ['Puntas de prueba', 'Funda protectora'], autorizacion: false },
+  10: { prefijo: 'LAP', inicio: 100, descripcion: 'Laptop para simulación, programación y trabajo de laboratorio fuera del campus.', accesorios: ['Cargador', 'Mouse', 'Maletín'], autorizacion: true, proximaLiberacion: '2026-11-02' },
+  11: { prefijo: 'SWI', inicio: 110, descripcion: 'Switch administrable de 24 puertos para prácticas de configuración de redes.', accesorios: ['Cable de consola', 'Cable de alimentación'], autorizacion: false },
+  12: { prefijo: 'ROU', inicio: 120, descripcion: 'Router inalámbrico de doble banda para laboratorios de redes y enrutamiento.', accesorios: ['Fuente de poder', 'Cable de red'], autorizacion: false },
+  13: { prefijo: 'MIC', inicio: 130, descripcion: 'Micrófono dinámico cardioide para grabación de voz y presentaciones.', accesorios: ['Cable XLR', 'Soporte', 'Estuche'], autorizacion: false },
+  14: { prefijo: 'OPT', inicio: 140, descripcion: 'Kit de óptica con banco, lentes, espejos y fuentes de luz para el laboratorio de física.', accesorios: ['Banco óptico', 'Set de lentes', 'Fuente de luz', 'Estuche rígido'], autorizacion: true },
+  15: { prefijo: 'ANA', inicio: 150, descripcion: 'Analizador lógico de 8 canales para depurar buses digitales y protocolos de comunicación.', accesorios: ['Cable USB', 'Juego de clips de prueba'], autorizacion: true, proximaLiberacion: '2026-11-06' },
+  16: { prefijo: 'NUC', inicio: 160, descripcion: 'Mini PC compacta para desarrollo, servidores de prueba y proyectos embebidos.', accesorios: ['Fuente de poder', 'Cable HDMI'], autorizacion: false }
+}
+
+function generarUnidades(producto, detalle) {
+  const estados =
+    detalle.estados ||
+    Array.from({ length: producto.total }, (_, i) => {
+      if (i < producto.libres) return 'Disponible'
+      return (i - producto.libres) % 2 === 0 ? 'Prestada' : 'Mantenimiento'
+    })
+
+  return estados.map((estado, i) => ({
+    codigo: `INV-${detalle.prefijo}-${String(detalle.inicio + i).padStart(4, '0')}`,
+    estado
+  }))
+}
+
+export function obtenerCategoria(id) {
+  return CATEGORIAS.find((categoria) => categoria.id === id) || null
+}
+
+export function contarPorCategoria(id) {
+  return PRODUCTOS.filter((producto) => producto.categoria === id).length
+}
+
+// Producto con todos los datos de la página de detalle
+export function obtenerProducto(id) {
+  const producto = PRODUCTOS.find((p) => p.id === Number(id))
+  if (!producto) return null
+
+  const detalle = DETALLES[producto.id] || { prefijo: 'EQP', inicio: 1 }
+
+  const condiciones = leerJSON(`condiciones-${producto.id}`, {})
+  const unidades = [...generarUnidades(producto, detalle), ...(leerJSON('producto-unidades', {})[producto.id] || [])].map((u) => ({ ...u, ...(leerJSON('inventario-estados', {})[u.codigo] || {}) }))
+  return {
+    ...producto,
+    total: unidades.length,
+    duracionMax: condiciones.dias !== undefined ? condiciones.dias : producto.duracionMax,
+    penalizacion: condiciones.penalizacion ?? 15,
+    titulo: detalle.titulo || producto.nombre,
+    descripcion: detalle.descripcion || '',
+    accesorios: detalle.accesorios || [],
+    autorizacion: condiciones.requiereAutorizacion ?? Boolean(detalle.autorizacion),
+    renovable: condiciones.admiteRenovacion ?? Boolean(detalle.renovable),
+    proximaLiberacion: detalle.proximaLiberacion || null,
+    unidades
+  }
+}
+
+/* ---------- Altas y ediciones (se guardan en localStorage) ---------- */
+// Los datos de ejemplo de arriba no cambian. Los equipos nuevos y las
+// ediciones se guardan aparte y se mezclan con ellos al cargar el módulo,
+// así PRODUCTOS y obtenerProducto() los incluyen en todas las páginas.
+
+const CLAVE_NUEVOS = 'productos-nuevos'
+const CLAVE_EDICIONES = 'productos-ediciones'
+
+function leerJSON(clave, defecto) {
+  try {
+    const datos = JSON.parse(localStorage.getItem(clave))
+    return datos ?? defecto
+  } catch {
+    return defecto
+  }
+}
+
+function guardarJSON(clave, valor) {
+  try {
+    localStorage.setItem(clave, JSON.stringify(valor))
+    return true
+  } catch {
+    return false
+  }
+}
+
+function normalizar(texto) {
+  return String(texto || '').trim().toLowerCase()
+}
+
+function prefijoDe(nombre) {
+  const letras = String(nombre || '')
+    .normalize('NFD')
+    .replace(/[^A-Za-z]/g, '')
+    .toUpperCase()
+  return (letras.slice(0, 3) || 'EQP').padEnd(3, 'X')
+}
+
+// Carga inicial de lo guardado
+const nuevosGuardados = leerJSON(CLAVE_NUEVOS, [])
+if (Array.isArray(nuevosGuardados)) {
+  nuevosGuardados.forEach(({ producto, detalle }) => {
+    if (!PRODUCTOS.some((p) => p.id === producto.id)) {
+      PRODUCTOS.push(producto)
+      DETALLES[producto.id] = detalle
+    }
+  })
+}
+
+const edicionesGuardadas = leerJSON(CLAVE_EDICIONES, {})
+Object.entries(edicionesGuardadas || {}).forEach(([id, { producto, detalle }]) => {
+  const actual = PRODUCTOS.find((p) => p.id === Number(id))
+  if (!actual) return
+  Object.assign(actual, producto)
+  DETALLES[id] = { ...(DETALLES[id] || { prefijo: 'EQP', inicio: 1 }), ...detalle }
+})
+
+// ¿Ya existe un equipo con esa marca y modelo?
+export function existeEquipo(marca, modelo, ignorarId = null) {
+  return PRODUCTOS.some(
+    (p) =>
+      p.id !== Number(ignorarId) &&
+      normalizar(p.marca) === normalizar(marca) &&
+      normalizar(p.modelo) === normalizar(modelo)
+  )
+}
+
+// datos: { nombre, categoria, marca, modelo, descripcion, accesorios, fotos }
+// Devuelve { ok: true, producto } o { ok: false, errores: { campo: mensaje } }
+export function agregarProducto(datos) {
+  if (existeEquipo(datos.marca, datos.modelo)) {
+    return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
+  }
+
+  const id = Math.max(0, ...PRODUCTOS.map((p) => p.id)) + 1
+  const producto = {
+    id,
+    codigo: `INV-${String(id).padStart(4, '0')}`,
+    nombre: datos.nombre.trim(),
+    marca: datos.marca.trim(),
+    modelo: datos.modelo.trim(),
+    categoria: datos.categoria,
+    libres: 0,
+    total: 0,
+    duracionMax: 7,
+    fotos: datos.fotos || []
+  }
+  const detalle = {
+    prefijo: prefijoDe(datos.nombre),
+    inicio: 1,
+    descripcion: datos.descripcion || '',
+    accesorios: datos.accesorios || [],
+    autorizacion: false,
+    estados: []
+  }
+
+  PRODUCTOS.push(producto)
+  DETALLES[id] = detalle
+
+  const guardado = guardarJSON(CLAVE_NUEVOS, [
+    ...(leerJSON(CLAVE_NUEVOS, []) || []),
+    { producto, detalle }
+  ])
+  return { ok: true, producto, persistido: guardado }
+}
+
+// Actualiza un equipo existente (de ejemplo o creado antes)
+export function actualizarProducto(id, datos) {
+  const producto = PRODUCTOS.find((p) => p.id === Number(id))
+  if (!producto) return { ok: false, errores: { general: 'No se encontró el equipo.' } }
+
+  if (existeEquipo(datos.marca, datos.modelo, id)) {
+    return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
+  }
+
+  const cambiosProducto = {
+    nombre: datos.nombre.trim(),
+    marca: datos.marca.trim(),
+    modelo: datos.modelo.trim(),
+    categoria: datos.categoria,
+    fotos: datos.fotos || []
+  }
+  const cambiosDetalle = {
+    titulo: cambiosProducto.nombre,
+    descripcion: datos.descripcion || '',
+    accesorios: datos.accesorios || []
+  }
+
+  Object.assign(producto, cambiosProducto)
+  DETALLES[producto.id] = {
+    ...(DETALLES[producto.id] || { prefijo: 'EQP', inicio: 1 }),
+    ...cambiosDetalle
+  }
+
+  // Si es un equipo creado desde la app, se actualiza su registro de alta;
+  // si es de ejemplo, se guarda como edición.
+  const nuevos = leerJSON(CLAVE_NUEVOS, []) || []
+  const idx = nuevos.findIndex((n) => n.producto.id === producto.id)
+  if (idx >= 0) {
+    nuevos[idx] = { producto: { ...nuevos[idx].producto, ...cambiosProducto }, detalle: { ...nuevos[idx].detalle, ...cambiosDetalle } }
+    guardarJSON(CLAVE_NUEVOS, nuevos)
+  } else {
+    const ediciones = leerJSON(CLAVE_EDICIONES, {}) || {}
+    ediciones[producto.id] = { producto: cambiosProducto, detalle: cambiosDetalle }
+    guardarJSON(CLAVE_EDICIONES, ediciones)
+  }
+
+  return { ok: true, producto }
+}
+
+export function cambiarEstadoUnidad(codigoUnidad, estado, motivo = '') {
+  const encontrada = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === codigoUnidad))
+  if (!encontrada) return { ok: false }
+  const cambios = leerJSON('inventario-estados', {})
+  cambios[codigoUnidad] = { ...cambios[codigoUnidad], estado, ...(motivo ? { nota: motivo, motivoBaja: motivo } : {}) }
+  return { ok: guardarJSON('inventario-estados', cambios) }
+}
+
+export function registrarUnidadProducto(id, unidad) {
+  if (!obtenerProducto(id) || PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === unidad.codigo))) return {ok:false}
+  const todas = leerJSON('producto-unidades', {})
+  todas[id] = [...(todas[id] || []), { ...unidad, estado:'Disponible' }]
+  return {ok:guardarJSON('producto-unidades', todas)}
+}

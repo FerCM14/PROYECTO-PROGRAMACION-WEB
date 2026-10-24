@@ -1,0 +1,9 @@
+function GestionUsuarion() {
+  return (
+    <div>
+      <h1>Aprobación de entrega</h1>
+    </div>
+  )
+}
+
+export default GestionUsuarion

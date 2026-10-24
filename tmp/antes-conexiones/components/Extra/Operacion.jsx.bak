@@ -1,0 +1,80 @@
+import { useEffect, useState } from 'react'
+import './Operacion.css'
+
+// Misma clave que usa src/data/Solicitudes.js
+const CLAVE = 'solicitudes'
+
+function leerSolicitudes() {
+  try {
+    const datos = JSON.parse(localStorage.getItem(CLAVE))
+    return Array.isArray(datos) ? datos : []
+  } catch {
+    return []
+  }
+}
+
+// Secciones del grupo "Operación". Las que aún no tienen datos muestran "—"
+// y se irán conectando a medida que se creen sus páginas.
+const SECCIONES = [
+  { id: 'inventario', etiqueta: 'Inventario' },
+  { id: 'solicitudes', etiqueta: 'Solicitudes' },
+  { id: 'prestamos', etiqueta: 'Préstamos vigentes' },
+  { id: 'vencidos', etiqueta: 'Vencidos' },
+  { id: 'devoluciones', etiqueta: 'Devoluciones' }
+]
+
+// Props:
+//  activo:           id de la sección abierta (por defecto "inventario")
+//  totalInventario:  número de unidades registradas (lo entrega Inventario)
+//  onCambiar:        (id) => void, opcional, para navegar entre secciones
+export default function Operacion({ activo = 'inventario', totalInventario = null, onCambiar }) {
+  const [solicitudes, setSolicitudes] = useState(leerSolicitudes)
+
+  // Se actualiza si otra pestaña registra o retira solicitudes
+  useEffect(() => {
+    const alCambiar = (e) => {
+      if (e.key === CLAVE || e.key === null) setSolicitudes(leerSolicitudes())
+    }
+    window.addEventListener('storage', alCambiar)
+    return () => window.removeEventListener('storage', alCambiar)
+  }, [])
+
+  const pendientes = solicitudes.filter((s) => s.estado === 'Enviada').length
+
+  const conteos = {
+    inventario: totalInventario,
+    solicitudes: pendientes,
+    prestamos: null,
+    vencidos: null,
+    devoluciones: null
+  }
+
+  return (
+    <nav className="ope-menu" aria-label="Operación">
+      <p className="ope-menu__grupo">Operación</p>
+      <ul className="ope-menu__lista">
+        {SECCIONES.map((s) => {
+          const cantidad = conteos[s.id]
+          const esSolicitudes = s.id === 'solicitudes'
+          return (
+            <li key={s.id}>
+              <button
+                type="button"
+                className={`ope-menu__item ${activo === s.id ? 'is-activo' : ''}`}
+                aria-current={activo === s.id ? 'page' : undefined}
+                onClick={() => onCambiar && onCambiar(s.id)}
+              >
+                <span>{s.etiqueta}</span>
+                <span
+                  className={`ope-menu__cant ${esSolicitudes && cantidad > 0 ? 'ope-menu__cant--alerta' : ''}`}
+                >
+                  {cantidad === null || cantidad === undefined ? '—' : cantidad}
+                </span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
+}

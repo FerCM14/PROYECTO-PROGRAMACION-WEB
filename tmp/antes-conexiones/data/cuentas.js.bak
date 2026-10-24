@@ -1,0 +1,216 @@
+// Las cuentas se guardan en localStorage (el navegador no puede reescribir un .js).
+// Solo las cuentas creadas desde Register pueden iniciar sesión.
+
+const CLAVE_CUENTAS = 'cuentasRegistradas'
+const CLAVE_SESION = 'sesionActual'
+const CAMPOS_PERFIL = ['nombres', 'apellidos', 'carrera', 'ciclo', 'celular']
+
+function normalizar(correo) {
+  return correo.trim().toLowerCase()
+}
+
+function guardarCuentas(cuentas) {
+  localStorage.setItem(CLAVE_CUENTAS, JSON.stringify(cuentas))
+}
+
+export function obtenerCuentas() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_CUENTAS)) || []
+  } catch {
+    return []
+  }
+}
+
+export function obtenerCuenta(correo) {
+  const buscado = normalizar(correo)
+  return obtenerCuentas().find((cuenta) => cuenta.correo === buscado) || null
+}
+
+export function existeCuenta(correo) {
+  return obtenerCuenta(correo) !== null
+}
+
+export function registrarCuenta(datos) {
+  const correo = normalizar(datos.correo)
+
+  if (existeCuenta(correo)) {
+    return { ok: false, motivo: 'duplicado' }
+  }
+
+  const cuentas = obtenerCuentas()
+
+  cuentas.push({
+    nombres: datos.nombres.trim(),
+    apellidos: datos.apellidos.trim(),
+    carrera: datos.carrera,
+    ciclo: datos.ciclo,
+    celular: '',
+    correo,
+    contrasena: datos.contrasena,
+    rol: 'estudiante',
+    deuda: null,
+    bloqueada: false
+  })
+
+  guardarCuentas(cuentas)
+  return { ok: true }
+}
+
+// Para pruebas / panel de tesorería: asigna o quita una deuda
+// deuda = { monto: 45, prestamo: 'PRE-2026-0291' } o null para quitarla
+export function asignarDeuda(correo, deuda) {
+  const buscado = normalizar(correo)
+  const cuentas = obtenerCuentas()
+  const indice = cuentas.findIndex((cuenta) => cuenta.correo === buscado)
+
+  if (indice === -1) {
+    return { ok: false }
+  }
+
+  cuentas[indice] = { ...cuentas[indice], deuda }
+  guardarCuentas(cuentas)
+  return { ok: true }
+}
+
+// Panel del encargado: bloquea la cuenta (no podrá iniciar sesión)
+export function bloquearCuenta(correo) {
+  const buscado = normalizar(correo)
+  const cuentas = obtenerCuentas()
+  const indice = cuentas.findIndex((cuenta) => cuenta.correo === buscado)
+
+  if (indice === -1) {
+    return { ok: false }
+  }
+
+  cuentas[indice] = { ...cuentas[indice], bloqueada: true }
+  guardarCuentas(cuentas)
+  return { ok: true }
+}
+
+export function desbloquearCuenta(correo) {
+  const buscado = normalizar(correo)
+  const cuentas = obtenerCuentas()
+  const indice = cuentas.findIndex((cuenta) => cuenta.correo === buscado)
+
+  if (indice === -1) {
+    return { ok: false }
+  }
+
+  cuentas[indice] = { ...cuentas[indice], bloqueada: false }
+  guardarCuentas(cuentas)
+  return { ok: true }
+}
+
+// Recuperar contraseña (no pide la actual)
+export function actualizarContrasena(correo, nuevaContrasena) {
+  const buscado = normalizar(correo)
+  const cuentas = obtenerCuentas()
+  const indice = cuentas.findIndex((cuenta) => cuenta.correo === buscado)
+
+  if (indice === -1) {
+    return { ok: false }
+  }
+
+  cuentas[indice] = { ...cuentas[indice], contrasena: nuevaContrasena }
+  guardarCuentas(cuentas)
+  return { ok: true }
+}
+
+// Mi cuenta: cambiar contraseña verificando la actual
+export function cambiarContrasena(correo, actual, nueva) {
+  const buscado = normalizar(correo)
+  const cuentas = obtenerCuentas()
+  const indice = cuentas.findIndex((cuenta) => cuenta.correo === buscado)
+
+  if (indice === -1) {
+    return { ok: false, motivo: 'no-existe' }
+  }
+
+  if (cuentas[indice].contrasena !== actual) {
+    return { ok: false, motivo: 'actual-incorrecta' }
+  }
+
+  cuentas[indice] = { ...cuentas[indice], contrasena: nueva }
+  guardarCuentas(cuentas)
+  return { ok: true }
+}
+
+// Mi cuenta: guardar datos personales y refrescar la sesión (para el header)
+export function actualizarPerfil(correo, cambios) {
+  const buscado = normalizar(correo)
+  const cuentas = obtenerCuentas()
+  const indice = cuentas.findIndex((cuenta) => cuenta.correo === buscado)
+
+  if (indice === -1) {
+    return { ok: false }
+  }
+
+  const permitidos = {}
+  CAMPOS_PERFIL.forEach((campo) => {
+    if (campo in cambios) {
+      const valor = cambios[campo]
+      permitidos[campo] = typeof valor === 'string' ? valor.trim() : valor
+    }
+  })
+
+  cuentas[indice] = { ...cuentas[indice], ...permitidos }
+  guardarCuentas(cuentas)
+
+  const sesion = obtenerSesion()
+  if (sesion && sesion.correo === buscado) {
+    localStorage.setItem(
+      CLAVE_SESION,
+      JSON.stringify({
+        ...sesion,
+        nombres: cuentas[indice].nombres,
+        apellidos: cuentas[indice].apellidos
+      })
+    )
+  }
+
+  return { ok: true, cuenta: cuentas[indice] }
+}
+
+// Devuelve { ok: false } si las credenciales fallan,
+// o { ok: false, motivo: 'bloqueada' } si la cuenta fue bloqueada por el encargado.
+export function iniciarSesion(correo, contrasena) {
+  const buscado = normalizar(correo)
+
+  const cuenta = obtenerCuentas().find(
+    (c) => c.correo === buscado && c.contrasena === contrasena
+  )
+
+  if (!cuenta) {
+    return { ok: false }
+  }
+
+  if (cuenta.bloqueada) {
+    return { ok: false, motivo: 'bloqueada' }
+  }
+
+  localStorage.setItem('rol', cuenta.rol)
+  localStorage.setItem(
+    CLAVE_SESION,
+    JSON.stringify({
+      correo: cuenta.correo,
+      nombres: cuenta.nombres,
+      apellidos: cuenta.apellidos,
+      deuda: cuenta.deuda || null
+    })
+  )
+
+  return { ok: true, cuenta }
+}
+
+export function obtenerSesion() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_SESION))
+  } catch {
+    return null
+  }
+}
+
+export function cerrarSesion() {
+  localStorage.removeItem('rol')
+  localStorage.removeItem(CLAVE_SESION)
+}

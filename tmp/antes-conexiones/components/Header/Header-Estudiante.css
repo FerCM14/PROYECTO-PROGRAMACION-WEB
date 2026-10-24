@@ -1,0 +1,147 @@
+/* --- HEADER ESTUDIANTE --- */
+.header-estudiante {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  width: 100%;
+}
+
+.hdr-est-nav {
+  width: 100%;
+  height: 80px;
+  padding: 0 var(--pad-x);
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.hdr-est-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--color-primary-dark);
+  margin-right: 12px;
+  padding: 0;
+}
+
+.hdr-est-cuadro {
+  display: block;
+  width: 28px;
+  height: 28px;
+  background-color: var(--color-primary);
+  border-radius: var(--border-radius);
+}
+
+.hdr-est-enlace {
+  background: none;
+  border: none;
+  font-size: 15px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.hdr-est-enlace:hover {
+  color: var(--color-primary);
+}
+
+.hdr-est-enlace-activo {
+  color: var(--color-primary);
+  font-weight: 600;
+  border-bottom: 2px solid currentColor;
+}
+
+/* --- BUSCADOR --- */
+.hdr-est-buscador {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 345px;
+  height: 40px;
+  padding: 0 12px;
+  background-color: #f0f3f3;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-placeholder);
+}
+
+.hdr-est-buscador:focus-within {
+  border-color: var(--color-primary);
+}
+
+.hdr-est-buscador input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.hdr-est-buscador input::placeholder {
+  color: var(--color-placeholder);
+  opacity: 1;
+}
+
+/* --- USUARIO --- */
+.hdr-est-usuario {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.hdr-est-nombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.hdr-est-avatar {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+  border-radius: var(--border-radius);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1100px) {
+  .hdr-est-buscador {
+    width: 240px;
+  }
+}
+
+@media (max-width: 860px) {
+  .hdr-est-nav {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .hdr-est-buscador {
+    order: 10;
+    margin-left: 0;
+    width: 100%;
+  }
+  .hdr-est-usuario {
+    margin-left: auto;
+  }
+}

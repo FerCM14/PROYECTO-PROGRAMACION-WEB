@@ -1,0 +1,202 @@
+/* src/pages/encargado/ListaEspera.css */
+.le-pagina {
+  --le-teal: #1d4f5c;
+  --le-texto: #16222a;
+  --le-gris: #6b7780;
+  --le-borde: #dfe3e6;
+  --le-fondo: #f4f6f7;
+  --le-rojo: #b3261e;
+  --le-ambar: #c98a0b;
+  --le-ambar-fondo: #fdf3dc;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--le-fondo);
+  color: var(--le-texto);
+  font-family: 'Barlow', 'Segoe UI', system-ui, sans-serif;
+}
+
+.le-cuerpo {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.le-lateral {
+  flex: 0 0 220px;
+  width: 220px;
+  max-width: 220px;
+  background: #fff;
+  border-right: 1px solid var(--le-borde);
+  overflow: hidden;
+}
+
+.le-lateral > * {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.le-main {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 20px 22px 40px;
+}
+
+.le-titulo {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.le-subtitulo {
+  margin: 2px 0 20px;
+  font-size: 12px;
+  color: var(--le-gris);
+}
+
+.le-vacio {
+  padding: 40px 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--le-gris);
+}
+
+.le-mono {
+  font-family: 'IBM Plex Mono', 'Consolas', monospace;
+}
+
+/* Dos columnas; cada tarjeta ocupa solo su alto */
+.le-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.le-tarjeta {
+  border: 1px solid var(--le-borde);
+  border-radius: 4px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.le-cabecera {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--le-borde);
+  font-size: 12px;
+}
+
+.le-cantidad {
+  color: var(--le-gris);
+}
+
+.le-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.le-fila {
+  display: grid;
+  grid-template-columns: 28px 1.6fr 1.5fr 0.9fr;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--le-borde);
+  font-size: 11px;
+}
+
+.le-fila:first-child {
+  border-top: 0;
+}
+
+.le-pos {
+  font-weight: 700;
+  color: var(--le-teal);
+}
+
+.le-nombre {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.le-fechas {
+  font-family: 'IBM Plex Mono', 'Consolas', monospace;
+  font-size: 10.5px;
+  color: var(--le-gris);
+  white-space: nowrap;
+}
+
+.le-accion {
+  text-align: left;
+}
+
+.le-asignar {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--le-teal);
+  cursor: pointer;
+}
+
+.le-asignar:hover {
+  text-decoration: underline;
+}
+
+.le-deuda {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--le-rojo);
+}
+
+.le-pausa {
+  font-size: 11px;
+  color: var(--le-gris);
+}
+
+/* Aviso de unidad en mantenimiento */
+.le-nota {
+  margin: 0 14px 14px;
+  padding: 9px 12px;
+  border-left: 3px solid var(--le-ambar);
+  background: var(--le-ambar-fondo);
+  font-size: 11px;
+  line-height: 1.5;
+  color: #5f4300;
+}
+
+@media (max-width: 900px) {
+  .le-cuerpo {
+    flex-direction: column;
+  }
+
+  .le-lateral {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    border-right: 0;
+    border-bottom: 1px solid var(--le-borde);
+  }
+
+  .le-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .le-fila {
+    grid-template-columns: 24px 1fr auto;
+  }
+
+  .le-fechas {
+    display: none;
+  }
+}

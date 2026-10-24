@@ -1,0 +1,63 @@
+export const equiposDestacados = [
+  {
+    id: 1,
+    nombre: "Osciloscopio TBS1052B",
+    marca: "Tektronix",
+    categoria: "medición",
+    unidadesDisponibles: 3,
+    unidadesTotales: 5,
+    estadoClase: "green",
+    imagen: ""
+  },
+  {
+    id: 2,
+    nombre: "Cámara Canon EOS 90D",
+    marca: "Canon",
+    categoria: "audiovisual",
+    unidadesDisponibles: 2,
+    unidadesTotales: 4,
+    estadoClase: "green",
+    imagen: ""
+  },
+  {
+    id: 3,
+    nombre: "Kit Arduino Mega",
+    marca: "Arduino",
+    categoria: "robótica",
+    unidadesDisponibles: 6,
+    unidadesTotales: 6,
+    estadoClase: "green",
+    imagen: ""
+  },
+  {
+    id: 4,
+    nombre: "Multímetro Fluke 117",
+    marca: "Fluke",
+    categoria: "medición",
+    unidadesDisponibles: 0,
+    unidadesTotales: 5,
+    estadoClase: "orange",
+    imagen: ""
+  }
+]
+
+export const pasosPrestamo = [
+  {
+    paso: 1,
+    titulo: "Solicita con anticipación",
+    descripcion: "El encargado responde en un máximo de 24 horas hábiles.",
+    claseColor: "yellow"
+  },
+  {
+    paso: 2,
+    titulo: "Recoge con tu carné",
+    descripcion: "Verifica los accesorios en la entrega y firma la constancia.",
+    claseColor: "yellow"
+  },
+  {
+    paso: 3,
+    titulo: "Devuelve a tiempo",
+    descripcion: "Cada día de retraso genera penalidad y bloquea nuevos préstamos.",
+    claseColor: "yellow"
+  }
+]

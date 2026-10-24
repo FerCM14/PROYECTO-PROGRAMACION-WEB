@@ -1,0 +1,6 @@
+from pathlib import Path
+p=Path('src/pages/encargado/Devoluciones.jsx');s=p.read_text(encoding='utf-8').replace('{ useEffect, useRef, useState }','{ useRef, useState }');p.write_text(s,encoding='utf-8')
+p=Path('src/components/Footer/Footer-Encargado.css');s=p.read_text(encoding='utf-8').replace('  min-height: 0;','  min-height: 38px;\n  height: auto;');p.write_text(s,encoding='utf-8')
+p=Path('src/pages/encargado/CondicionPrestamo.jsx');s=p.read_text(encoding='utf-8').replace('const clase = estado.toLowerCase()',"const clase = estado.toLowerCase().replaceAll(' ', '-')");s=s.replace('Préstamo de hasta <b>{Number(condiciones.dias) || 0} días calendario</b>.',"Préstamo <b>{condiciones.dias == null || condiciones.dias === '' ? 'sin límite de días' : `de hasta ${condiciones.dias} días calendario`}</b>.");p.write_text(s,encoding='utf-8')
+p=Path('src/pages/visitante/FichaPublica.jsx');s=p.read_text(encoding='utf-8').replace('producto.penalidad ?? PENALIDAD_POR_DEFECTO','producto.penalizacion ?? producto.penalidad ?? PENALIDAD_POR_DEFECTO');p.write_text(s,encoding='utf-8')
+p=Path('src/data/datosVisitante.js');s=p.read_text(encoding='utf-8');s=s.replace('id: 4,','id: 9,',1).replace('id: 3,','id: 1,',1).replace('id: 2,','id: 5,',1).replace('id: 1,\n    nombre: "Osciloscopio','id: 4,\n    nombre: "Osciloscopio',1);p.write_text(s,encoding='utf-8')

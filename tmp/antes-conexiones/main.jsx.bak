@@ -1,0 +1,110 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+
+import './index.css'
+import App from './App.jsx'
+
+// VISITANTE
+import FichaPublica from './pages/visitante/FichaPublica.jsx'
+import LoginPage from './pages/visitante/LoginPage.jsx'
+import RecuperarContrasena from './pages/visitante/Recuperar.jsx'
+import Register from './pages/visitante/RegisterPage.jsx'
+
+// ESTUDIANTE
+import Catalogo from './pages/estudiante/Catalogo.jsx'
+import MiCuenta from './pages/estudiante/Cuenta.jsx'
+import DetallesEquipo from './pages/estudiante/DetallesEquipo.jsx'
+import FormularioSolicitud from './pages/estudiante/FormularioSolicitud.jsx'
+import ReservaAnticipada from './pages/estudiante/ReservaAnticipada.jsx'
+import Reservas from './pages/estudiante/Reservas.jsx'
+import Solicitudes from './pages/estudiante/Solicitudes.jsx'
+import Calendario from './pages/estudiante/Calendario.jsx'
+
+// ENCARGADO
+import RegistroEncargado from './pages/encargado/RegistroEncargado.jsx'
+import AprobacionEntrega from './pages/encargado/AprobacionEntrega.jsx'
+import CondicionPrestamo from './pages/encargado/CondicionPrestamo.jsx'
+import Devoluciones from './pages/encargado/Devoluciones.jsx'
+import EditarEquipo from './pages/encargado/EditarEquipo.jsx'
+import GestionUsuarion from './pages/encargado/GestionUsuarion.jsx'
+import Historial from './pages/encargado/Historial.jsx'
+import Inventario from './pages/encargado/Inventario.jsx'
+import ListaEspera from './pages/encargado/ListaEspera.jsx'
+import Metricas from './pages/encargado/Metricas.jsx'
+import PrestamosVigentes from './pages/encargado/PrestamosVigentes.jsx'
+import Ranking from './pages/encargado/Ranking.jsx'
+import RegistroEntrega from './pages/encargado/RegistroEntrega.jsx'
+
+// PÁGINAS - COMUNES
+import Error403 from './pages/comun/403.jsx'
+import NotFound from './pages/comun/404.jsx'
+
+const router = createBrowserRouter([
+  // GLOBAL
+  { path: '/', element: <App /> },
+
+  // VISITANTE
+  { path: '/inicio', element: <FichaPublica /> },
+  { path: '/login', element: <LoginPage /> },
+  { path: '/recuperar', element: <RecuperarContrasena /> },
+  { path: '/register', element: <Register /> },
+  { path: 'visitante/cata/:id', element: <FichaPublica /> },
+  // ESTUDIANTE 
+  {
+    path: '/catalogo',
+    element: <Catalogo />,
+  },
+  {
+    path: '/cuenta',
+    element: <MiCuenta />,
+  },
+  {
+    path: '/catalogo/:id',
+    element: <DetallesEquipo />,
+  },
+  {
+    path: '/catalogo/:id/solicitar',
+    element: <FormularioSolicitud />,
+  },
+  { 
+    path: '/reserva-anticipada', 
+    element: <ReservaAnticipada /> 
+  },
+  {
+    path: '/estudiante/mis-reservas',
+    element: <Reservas />,
+  },
+  {
+    path: '/estudiante/mis-solicitudes',
+    element: <Solicitudes />,
+  },
+  {
+    path: '/estudiante/calendario',
+    element: <Calendario />,
+  },
+  // ENCARGADO
+  { path: '/registroencargado', element: <RegistroEncargado /> },
+  { path: '/encargado/aprobacion-entrega', element: <AprobacionEntrega /> },
+  { path: '/encargado/condicion-prestamo', element: <CondicionPrestamo /> },
+  { path: '/encargado/devoluciones', element: <Devoluciones /> },
+  { path: '/encargado/editar-equipo', element: <EditarEquipo /> },
+  { path: '/encargado/usuarios', element: <GestionUsuarion /> },
+  { path: '/encargado/historial', element: <Historial /> },
+  { path: '/encargado/inventario', element: <Inventario /> },
+  { path: '/encargado/lista-espera', element: <ListaEspera /> },
+  { path: '/encargado/metricas', element: <Metricas /> },
+  { path: '/encargado/prestamos-vigentes', element: <PrestamosVigentes /> },
+  { path: '/encargado/ranking', element: <Ranking /> },
+  { path: '/encargado/registro-entrega', element: <RegistroEntrega /> },
+
+  // COMUN
+  { path: '/403', element: <Error403 /> },
+  { path: '*', element: <NotFound /> },
+])
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>,
+)

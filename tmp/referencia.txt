@@ -1,0 +1,1067 @@
+PAGINA 1: PROGRAMACIÓN WEB · UNIVERSIDAD DE LIMA · ENTREGA 1 — SOLO INTERFAZ
+Tema 7 — Préstamo de equipos de laboratorio
+Mockups de alta fidelidad para escritorio 1920 × 1080 px: cada vista se presenta como pantalla completa —cabecera, navegación y
+pie de página— e indica el rol al que corresponde. Plataforma web para gestionar el préstamo de equipos de laboratorio: el almacén
+controla el inventario unidad por unidad, el estudiante solicita y el encargado aprueba, entrega y registra la devolución.
+VISITANTE
+Landing y catálogo de equipos en modo lectura.
+ESTUDIANTE
+Catálogo, solicitudes, seguimiento de préstamos y reservas.
+ENCARGADO DE ALMACÉN
+Inventario, solicitudes, entregas, devoluciones y métricas.
+Sistema de diseño
+Técnico y utilitario, con la claridad de un sistema de inventario. Azul petróleo como color principal, sobrio y sin adorno, y un amarillo de
+señalización industrial reservado para vencimientos y equipos en mantenimiento. El código de la unidad pesa tanto como su nombre:
+siempre en monoespaciada.
+primary
+#17505C
+primary-dark
+#0F3A43
+primary-soft
+#E3EEF0
+accent
+#D9A404
+bg
+#F5F7F8
+surface
+#FFFFFF
+border
+#D8E0E2
+text
+#12211F
+text-muted
+#5E7073
+success
+#1E7F4D
+warning
+#B7791F
+danger
+#B4322B
+info
+#3B6FA8
+TIPOGRAFÍA — BARLOW + ROBOTO MONO
+Título de pantalla 28/32 · 600
+Título de sección 20/28 · 600
+Subtítulo 16/24 · 500
+Cuerpo de texto 15/22 · 400
+Texto auxiliar y de ayuda 13/18 · 400
+ETIQUETA DE CAMPO 12/16 · 600
+INV-OSC-0042 · PRE-2026-0318 códigos y fechas
+FORMA, BOTONES Y REGLAS TRANSVERSALES
+4px Radio de 4 px en todo. Sin sombras salvo modales. Tablas con divisorias visibles y cabecera fija.
+Primario Secundario Terciario Destructivo Deshabilitado
+Espaciado en múltiplos de 4 px · ancho máximo de contenido 1600 px centrado dentro de una ventana de 1920 × 1080 px · solo escritorio, sin versiones móviles · los
+estados semánticos combinan siempre color y texto · los préstamos vencidos siempre en #B4322B, sin excepción · altura mínima de botón 40 px.
+Restricción técnica: todo debe resolverse con HTML y CSS estándar, sin efectos que React con CSS propio no pueda reproducir.
+Componentes compartidos
+Definidos una sola vez y reutilizados sin variaciones en todas las pantallas.
+HEADER AUTENTICADO CON BUSCADOR POR CÓDIGO Y CONTADOR DE PENDIENTES
+Almacén de Equipos Inventario Solicitudes Préstamos Devoluciones Tablero ⌕Buscar por código: INV-OSC-0042 Solicitudes pendientes 12 RM
+NAVEGACIÓN LATERAL · ENCARGADO
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+Reservas 5
+Usuarios 15
+TARJETA DE EQUIPO
+foto del equipo 1:1
+Osciloscopio TBS1052B
+Tektronix · TBS1052B
+MEDICIÓN 3 / 5 libres
+FILA DE UNIDAD
+CÓDIGO UBICACIÓN ESTADO
+INV-OSC-0042 Almacén H-102 Disponible
+INV-OSC-0043 Lab. Electrónica H-210 · sonda con desgaste Mantenimiento
+BADGES DE UNIDAD, DE SOLICITUD E INDICADOR DE VENCIMIENTO
+Disponible Prestada Mantenimiento Dada de baja Enviada Aprobada Rechazada Entregada Devuelta
+vence en 5 d vence hoy 3 d de retraso
+ESTADO VACÍO
+◻
+Aún no tienes solicitudes
+Busca un equipo en el catálogo y solicita tu primer préstamo.
+Ir al catálogo
+NOTIFICACIONES Y CAMPO DE FORMULARIO
+Solicitud enviada. El encargado responderá en 24 horas.
+No pudimos registrar la devolución. Inténtalo de nuevo.
+CORREO INSTITUCIONAL
+rmendoza@gmail.com
+Debe terminar en @aloe.ulima.edu.pe
+MODAL DE CONFIRMACIÓN DESTRUCTIVA
+FILTROS ACTIVOS Y PAGINACIÓN
+Categoría: robótica ✕ Disponibilidad: con unidades libres ✕ Duración: hasta 7 días ✕Limpiar todo
+Mostrando 1 a 9 de 24 equipos ‹123›
+MAPA DE NAVEGACIÓN
+Público      Landing →  Catálogo →  Ficha →  [login al solicitar]
+Estudiante   Catálogo →  Detalle →  Solicitar →  Mis solicitudes
+             Calendario de ocupación →  Reservar →  Mis reservas
+Encargado    Inventario →  Equipo →  Unidades · Condiciones
+             Solicitudes →  Aprobar (asignar unidad) | Rechazar
+             →  Entregar →  Constancia
+             Préstamos vigentes →  Devolución →  Daños | Renovación
+             Tablero · Ranking · Usuarios · Lista de espera
+Historia 1 — Cuenta y acceso Rol de cada vista: Visitante Estudiante Encargado de almacén
+1.1 Landing pública Rol: Visitante 1920 × 1080
+Almacén de Equipos Inicio Catálogo Reglas del préstamo Ayuda Iniciar sesión Crear cuenta
+Reserva el equipo del laboratorio antes de
+tu práctica
+Busca por equipo o categoría, revisa cuántas unidades hay libres y solicita el
+préstamo con tus fechas. Recojo en el Almacén H-102.
+Busca un equipo: «osciloscopio» o «robótica» Buscar
+fotografía del almacén · 520 × 300
+Equipos destacados Ver todo el catálogo →
+Osciloscopio TBS1052B
+Tektronix · medición
+3 / 5 libres
+Cámara Canon EOS 90D
+Canon · audiovisual
+2 / 4 libres
+Kit Arduino Mega
+Arduino · robótica
+6 / 6 libres
+Multímetro Fluke 117
+Fluke · medición
+0 / 3 libres
+1Solicita con anticipación
+El encargado responde en un máximo de 24 horas hábiles. 2Recoge con tu carné
+Verifica los accesorios en la entrega y firma la constancia. 3Devuelve a tiempo
+Cada día de retraso genera penalidad y bloquea nuevos préstamos.
+Almacén de Equipos · Facultad de Ingeniería
+Universidad de Lima · Av. Javier Prado Este 4600, Santiago de Surco Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+1.2 Inicio de sesión Rol: Visitante 1920 × 1080
+Almacén de Equipos Inicio Catálogo Reglas del préstamo Ayuda Iniciar sesión Crear cuenta
+Inicia sesión
+Usa tu correo institucional para solicitar y seguir tus préstamos.
+CORREO INSTITUCIONAL
+tucorreo@aloe.ulima.edu.pe
+CONTRASEÑA
+••••••••
+☐  Recordarme ¿Olvidaste tu contraseña?
+Ingresar
+¿No tienes cuenta? Crear cuenta
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+Estado · error de credenciales (mensaje dentro de la tarjeta)
+Correo o contraseña incorrectos. Te quedan 4 intentos.
+••••••
+Verifica tus datos e inténtalo otra vez.
+Estado · cuenta bloqueada por deuda
+Cuenta bloqueada: penalidad pendiente de S/ 45.00 por el préstamo PRE-2026-0291.
+Puedes ingresar para ver tu historial, pero no solicitar equipos hasta regularizar en Tesorería.
+Estado · botón en carga
+Ingresando…
+Campos y enlaces deshabilitados mientras se valida.
+1.3 Registro de estudiante Rol: Visitante 1920 × 1080
+Almacén de Equipos Inicio Catálogo Reglas del préstamo Ayuda Iniciar sesión Crear cuenta
+Crea tu cuenta de estudiante
+Solo se admiten correos @aloe.ulima.edu.pe. La cuenta se activa con el enlace de verificación.
+DATOS PERSONALES
+NOMBRES
+Renzo Andrés
+APELLIDOS
+Mendoza Cárdenas
+CARRERA
+Ingeniería Electrónica ▾
+CICLO
+6.º ▾
+ACCESO
+CORREO INSTITUCIONAL
+nombre@aloe.ulima.edu.pe
+Debe terminar en @aloe.ulima.edu.pe
+CONTRASEÑA
+••••••••
+Mínimo 8 caracteres, una mayúscula y un número.
+CONFIRMAR CONTRASEÑA
+••••••••
+☐  Acepto el reglamento de préstamo de equipos y me responsabilizo por el cuidado y la devolución de las unidades asignadas.
+Cancelar Crear cuenta
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+Estado · validación en línea
+rmendoza@gmail.com
+Debe terminar en @aloe.ulima.edu.pe
+•••••
+Las contraseñas no coinciden.
+Revisa 3 campos antes de continuar.
+Estado · éxito (mensaje)
+✓
+Cuenta creada
+Enviamos un enlace de verificación a rmendoza@aloe.ulima.edu.pe. Válido por 24 horas.
+Notificación de resultado
+Ya existe una cuenta con el correo rmendoza@aloe.ulima.edu.pe. Inicia sesión o recupera tu
+contraseña.
+1.4 Registro de encargado Rol: Visitante · alta de encargado de almacén 1920 × 1080
+Almacén de Equipos Inicio Catálogo Reglas del préstamo Ayuda Iniciar sesión Crear cuenta
+Registro de encargado de almacén
+El alta queda pendiente hasta que el jefe de laboratorio la apruebe. Solo se admiten correos @ulima.edu.pe del personal.
+DATOS PERSONALES
+NOMBRES
+Elena Sofía
+APELLIDOS
+Rivas Talledo
+ACCESO
+CORREO INSTITUCIONAL
+erivas@ulima.edu.pe
+Debe terminar en @ulima.edu.pe
+CONTRASEÑA
+••••••••
+Mínimo 8 caracteres, una mayúscula y un número.
+CONFIRMAR CONTRASEÑA
+••••••••
+ASIGNACIÓN
+ALMACÉN ASIGNADO
+Almacén H-102 ▾
+Opciones: Almacén H-102, Almacén N-005, Laboratorio de Electrónica H-
+210.
+ANEXO TELEFÓNICO
+3120
+La cuenta se crea en estado «Pendiente de aprobación». Hasta entonces no podrá aprobar solicitudes ni registrar entregas.
+Cancelar Registrar encargado
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+1.5 Recuperar contraseña · paso 1 de 3 Rol: Visitante 1920 × 1080
+Almacén de Equipos Inicio Catálogo Reglas del préstamo Ayuda Iniciar sesión Crear cuenta
+1 2 3
+Recupera tu acceso
+Te enviaremos un enlace para crear una contraseña nueva. El enlace expira en
+60 minutos.
+CORREO INSTITUCIONAL
+nombre@aloe.ulima.edu.pe
+Enviar enlace
+Volver al inicio de sesión
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+Paso 2 · confirmación de envío (mensaje en la misma pantalla)
+✉
+Revisa tu correo
+Enviamos el enlace a rmendoza@aloe.ulima.edu.pe. Podrás reenviarlo en 00:45.
+Paso 3 · nueva contraseña
+NUEVA CONTRASEÑA
+••••••••••
+Segura
+Guardar contraseña
+1.6 Mi cuenta Rol: Estudiante 1920 × 1080
+Almacén de Equipos Catálogo Mis solicitudes Mis reservas Calendario ⌕ Buscar por código: INV-OSC-0042 Renzo Mendoza RM
+Inicio / Mi cuenta
+Mi cuenta
+Tienes una penalidad pendiente de S/ 45.00 por 3 días de retraso en PRE-2026-0291. Regularízala en Tesorería para volver a solicitar equipos.
+Datos personales
+NOMBRES
+Renzo Andrés
+APELLIDOS
+Mendoza Cárdenas
+CARRERA
+Ingeniería Electrónica ▾
+CICLO
+6.º ▾
+CORREO INSTITUCIONAL
+rmendoza@aloe.ulima.edu.pe
+No editable.
+CELULAR
+987 654 321
+Descartar Guardar cambios
+Cambiar contraseña
+CONTRASEÑA ACTUAL
+••••••••
+NUEVA
+••••••••
+CONFIRMAR
+••••••••
+Actualizar contraseña
+Resumen de préstamos
+14
+préstamos
+2
+retrasos
+S/ 45.00
+deuda
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+1.7 Acceso denegado (403) Rol: Estudiante intentando entrar al panel del encargado 1920 × 1080
+Almacén de Equipos Catálogo Mis solicitudes Mis reservas Calendario Renzo Mendoza RM
+!
+ERROR 403 · ACCESO DENEGADO
+No tienes permiso para ver esta página
+Esta sección pertenece al panel del encargado de almacén. Si crees que es un error,
+escribe a almacen.equipos@ulima.edu.pe indicando tu código de estudiante.
+Ir al catálogo Ver mis solicitudes
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+1.7 Página no encontrada (404) Rol: Visitante o cualquier rol 1920 × 1080
+Almacén de Equipos Inicio Catálogo Reglas del préstamo Ayuda Iniciar sesión Crear cuenta
+?
+ERROR 404 · PÁGINA NO ENCONTRADA
+No encontramos esta página
+El enlace pudo cambiar o la ficha del equipo ya no está publicada en el catálogo.
+Ir al inicio Buscar un equipo
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+Historia 2 — Inventario Panel del encargado: cabecera, navegación lateral con contadores y pie de página en todas las vistas.
+2.1 Inventario de equipos Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de inventario: INV-OSC-0042 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Inventario de equipos
+10 modelos · 42 unidades registradas en el Almacén H-102 Nuevo equipo
+Categoría: todas ▾ Estado: todos ▾ ⌕ Código de inventario
+FOTO EQUIPO MARCA Y MODELO CATEGORÍA UNIDADES POR ESTADO ACCIONES
+Osciloscopio TBS1052B Tektronix · TBS1052B Medición 3 libres · 1 prestada · 1 mant. Unidades · Condiciones · Editar
+Cámara Canon EOS 90D Canon · EOS 90D Audiovisual 2 libres · 2 prestadas Unidades · Condiciones · Editar
+Kit de robótica Arduino Mega Arduino · Mega 2560 Robótica 6 libres Unidades · Condiciones · Editar
+Tableta gráfica Wacom Intuos Wacom · CTL-4100 Cómputo 1 libre · 2 prestadas Unidades · Condiciones · Editar
+Multímetro Fluke 117 Fluke · 117 Medición 2 prestadas · 1 mant. Unidades · Condiciones · Editar
+Analizador de redes portátil NetAlly · LinkRunner Redes 2 libres · 1 de baja Unidades · Condiciones · Editar
+Trípode profesional Manfrotto Manfrotto · MT055 Audiovisual 4 libres · 1 prestado Unidades · Condiciones · Editar
+Fuente de poder regulable Korad · KA3005P Lab. de física 3 libres · 1 mant. Unidades · Condiciones · Editar
+Mostrando 1 a 8 de 10 equipos ‹1 2›
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+Estado · sin resultados de filtro (dentro de la tabla)
+◻
+Ningún equipo coincide con estos filtros
+Prueba con otra categoría o registra el primer equipo de redes.
+2.4 Modal de cambio de estado de unidad (sobre la vista de unidades)
+2.2 Nuevo / editar equipo Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de inventario: INV-OSC-0042 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Inventario / Nuevo equipo
+Nuevo equipo
+IDENTIFICACIÓN
+NOMBRE DEL EQUIPO
+Analizador de redes portátil
+CATEGORÍA
+Redes ▾
+MARCA
+NetAlly
+MODELO
+LinkRunner AT 2000
+DESCRIPCIÓN
+Verificador de cableado y certificación básica de enlaces Ethernet. Para las prácticas del curso de Redes y Comunicaciones.
+Máximo 400 caracteres. Se muestra en la ficha pública del catálogo.
+ACCESORIOS INCLUIDOS
+Estuche rígido Quitar
+Cargador y cable de red Quitar
+Batería de repuesto Quitar
+Nombre del accesorio Agregar
+FOTOGRAFÍAS
+principal
+Arrastra las fotografías
+JPG o PNG · encuadre cuadrado
+ESTADO DEL FORMULARIO · CON ERRORES
+No se pudo guardar. Revisa 3 campos marcados.
+NOMBRE DEL EQUIPO
+El nombre es obligatorio.
+MODELO
+LinkRunner AT 2000
+Ya existe un equipo con esta marca y modelo.
+Cancelar Guardar borrador Guardar equipo
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+2.3 Unidades del equipo · 2.5 Condiciones del préstamo Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de inventario: INV-OSC-0042 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Inventario / Medición / Osciloscopio TBS1052B
+Osciloscopio TBS1052B
+Tektronix · TBS1052B · 5 unidades registradas · Almacén H-102
+Editar equipo Nueva unidad
+Unidades Condiciones del préstamo Historial
+CÓDIGO UBICACIÓN ESTADO OBSERVACIONES PRÉSTAMO VIGENTE
+INV-OSC-0042 Almacén H-102 ·
+anaquel 3 Disponible Sondas completas —
+INV-OSC-0043 Almacén H-102 ·
+anaquel 3 Disponible — —
+INV-OSC-0044 Lab. Electrónica H-210 Prestada Entregada con estuche PRE-2026-0318
+INV-OSC-0045 Servicio técnico
+externo Mantenimiento Sonda 2 con falso contacto —
+INV-OSC-0046 Almacén N-005 Disponible — —
+2.5 Condiciones del préstamo
+Pestaña del mismo equipo
+DURACIÓN MÁXIMA
+7 días calendario
+Requiere autorización del
+docente
+Admite renovación
+PENALIDAD POR DÍA
+S/ 15.00
+VISTA PREVIA PARA EL ESTUDIANTE
+Condiciones de este equipo
+Préstamo de hasta 7 días calendario.
+Requiere la autorización del docente
+del curso asociado. No admite
+renovación. El retraso genera una
+penalidad de S/ 15.00 por día.
+Descartar Guardar condiciones
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+Estado · equipo sin unidades registradas
++
+Este equipo aún no tiene unidades
+Registra al menos una unidad con su código de inventario para que aparezca en el catálogo.
+Modal · alta de unidad
+2.6 Ficha pública del equipo Rol: Visitante (sin sesión) 1920 × 1080
+Almacén de Equipos Inicio Catálogo Reglas del préstamo Ayuda Iniciar sesión Crear cuenta
+Catálogo / Audiovisual / Cámara Canon EOS 90D
+fotografía principal 1:1
+Cámara Canon EOS 90D
+Canon · EOS 90D · Audiovisual
+Cámara réflex digital de 32.5 MP con grabación 4K, para los proyectos de fotografía y video de los cursos
+de Comunicación e Ingeniería Industrial. Se entrega con lente 18-135 mm montado y batería cargada.
+ACCESORIOS INCLUIDOS
+Estuche rígido Cargador Batería de repuesto Correa Cable USB
+Condiciones del préstamo
+Hasta 5 días calendario · no requiere autorización adicional · admite una renovación · penalidad de S/
+20.00 por día de retraso.
+DISPONIBILIDAD ACTUAL
+2 de 4
+unidades libres hoy, 14/09/2026
+INV-CAM-0009 Disponible
+INV-CAM-0010 Disponible
+INV-CAM-0011 Mantenimiento
+INV-CAM-0012 Prestada
+Solicitar préstamo
+Necesitas iniciar sesión para solicitar.
+Recojo en Almacén H-102, lunes a viernes de
+08:00 a 19:00.
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+Historia 3 — Catálogo y solicitud Vistas del estudiante autenticado: cabecera con buscador y menú de cuenta, navegación superior y pie de página.
+3.1 Catálogo Rol: Estudiante 1920 × 1080
+Almacén de Equipos Catálogo Mis solicitudes Mis reservas Calendario ⌕ Buscar equipo o código de inventario Renzo Mendoza RM
+Filtros
+CATEGORÍA
+☑  Robótica (4)
+☐  Medición (9)
+☐  Audiovisual (6)
+☐  Cómputo (3)
+☐  Redes (2)
+☐  Laboratorio de física (4)
+DISPONIBILIDAD
+◉  Con unidades libres
+○  Todas
+DURACIÓN MÁXIMA
+◉  Hasta 7 días
+○  Hasta 15 días
+○  Sin límite
+Aplicar filtros
+Limpiar todo
+Catálogo de equipos
+9 equipos con unidades libres y préstamo de hasta 7 días Ordenar: más disponibles ▾
+Categoría: robótica ✕ Con unidades libres ✕ Hasta 7 días ✕ Limpiar todo
+foto 1:1
+Kit de robótica Arduino Mega
+Arduino · Mega 2560
+ROBÓTICA 6 / 6 libres
+foto 1:1
+Brazo robótico Dobot
+Dobot · Magician Lite
+ROBÓTICA 2 / 3 libres
+foto 1:1
+Kit de sensores Raspberry Pi
+Raspberry · Pi 4 Model B
+ROBÓTICA 4 / 5 libres
+foto 1:1
+Osciloscopio TBS1052B
+Tektronix · TBS1052B
+MEDICIÓN 3 / 5 libres
+foto 1:1
+Cámara Canon EOS 90D
+Canon · EOS 90D
+AUDIOVISUAL 2 / 4 libres
+foto 1:1
+Tableta gráfica Wacom Intuos
+Wacom · CTL-4100
+CÓMPUTO 1 / 3 libres
+foto 1:1
+Trípode Manfrotto MT055
+Manfrotto · MT055
+AUDIOVISUAL 4 / 5 libres
+foto 1:1
+Fuente de poder regulable
+Korad · KA3005P
+LAB. FÍSICA 3 / 4 libres
+Mostrando 1 a 8 de 9 equipos ‹1 2›
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+Estado · sin resultados (dentro de la retícula)
+?
+Ningún equipo coincide con estos filtros
+Prueba ampliando la duración máxima o revisa otra categoría.
+Estado · cargando con esqueletos
+Cargando equipos…
+
+PAGINA 2: 3.2 Detalle del equipo Rol: Estudiante 1920 × 1080
+Almacén de Equipos Catálogo Mis solicitudes Mis reservas Calendario ⌕ Buscar equipo o código de inventario Renzo Mendoza RM
+Catálogo / Medición / Osciloscopio Tektronix TBS1052B
+fotografía principal 1:1
+Osciloscopio Tektronix TBS1052B
+Tektronix · TBS1052B · Medición
+Osciloscopio digital de 2 canales y 50 MHz con pantalla a color. Para las prácticas de circuitos electrónicos y el
+laboratorio de señales.
+ACCESORIOS INCLUIDOS
+2 sondas de medición Cable USB Estuche rígido
+Condiciones del préstamo
+Hasta 7 días calendario · requiere autorización del docente · no admite renovación · penalidad de S/ 15.00 por día de
+retraso.
+UNIDADES DE ESTE EQUIPO
+INV-OSC-0042
+Disponible
+INV-OSC-0043
+Disponible
+INV-OSC-0044
+Prestada
+INV-OSC-0045
+Mantenimiento
+INV-OSC-0046
+Disponible
+DISPONIBILIDAD
+3 de 5
+unidades libres hoy, 14/09/2026
+Solicitar préstamo
+Ver calendario de ocupación
+Recojo en Almacén H-102 · lunes a viernes de 08:00
+a 19:00.
+Variantes del panel según el estado del estudiante
+Sin unidades libres: 0 de 5 · la próxima se
+libera el 19/09/2026 · botón de solicitar
+deshabilitado y acción «Reservar».
+Con deuda pendiente: S/ 45.00 · no puede
+solicitar hasta regularizar; se ofrece «Ver mi
+deuda».
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+3.3 Formulario de solicitud Rol: Estudiante 1920 × 1080
+Almacén de Equipos Catálogo Mis solicitudes Mis reservas Calendario Renzo Mendoza RM
+Catálogo / Osciloscopio TBS1052B / Solicitar préstamo
+Solicitar préstamo
+FECHAS DEL PRÉSTAMO
+FECHA DE INICIO
+16/09/2026 ▤
+FECHA DE DEVOLUCIÓN
+21/09/2026 ▤
+DURACIÓN
+5 de 7 días
+La duración máxima de este equipo es de 7 días calendario.
+JUSTIFICACIÓN
+CURSO ASOCIADO
+IN324 Laboratorio de Circuitos Electrónicos · Ing. Elena Rivas ▾
+MOTIVO DE LA SOLICITUD
+Medición de señales del amplificador operacional para la práctica calificada 3 del laboratorio. Trabajaré en el aula H-210 en horario de laboratorio libre.
+Mínimo 20 caracteres. El encargado lo verá al evaluar tu solicitud.
+Cancelar Enviar solicitud
+Osciloscopio TBS1052B
+Tektronix · 3 de 5 unidades libres
+CONDICIONES QUE ACEPTAS
+Devolución el 21/09/2026 antes de las 19:00 en el Almacén H-102 ·
+verificación de accesorios en la entrega y el retorno · penalidad de
+S/ 15.00 por día de retraso · sin renovación.
+☑  Acepto las condiciones del préstamo.
+Estados de validación del formulario
+Duración excedida: 12 días solicitados y el máximo es 7. Ajusta la
+devolución al 23/09/2026 o antes.
+Fechas no disponibles: no hay unidades libres entre el 16/09 y el
+21/09. Próximo rango libre del 23/09 al 28/09/2026.
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+3.4 Mis solicitudes Rol: Estudiante 1920 × 1080
+Almacén de Equipos Catálogo Mis solicitudes Mis reservas Calendario ⌕ Buscar equipo o código de inventario Renzo Mendoza RM
+Mis solicitudes
+2 pendientes · 1 aprobada · 5 en el historial Estado: todos ▾ 01/09/2026 — 30/09/2026
+EQUIPO Y CURSO FECHAS UNIDAD ASIGNADA ESTADO ACCIÓN
+Osciloscopio TBS1052B
+IN324 Laboratorio de Circuitos 16/09/2026 →  21/09/2026 Pendiente de asignar Enviada Retirar solicitud
+Kit de robótica Arduino Mega
+IN401 Proyecto Integrador 18/09/2026 →  25/09/2026 Pendiente de asignar Enviada Retirar solicitud
+Cámara Canon EOS 90D
+CO210 Fotografía Documental 15/09/2026 →  19/09/2026 INV-CAM-0009 Aprobada Ver detalle
+Multímetro Fluke 117
+IN324 Laboratorio de Circuitos 08/09/2026 →  12/09/2026 INV-MUL-0021 Entregada Ver constancia
+Tableta gráfica Wacom Intuos
+DI105 Dibujo Digital 01/09/2026 →  05/09/2026 INV-TAB-0004 Devuelta Ver detalle
+Analizador de redes portátil
+IN352 Redes y Comunicaciones 27/08/2026 →  03/09/2026 — Rechazada Ver motivo
+Trípode Manfrotto MT055
+CO210 Fotografía Documental 18/08/2026 →  22/08/2026 INV-TRI-0007 Devuelta Ver detalle
+Estado vacío de esta misma pantalla
+◻
+Aún no tienes solicitudes
+Busca un equipo en el catálogo y solicita tu primer préstamo.
+Notificación de resultado tras retirar una solicitud
+Solicitud retirada. La unidad vuelve a quedar disponible para otros estudiantes.
+No pudimos retirar la solicitud porque ya fue aprobada. Contacta al encargado del almacén.
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+Historia 4 — Aprobación y entrega Todas las vistas pertenecen al panel del encargado de almacén.
+4.1 Bandeja de solicitudes · con aviso de deuda (5.5) Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de inventario: INV-OSC-0042 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Bandeja de solicitudes
+12 solicitudes · Almacén H-102 Enviadas 6 Aprobadas 4 Rechazadas 2
+Aviso de deuda pendiente. 2 solicitantes de esta bandeja tienen penalidades sin regularizar por S/ 105.00 en total. Sus filas están marcadas con el indicador de deuda.
+Estado: enviadas ▾ Categoría: todas ▾ ⌕  Buscar por estudiante, curso o equipo
+SOLICITANTE EQUIPO FECHAS MOTIVO ANTIGÜEDAD ESTADO ACCIONES
+Renzo Mendoza Cárdenas
+Ing. Electrónica · 6.º Osciloscopio TBS1052B 16/09 →  21/09/2026 Práctica calificada 3 de circuitos hace 2 h Enviada Aprobar Rechazar
+Alejandra Huamán Solís
+Deuda S/ 60.00 Cámara Canon EOS 90D 17/09 →  22/09/2026 Registro fotográfico del taller hace 5 h Enviada Aprobar Rechazar
+Diego Salcedo Vera
+Ing. Industrial · 8.º Kit de robótica Arduino Mega 18/09 →  25/09/2026 Prototipo del proyecto integrador hace 1 d Enviada Aprobar Rechazar
+Fabiana Loayza Ramos
+Comunicación · 5.º Trípode Manfrotto MT055 16/09 →  18/09/2026 Grabación del cortometraje hace 1 d Enviada Aprobar Rechazar
+Mateo Chávez Ríos
+Ing. de Sistemas · 7.º Analizador de redes portátil 19/09 →  23/09/2026 Certificación de cableado del lab. hace 2 d Aprobada Registrar entrega
+Lucía Paredes Ynga
+Ing. Electrónica · 9.º Multímetro Fluke 117 15/09 →  19/09/2026 Mediciones de la tesis hace 3 d Aprobada Registrar entrega
+Camila Quispe Andrade
+Deuda S/ 45.00 Tableta gráfica Wacom Intuos 10/09 →  14/09/2026 Entrega del curso de dibujo hace 6 d Rechazada Ver motivo
+Mostrando 1 a 7 de 12 solicitudes ‹1 2›
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+4.2 Modal de aprobación · asignar unidad 4.2 Modal · sin unidades en el rango y solicitante con deuda 4.3 Modal de rechazo
+4.4 Registro de entrega · 4.5 Constancia de entrega Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de inventario: INV-OSC-0042 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Solicitudes / PRE-2026-0318 / Registrar entrega
+Registrar entrega
+ESTUDIANTE
+Renzo Mendoza Cárdenas
+CÓDIGO DE PRÉSTAMO
+PRE-2026-0318
+EQUIPO Y UNIDAD
+Osciloscopio TBS1052B · INV-OSC-0042
+DEVOLUCIÓN PACTADA
+21/09/2026 · 19:00
+ACCESORIOS ENTREGADOS
+☑  2 sondas de medición completas
+☑  Cable USB —
+☐  Estuche rígido no se entrega
+FECHA DE ENTREGA
+16/09/2026 · 09:20
+OBSERVACIONES DEL ESTADO INICIAL
+Carcasa con rayadura superficial en la tapa. Pantalla y perillas
+operativas.
+Cancelar Registrar entrega y generar constancia
+4.5 Constancia de entrega Descargar PDF Imprimir
+UNIVERSIDAD DE LIMA · FACULTAD DE INGENIERÍA
+Constancia de entrega de equipo
+CÓDIGO DE PRÉSTAMO
+PRE-2026-0318
+ESTUDIANTE
+Renzo Andrés Mendoza Cárdenas
+Ing. Electrónica · 6.º ciclo · código 20213456
+CURSO ASOCIADO
+IN324 Laboratorio de Circuitos
+Docente: Ing. Elena Rivas Talledo
+EQUIPO Y UNIDAD
+Osciloscopio Tektronix TBS1052B
+INV-OSC-0042 · Almacén H-102
+FECHAS
+Entrega: 16/09/2026 09:20
+Devolución: 21/09/2026 19:00
+ACCESORIOS ENTREGADOS
+ACCESORIO ENTREGADO
+2 sondas de medición Sí
+Cable USB Sí
+Estuche rígido No
+Declaro recibir el equipo en las condiciones descritas y me comprometo a devolverlo en la fecha pactada. El
+retraso genera una penalidad de S/ 15.00 por día y suspende nuevos préstamos.
+Firma del estudiante Firma del encargado de almacén
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+4.6 Préstamos vigentes Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de préstamo: PRE-2026-0318 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Préstamos vigentes
+8 préstamos activos · 1 vence hoy · 2 vencidos
+VENCIDOS · 2
+PRÉSTAMO UNIDAD ESTUDIANTE VENCIMIENTO RETRASO ACCIÓN
+PRE-2026-0291 INV-TAB-0004 Camila Quispe Andrade 11/09/2026 3 d de retraso Registrar devolución
+PRE-2026-0303 INV-CAM-0012 Alejandra Huamán Solís 12/09/2026 2 d de retraso Registrar devolución
+VENCEN HOY · 1
+PRE-2026-0311 INV-MUL-0021 Lucía Paredes Ynga 14/09/2026 vence hoy Registrar devolución
+EN CURSO · 5
+PRÉSTAMO UNIDAD ESTUDIANTE VENCIMIENTO DÍAS RESTANTES ACCIÓN
+PRE-2026-0318 INV-OSC-0042 Renzo Mendoza Cárdenas 21/09/2026 vence en 7 d Devolución · Renovar
+PRE-2026-0319 INV-CAM-0009 Fabiana Loayza Ramos 19/09/2026 vence en 5 d Devolución · Renovar
+PRE-2026-0320 INV-TRI-0007 Mateo Chávez Ríos 17/09/2026 vence en 3 d Devolución · Renovar
+PRE-2026-0321 INV-ARD-0015 Diego Salcedo Vera 25/09/2026 vence en 11 d Devolución · Renovar
+PRE-2026-0322 INV-RED-0002 Sebastián Rojas Ynga 23/09/2026 vence en 9 d Devolución · Renovar
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+Historia 5 — Devoluciones Todas las vistas pertenecen al panel del encargado de almacén.
+5.1 Registro de devolución · 5.2 Daños o faltantes Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de préstamo: PRE-2026-0291 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Registrar devolución
+Devolución con retraso y accesorio faltante
+BUSCAR PRÉSTAMO
+PRE-2026-0291 Buscar
+ESTUDIANTE
+Camila Quispe Andrade
+EQUIPO Y UNIDAD
+Tableta Wacom Intuos · INV-TAB-0004
+DEVOLUCIÓN PACTADA
+11/09/2026
+RETORNO REAL
+14/09/2026
+VERIFICACIÓN DE ACCESORIOS
+☑  Lápiz digital
+☐  Cable USB faltante
+☑  Estuche
+ESTADO DE RETORNO
+○  Sin novedades ○  Con daños ◉  Faltantes
+FECHA DE RETORNO
+14/09/2026
+3 días de retraso. Penalidad calculada: S/ 45.00 (S/ 15.00 por día). La cuenta quedará bloqueada hasta
+regularizar.
+Cancelar Registrar devolución
+5.2 Registrar daños o faltantes
+Paso siguiente cuando el retorno no es «sin novedades»
+DESCRIPCIÓN DEL DAÑO
+Superficie activa con rayadura profunda en la esquina inferior derecha; el trazo se corta en esa zona.
+ACCESORIOS FALTANTES
+☑  Cable USB
+☐  Lápiz digital
+☐  Estuche
+FOTOGRAFÍA DEL DAÑO
+fotografía del daño
+Derivar la unidad a mantenimiento
+Efecto sobre el inventario. La unidad INV-TAB-0004 pasará a «En mantenimiento» y la disponibilidad del equipo
+bajará de 1 a 0 unidades libres. Hay 1 reserva del 22/09/2026 que deberá reasignarse.
+Cancelar Guardar y cerrar devolución
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+Estado · devolución a tiempo (mensaje)
+Devolución a tiempo · 0 días de retraso. Sin penalidad. La unidad INV-OSC-0042 vuelve al
+estado «Disponible».
+5.3 Modal de renovación · posible 5.3 Modal de renovación · bloqueada por lista de espera
+5.4 Historial del estudiante · 5.5 Aviso de deuda pendiente Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar estudiante, código o correo Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Usuarios / Estudiantes / Camila Quispe Andrade
+Camila Quispe Andrade
+Ingeniería Industrial · 8.º ciclo · código 20204512 · cquispe@aloe.ulima.edu.pe
+Registrar pago Bloquear cuenta
+Aviso de deuda pendiente. S/ 45.00 por 3 días de retraso en PRE-2026-0291, más 1 accesorio faltante por valorizar. La estudiante no puede solicitar equipos.
+PRÉSTAMOS
+14
+RETRASOS ACUMULADOS
+2
+PENALIDADES
+S/ 45.00
+ESTADO
+Con deuda
+PRÉSTAMO EQUIPO Y UNIDAD ENTREGA DEVOLUCIÓN RETRASO PENALIDAD
+PRE-2026-0291 Tableta Wacom Intuos · INV-TAB-0004 07/09/2026 14/09/2026 3 d S/ 45.00
+PRE-2026-0245 Cámara Canon EOS 90D · INV-CAM-0010 20/08/2026 25/08/2026 — —
+PRE-2026-0198 Trípode Manfrotto MT055 · INV-TRI-0007 05/08/2026 09/08/2026 1 d S/ 15.00 pagada
+PRE-2026-0142 Multímetro Fluke 117 · INV-MUL-0022 14/07/2026 18/07/2026 — —
+PRE-2026-0087 Kit de robótica Arduino Mega · INV-ARD-0013 02/07/2026 09/07/2026 — —
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+Historia 6 — Reserva anticipada (complementaria) 6.1 y 6.3 son del estudiante; 6.4 es del encargado.
+6.1 Calendario de ocupación Rol: Estudiante 1920 × 1080
+Almacén de Equipos Catálogo Mis solicitudes Mis reservas Calendario ⌕ Buscar equipo o código de inventario Renzo Mendoza RM
+Calendario de ocupación
+Osciloscopio Tektronix TBS1052B · 5 unidades Equipo: Osciloscopio TBS1052B ▾ ‹ Setiembre 2026 ›
+Lun Mar Mié Jue Vie Sáb Dom
+31 1
+5 libres
+2
+5 libres
+3
+1 prestada
+4 libres
+4
+2 prestadas
+3 libres
+5
+4 libres
+6
+7 8
+2 reservadas
+3 libres
+9
+2 reservadas
+3 libres
+10
+3 prestadas
+11
+3 prestadas
+12
+3 libres
+13
+14
+hoy · 3 libres
+15
+3 libres
+16
+selección
+17
+selección
+18
+selección
+19 20
+21
+4 prestadas
+22
+5 comprometidas
+23
+2 libres
+24
+2 libres
+25
+4 libres
+26
+4 libres
+27
+28
+5 libres
+29
+5 libres
+30
+5 libres
+1 2 3 4
+Con unidades libres Con unidades prestadas Reservadas o sin disponibilidad Rango seleccionado
+RANGO SELECCIONADO
+16/09 →  18/09/2026
+3 días · 3 unidades libres en todo el rango
+Reservar este rango
+Solicitar préstamo directo
+UNIDADES COMPROMETIDAS HOY
+INV-OSC-0044 Prestada
+INV-OSC-0045 Mantenimiento
+INV-OSC-0042 Disponible
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+6.2 Modal de reserva 6.2 Estado · solapamiento con otra reserva propia
+Ya tienes una reserva de este equipo del 17/09/2026 al 19/09/2026. Ajusta el rango para continuar.
+Notificación de resultado tras reservar
+Reserva confirmada del 16/09 al 18/09/2026. La verás en «Mis reservas».
+6.3 Mis reservas Rol: Estudiante 1920 × 1080
+Almacén de Equipos Catálogo Mis solicitudes Mis reservas Calendario ⌕ Buscar equipo o código de inventario Renzo Mendoza RM
+Mis reservas
+3 reservas activas · 1 en lista de espera Nueva reserva
+EQUIPO RANGO ESTADO LISTA DE ESPERA ACCIÓN
+Osciloscopio Tektronix TBS1052B 16/09 →  18/09/2026 Confirmada — Cancelar reserva
+Kit de robótica Arduino Mega 22/09 →  26/09/2026 Confirmada — Cancelar reserva
+Cámara Canon EOS 90D 20/09 →  24/09/2026 En espera puesto 2 de 4 Cancelar reserva
+Multímetro Fluke 117 05/09 →  08/09/2026 Cumplida — Ver detalle
+Estado vacío de esta misma pantalla
+▤
+No tienes reservas
+Revisa el calendario de ocupación de un equipo y reserva con anticipación.
+Ver calendario
+Modal de confirmación al cancelar
+Almacén de Equipos · Facultad de Ingeniería Reglamento de préstamo almacen.equipos@ulima.edu.pe Anexo 3120
+6.4 Lista de espera Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de inventario: INV-CAM-0009 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Lista de espera
+2 equipos con reservas en espera · 6 estudiantes en cola
+Cámara Canon EOS 90D · 4 en espera
+1 Fabiana Loayza Ramos 19/09 →  23/09/2026 Asignar
+2 Camila Quispe Andrade 20/09 →  24/09/2026 Con deuda
+3 Mateo Chávez Ríos 21/09 →  25/09/2026 Asignar
+4 Diego Salcedo Vera 22/09 →  26/09/2026 Asignar
+Tableta gráfica Wacom Intuos · 2 en espera
+1 Sebastián Rojas Ynga 18/09 →  21/09/2026 En pausa
+2 Lucía Paredes Ynga 19/09 →  22/09/2026 En pausa
+La unidad INV-TAB-0004 está en mantenimiento: la cola de la tableta no avanzará hasta que vuelva al inventario.
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+Historia 7 — Métricas y usuarios (complementaria) Todas las vistas pertenecen al panel del encargado de almacén.
+7.1 Tablero de métricas Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de inventario: INV-OSC-0042 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Tablero del almacén
+Almacén H-102 · datos al 14/09/2026 01/08/2026 — 14/09/2026 Exportar
+PRÉSTAMOS DEL PERIODO
+86
++12 % frente al periodo anterior
+UNIDADES DISPONIBLES
+27
+de 42 registradas
+PRÉSTAMOS VENCIDOS
+2
+S/ 105.00 en penalidades
+EN MANTENIMIENTO
+4
+unidades fuera de servicio
+PRÉSTAMOS POR MES
+18
+24
+31
+40
+46
+Mayo Junio Julio Agosto Setiembre
+ESTADO DEL INVENTARIO
+Disponibles 27
+Prestadas 8
+En mantenimiento 4
+Dadas de baja 3
+Tiempo promedio de préstamo: 5.4 días · devoluciones a tiempo: 91 % · unidad más solicitada: INV-ARD-
+0015.
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+7.2 Ranking de equipos Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕ Buscar por código de inventario: INV-ARD-0015 Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Ranking de equipos
+Periodo del 01/08/2026 al 14/09/2026 Categoría: todas ▾
+MÁS SOLICITADOS
+# EQUIPO PRÉSTAMOS USO
+1 Kit de robótica Arduino Mega 21 86 %
+2 Cámara Canon EOS 90D 18 79 %
+3 Osciloscopio Tektronix TBS1052B 15 71 %
+4 Multímetro Fluke 117 12 64 %
+5 Trípode Manfrotto MT055 9 52 %
+SIN MOVIMIENTO
+EQUIPO UNIDADES ÚLTIMO PRÉSTAMO
+Fuente de poder regulable 4 12/06/2026
+Analizador de redes portátil 3 03/06/2026
+Generador de funciones 2 21/05/2026
+Brazo robótico educativo Dobot 3 08/05/2026
+Kit de sensores Raspberry Pi 5 sin registros
+PRÉSTAMOS POR CARRERA
+Ing. Electrónica 31
+Ing. de Sistemas 23
+Comunicación 16
+Ing. Industrial 11
+Arquitectura 5
+PRÉSTAMOS POR MES Y CATEGORÍA
+Mayo Junio Julio Agosto Setiembre
+Medición y laboratorio Audiovisual y cómputo
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+7.3 Gestión de usuarios Rol: Encargado de almacén 1920 × 1080
+Almacén de Equipos PANEL DEL ENCARGADO ⌕  Buscar por nombre, código de estudiante o correo Solicitudes pendientes 12 Elena Rivas · H-102 ER
+OPERACIÓN
+Inventario 42
+Solicitudes 12
+Préstamos vigentes 8
+Vencidos 2
+Devoluciones —
+COMPLEMENTARIOS
+Reservas 5
+Lista de espera 6
+Tablero
+Usuarios 15
+Gestión de usuarios
+15 estudiantes · 3 con deuda · 1 bloqueado
+Carrera: todas ▾ Estado: todos ▾ ⌕  Buscar por nombre, código o correo
+USUARIO CARRERA PRÉSTAMOS RETRASOS DEUDA ESTADO ACCIÓN
+Renzo Mendoza Cárdenas
+20213456 Ing. Electrónica 9 0 — Habilitado Ver historial
+Camila Quispe Andrade
+20204512 Ing. Industrial 14 2 S/ 45.00 Con deuda Bloquear cuenta
+Alejandra Huamán Solís
+20219087 Comunicación 11 3 S/ 60.00 Bloqueado Desbloquear
+Diego Salcedo Vera
+20207731 Ing. Industrial 7 1 — Habilitado Ver historial
+Fabiana Loayza Ramos
+20226654 Comunicación 12 0 — Habilitado Ver historial
+Mateo Chávez Ríos
+20198812 Ing. de Sistemas 16 1 — Habilitado Ver historial
+Lucía Paredes Ynga
+20189045 Ing. Electrónica 19 0 — Habilitado Ver historial
+Sebastián Rojas Ynga
+20211203 Ing. de Sistemas 6 0 — Habilitado Ver historial
+Valeria Ccahuana Pino
+20223390 Arquitectura 4 1 S/ 15.00 Con deuda Bloquear cuenta
+Mostrando 1 a 9 de 15 usuarios ‹1 2›
+Almacén de Equipos · Panel del encargado · Almacén H-102 Manual del encargado Soporte: sistemas@ulima.edu.pe Última sincronización: 14/09/2026 08:05
+7.3 Modal de bloqueo con motivo Notificaciones de resultado
+Cuenta bloqueada. Se notificó a la estudiante y se registró el motivo en su historial.
+No pudimos bloquear la cuenta: la estudiante tiene un préstamo entregado sin devolver. Registra primero la devolución.
+Entregable. Todas las pantallas se presentan completas a 1920 × 1080 px, con cabecera, navegación y pie de página, y con el rol indicado sobre cada una: Visitante (landing, acceso, registro,
+recuperación, ficha pública y 404), Estudiante (mi cuenta, catálogo, detalle, solicitud, mis solicitudes, calendario y mis reservas) y Encargado de almacén (inventario, equipos, unidades, condiciones,
+bandeja, entrega, constancia, préstamos vigentes, devoluciones, historial, lista de espera, tablero, ranking y usuarios). Las únicas piezas parciales son los modales y los mensajes de estado, que se
+muestran bajo la pantalla a la que pertenecen. No hay versiones móviles: el alcance es solo escritorio.
+TEMA 7 · PRÉSTAMO DE EQUIPOS
+PROGRAMACIÓN WEB · UNIVERSIDAD DE LIMA

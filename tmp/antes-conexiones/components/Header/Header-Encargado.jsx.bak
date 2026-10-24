@@ -1,0 +1,73 @@
+import { useState } from 'react'
+import {
+  useSolicitudesPendientes,
+  obtenerEncargadoActual,
+  datosPerfil,
+} from '../../data/PanelEncargado'
+import './Header-Encargado.css'
+
+/**
+ * Props opcionales:
+ *  - correo: correo del encargado con sesión iniciada (si no se pasa, usa el último registrado)
+ *  - onBuscar(codigo): se llama al presionar Enter en el buscador
+ *  - rutaInicio / rutaSolicitudes: enlaces del logo y del botón de solicitudes
+ */
+export default function HeaderEncargado({
+  correo,
+  onBuscar,
+  rutaInicio = '/encargado/inventario',
+  rutaSolicitudes = '/encargado/solicitudes',
+}) {
+  const [busqueda, setBusqueda] = useState('')
+  const pendientes = useSolicitudesPendientes()
+  const perfil = datosPerfil(obtenerEncargadoActual(correo))
+
+  const buscar = (e) => {
+    e.preventDefault()
+    if (onBuscar) onBuscar(busqueda.trim())
+  }
+
+  return (
+    <header className="he">
+      <div className="he-izquierda">
+        <a className="he-marca" href={rutaInicio}>
+          <span className="he-logo" aria-hidden="true" />
+          Almacén de Equipos
+        </a>
+        <span className="he-rol">Panel del encargado</span>
+      </div>
+
+      <form className="he-busqueda" role="search" onSubmit={buscar}>
+        <svg className="he-lupa" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="6.5" cy="6.5" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M10 10l4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+        <input
+          type="search"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar por código de inventario: INV-OSC-0042"
+          aria-label="Buscar por código de inventario"
+        />
+      </form>
+
+      <div className="he-derecha">
+        <a className="he-pendientes" href={rutaSolicitudes}>
+          Solicitudes pendientes
+          <span className="he-contador" aria-label={`${pendientes} solicitudes pendientes`}>
+            {pendientes}
+          </span>
+        </a>
+
+        <div className="he-usuario">
+          <span className="he-nombre">
+            {perfil ? `${perfil.nombreCorto} · ${perfil.codigoAlmacen}` : 'Sin cuenta de encargado'}
+          </span>
+          <span className="he-avatar" aria-hidden="true">
+            {perfil ? perfil.iniciales : '--'}
+          </span>
+        </div>
+      </div>
+    </header>
+  )
+}

@@ -1,0 +1,313 @@
+/* src/pages/ReservaAnticipada.css */
+
+.mr-pagina {
+  --mr-primario: #1b4d5c;
+  --mr-primario-oscuro: #14394a;
+  --mr-texto: #14262e;
+  --mr-texto-suave: #6b7b83;
+  --mr-borde: #dde3e6;
+  --mr-fondo: #f4f5f6;
+  --mr-superficie: #ffffff;
+  --mr-ok: #1f7a4d;
+  --mr-ok-fondo: #e8f5ee;
+  --mr-espera: #c98410;
+  --mr-espera-fondo: #fff7e6;
+  --mr-fila-espera: #fffaf0;
+  --mr-peligro: #b8322e;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--mr-fondo);
+  color: var(--mr-texto);
+  font-family: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.mr-pagina *,
+.mr-pagina *::before,
+.mr-pagina *::after {
+  box-sizing: border-box;
+}
+
+.mr-mono {
+  font-family: 'Roboto Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 12.5px;
+}
+
+/* ---------- Contenido ---------- */
+
+.mr-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 32px 24px 56px;
+}
+
+.mr-titulo-fila {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.mr-titulo {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.mr-subtitulo {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--mr-texto-suave);
+}
+
+/* ---------- Botones ---------- */
+
+.mr-btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.mr-btn:focus-visible,
+.mr-link:focus-visible {
+  outline: 2px solid var(--mr-primario);
+  outline-offset: 2px;
+}
+
+.mr-btn--primario {
+  background: var(--mr-primario);
+  color: #fff;
+}
+.mr-btn--primario:hover {
+  background: var(--mr-primario-oscuro);
+}
+
+.mr-btn--secundario {
+  background: var(--mr-superficie);
+  color: var(--mr-primario);
+  border-color: var(--mr-primario);
+}
+.mr-btn--secundario:hover {
+  background: var(--mr-fondo);
+}
+
+.mr-btn--peligro {
+  background: var(--mr-peligro);
+  color: #fff;
+}
+.mr-btn--peligro:hover {
+  background: #9a2824;
+}
+
+/* ---------- Tabla ---------- */
+
+.mr-tabla-caja {
+  background: var(--mr-superficie);
+  border: 1px solid var(--mr-borde);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.mr-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.mr-tabla th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mr-texto-suave);
+  background: #fafbfb;
+  border-bottom: 1px solid var(--mr-borde);
+}
+
+.mr-tabla td {
+  padding: 0 14px;
+  height: 40px;
+  border-bottom: 1px solid var(--mr-borde);
+  vertical-align: middle;
+}
+
+.mr-tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.mr-tabla th:nth-child(1),
+.mr-tabla td:nth-child(1) { width: 34%; }
+.mr-tabla th:nth-child(2),
+.mr-tabla td:nth-child(2) { width: 24%; }
+
+.mr-fila--espera td {
+  background: var(--mr-fila-espera);
+}
+
+.mr-equipo {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* ---------- Estados ---------- */
+
+.mr-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.mr-badge--ok {
+  color: var(--mr-ok);
+  background: var(--mr-ok-fondo);
+  border-color: var(--mr-ok);
+}
+
+.mr-badge--espera {
+  color: var(--mr-espera);
+  background: var(--mr-espera-fondo);
+  border-color: var(--mr-espera);
+}
+
+.mr-badge--cumplida {
+  color: var(--mr-texto-suave);
+  background: #f2f4f5;
+  border-color: #c9d0d4;
+}
+
+/* ---------- Acciones ---------- */
+
+.mr-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mr-link--cancelar {
+  color: var(--mr-peligro);
+}
+.mr-link--cancelar:hover {
+  text-decoration: underline;
+}
+
+.mr-link--detalle {
+  color: var(--mr-primario);
+}
+.mr-link--detalle:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Estado vacío ---------- */
+
+.mr-vacio {
+  background: var(--mr-superficie);
+  border: 1px solid var(--mr-borde);
+  border-radius: 4px;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.mr-vacio__icono {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--mr-borde);
+  border-radius: 4px;
+  background: var(--mr-fondo);
+  margin-bottom: 6px;
+}
+
+.mr-vacio__titulo {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mr-vacio__texto {
+  margin: 0 0 12px;
+  font-size: 11px;
+  color: var(--mr-texto-suave);
+  max-width: 360px;
+}
+
+/* ---------- Modal de cancelación ---------- */
+
+.mr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(18, 48, 58, 0.45);
+}
+
+.mr-modal {
+  width: 100%;
+  max-width: 520px;
+  padding: 18px 20px 16px;
+  background: var(--mr-superficie);
+  border: 1px solid var(--mr-borde);
+  border-radius: 4px;
+  box-shadow: 0 12px 32px rgba(18, 48, 58, 0.22);
+  animation: mr-modal-in 0.14s ease-out;
+}
+
+@keyframes mr-modal-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.mr-modal__titulo {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mr-modal__texto {
+  margin: 0 0 16px;
+  font-size: 11.5px;
+  color: var(--mr-texto-suave);
+  line-height: 1.5;
+}
+
+.mr-modal__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .mr-main { padding: 24px 16px 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr-modal { animation: none; }
+}

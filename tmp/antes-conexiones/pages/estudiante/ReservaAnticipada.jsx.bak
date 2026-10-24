@@ -1,0 +1,191 @@
+// src/pages/ReservaAnticipada.jsx
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { PRODUCTOS } from '../../data/Producto'
+import { obtenerReservas, obtenerTodasLasReservas, calcularEstados, cancelarReserva } from '../../data/Reservas'
+import HeaderEstudiante from '../../components/Header/Header-Estudiante'
+import FooterEstudiante from '../../components/Footer/Footer-Estudiante'
+import './ReservaAnticipada.css'
+
+// Estudiante en sesión. Reemplaza por tu sesión real si ya la tienes.
+const ESTUDIANTE = { nombre: 'Renzo Mendoza', correo: 'rmendoza@aloe.ulima.edu.pe' }
+
+/* ---------- Utilidades ---------- */
+
+const corta = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
+const larga = (iso) => `${corta(iso)}/${iso.slice(0, 4)}`
+
+const CLASE_ESTADO = {
+  Confirmada: 'mr-badge mr-badge--ok',
+  'En espera': 'mr-badge mr-badge--espera',
+  Cumplida: 'mr-badge mr-badge--cumplida'
+}
+
+/* ---------- Modal de cancelación ---------- */
+
+function ModalCancelar({ reserva, onMantener, onConfirmar }) {
+  useEffect(() => {
+    const alTeclear = (e) => e.key === 'Escape' && onMantener()
+    window.addEventListener('keydown', alTeclear)
+    return () => window.removeEventListener('keydown', alTeclear)
+  }, [onMantener])
+
+  return (
+    <div className="mr-overlay" onClick={onMantener}>
+      <div
+        className="mr-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mr-modal-titulo"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id="mr-modal-titulo" className="mr-modal__titulo">
+          ¿Cancelar la reserva del {corta(reserva.desde)} al {corta(reserva.hasta)}?
+        </h2>
+        <p className="mr-modal__texto">
+          El {reserva.equipo} quedará libre para otros estudiantes y perderás tu lugar en la cola.
+        </p>
+        <div className="mr-modal__acciones">
+          <button type="button" className="mr-btn mr-btn--secundario" onClick={onMantener} autoFocus>
+            Mantener reserva
+          </button>
+          <button type="button" className="mr-btn mr-btn--peligro" onClick={onConfirmar}>
+            Cancelar reserva
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ---------- Página ---------- */
+
+export default function ReservaAnticipada() {
+  const navigate = useNavigate()
+  const [version, setVersion] = useState(0)
+  const [porCancelar, setPorCancelar] = useState(null)
+
+  // Se recarga si cambia el registro (otra pestaña, calendario, etc.)
+  useEffect(() => {
+    const recargar = () => setVersion((v) => v + 1)
+    window.addEventListener('storage', recargar)
+    return () => window.removeEventListener('storage', recargar)
+  }, [])
+
+  const filas = useMemo(() => {
+    const estados = calcularEstados(obtenerTodasLasReservas())
+    return obtenerReservas(ESTUDIANTE.correo)
+      .map((r) => {
+        const producto = PRODUCTOS.find((p) => p.id === r.productoId)
+        return {
+          ...r,
+          equipo: producto ? producto.nombre : `Equipo #${r.productoId}`,
+          ...(estados[r.id] || { estado: 'En espera' })
+        }
+      })
+      .sort((a, b) => {
+        const cerradaA = a.estado === 'Cumplida'
+        const cerradaB = b.estado === 'Cumplida'
+        if (cerradaA !== cerradaB) return cerradaA ? 1 : -1
+        return a.desde.localeCompare(b.desde)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version])
+
+  const activas = filas.filter((f) => f.estado === 'Confirmada').length
+  const enEspera = filas.filter((f) => f.estado === 'En espera').length
+
+  const confirmarCancelacion = () => {
+    cancelarReserva(porCancelar.id)
+    setPorCancelar(null)
+    setVersion((v) => v + 1)
+  }
+
+  return (
+    <div className="mr-pagina">
+      <HeaderEstudiante />
+
+      <main className="mr-main">
+        <div className="mr-titulo-fila">
+          <div>
+            <h1 className="mr-titulo">Mis reservas</h1>
+            <p className="mr-subtitulo">
+              {activas} {activas === 1 ? 'reserva activa' : 'reservas activas'} · {enEspera} en lista de espera
+            </p>
+          </div>
+          <button type="button" className="mr-btn mr-btn--primario" onClick={() => navigate('/calendario')}>
+            Nueva reserva
+          </button>
+        </div>
+
+        {filas.length === 0 ? (
+          <section className="mr-vacio">
+            <span className="mr-vacio__icono" aria-hidden="true" />
+            <h2 className="mr-vacio__titulo">No tienes reservas</h2>
+            <p className="mr-vacio__texto">
+              Revisa el calendario de ocupación de un equipo y reserva con anticipación.
+            </p>
+            <button type="button" className="mr-btn mr-btn--primario" onClick={() => navigate('/calendario')}>
+              Ver calendario
+            </button>
+          </section>
+        ) : (
+          <div className="mr-tabla-caja">
+            <table className="mr-tabla">
+              <thead>
+                <tr>
+                  <th>Equipo</th>
+                  <th>Rango</th>
+                  <th>Estado</th>
+                  <th>Lista de espera</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filas.map((f) => (
+                  <tr key={f.id} className={f.estado === 'En espera' ? 'mr-fila--espera' : ''}>
+                    <td className="mr-equipo">{f.equipo}</td>
+                    <td className="mr-mono">
+                      {corta(f.desde)} → {larga(f.hasta)}
+                    </td>
+                    <td>
+                      <span className={CLASE_ESTADO[f.estado]}>{f.estado}</span>
+                    </td>
+                    <td className="mr-mono">
+                      {f.estado === 'En espera' ? `puesto ${f.puesto} de ${f.totalEspera}` : '—'}
+                    </td>
+                    <td>
+                      {f.estado === 'Cumplida' ? (
+                        <button
+                          type="button"
+                          className="mr-link mr-link--detalle"
+                          onClick={() => navigate(`/producto/${f.productoId}`)}
+                        >
+                          Ver detalle
+                        </button>
+                      ) : (
+                        <button type="button" className="mr-link mr-link--cancelar" onClick={() => setPorCancelar(f)}>
+                          Cancelar reserva
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </main>
+
+      <FooterEstudiante />
+
+      {porCancelar && (
+        <ModalCancelar
+          reserva={porCancelar}
+          onMantener={() => setPorCancelar(null)}
+          onConfirmar={confirmarCancelacion}
+        />
+      )}
+    </div>
+  )
+}

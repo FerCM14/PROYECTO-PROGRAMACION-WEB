@@ -1,0 +1,54 @@
+import './Header-Visitante.css'
+import { useNavigate } from 'react-router-dom'
+
+function HeaderVisitante() {
+  const navigate = useNavigate()
+
+  return (
+    <header className="header-visitante">
+      <nav className="nav">
+        <div className="logo">
+          <button
+            className="logo-button"
+            onClick={() => navigate('/')}
+          >
+            <div className="cuadro-verde"></div>
+            <span>Almacén de Equipos</span>
+          </button>
+        </div>
+
+        <button onClick={() => navigate('/')}>
+          Inicio
+        </button>
+
+        <button onClick={() => navigate('/catalogo')}>
+          Catálogo
+        </button>
+
+        <button onClick={() => navigate('/estudiante/reserva-anticipada')}>
+          Reglas del préstamo
+        </button>
+
+        <button onClick={() => navigate('/')}>
+          Ayuda
+        </button>
+
+        <button
+          className="Iniciar"
+          onClick={() => navigate('/login')}
+        >
+          Iniciar sesión
+        </button>
+
+        <button
+          className="Created"
+          onClick={() => navigate('/register')}
+        >
+          Crear cuenta
+        </button>
+      </nav>
+    </header>
+  )
+}
+
+export default HeaderVisitante

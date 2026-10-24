@@ -1,0 +1,49 @@
+/* Footer-Encargado.css */
+
+.fe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  box-sizing: border-box;
+  padding: 14px 20px;
+  background: #12292f;
+  color: #b9c9cd;
+  font-family: 'Barlow', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.fe-titulo {
+  color: #fff;
+  font-weight: 700;
+}
+
+.fe-enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 22px;
+}
+
+.fe-enlaces a {
+  color: #d9e5e8;
+  text-decoration: none;
+}
+
+.fe-enlaces a:hover {
+  text-decoration: underline;
+}
+
+.fe a:focus-visible {
+  outline: 2px solid #8fc1cd;
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .fe {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
