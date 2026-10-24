@@ -1,0 +1,307 @@
+// src/pages/RegistroEntrega.jsx
+// Ruta sugerida: /registro-entrega/:codigo   (codigo = código de préstamo, ej. PRE-2026-0001)
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { obtenerCuenta } from '../../data/cuentas'
+import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
+import { obtenerPrestamo, registrarEntrega } from '../../data/Identificacion'
+import { obtenerProducto, RECOJO } from '../../data/Producto'
+import { descargarConstanciaPdf } from '../../data/generarPdf'
+import HeaderEncargado from '../../components/Header/Header-Encargado'
+import Operacion from '../../components/Extra/Operacion'
+import FooterEncargado from '../../components/Footer/Footer-Encargado'
+import './RegistroEntrega.css'
+
+// Rutas del encargado
+const RUTA_INVENTARIO = '/encargado/inventario'
+const RUTA_BANDEJA = '/encargado/inventario'
+
+const HORA_DEVOLUCION = '19:00'
+const PENALIDAD_DIA = 15
+
+const pick = (obj, claves) => {
+  for (const c of claves) if (obj?.[c]) return obj[c]
+  return ''
+}
+
+const fmtFecha = (iso) => {
+  if (!iso) return '-'
+  const [a, m, d] = String(iso).slice(0, 10).split('-')
+  return `${d}/${m}/${a}`
+}
+
+// 'AAAA-MM-DDTHH:mm' -> 'dd/mm/aaaa hh:mm'
+const fmtFechaHora = (valor) => (valor ? `${fmtFecha(valor)} ${String(valor).slice(11, 16)}` : '-')
+
+export default function RegistroEntrega() {
+  const params = useParams()
+  const codigo =
+    params.codigo ||
+    params.id ||
+    params.prestamo ||
+    Object.values(params)[0] ||
+    new URLSearchParams(window.location.search).get('codigo') ||
+    ''
+  const navigate = useNavigate()
+
+  const prestamo = obtenerPrestamo(codigo)
+  const solicitud = prestamo ? obtenerTodasLasSolicitudes().find((s) => s.codigo === prestamo.solicitud) : null
+  const cuenta = prestamo ? obtenerCuenta(prestamo.correo) : null
+  const producto = prestamo?.productoId != null ? obtenerProducto(prestamo.productoId) : null
+
+  const listaAccesorios = producto?.accesorios || []
+  const yaEntregado = prestamo?.entrega || null
+
+  const [marcados, setMarcados] = useState(() => {
+    const base = Object.fromEntries(listaAccesorios.map((n) => [n, true]))
+    yaEntregado?.accesorios.forEach((a) => (base[a.nombre] = a.entregado))
+    return base
+  })
+  const [fecha, setFecha] = useState(
+    () => yaEntregado?.fechaEntrega || `${prestamo?.desde || ''}T${new Date().toTimeString().slice(0, 5)}`
+  )
+  const [observaciones, setObservaciones] = useState(yaEntregado?.observaciones || '')
+  const [registro, setRegistro] = useState(yaEntregado) // si no es null se muestra la constancia
+  const [error, setError] = useState('')
+
+  // Solo se registra la entrega de solicitudes aprobadas que ya tienen su código de préstamo
+  const valido = prestamo && cuenta && solicitud && ['Aprobada', 'Entregada'].includes(solicitud.estado)
+
+  const layout = (contenido) => (
+    <div className="re-app">
+      <HeaderEncargado />
+      <div className="re-body">
+        <div className="re-side">
+          <Operacion />
+        </div>
+        <div className="re-main">{contenido}</div>
+      </div>
+      <FooterEncargado />
+    </div>
+  )
+
+  if (!valido) {
+    return layout(
+      <>
+        <h1 className="re-titulo">Registrar entrega</h1>
+        <p className="re-vacio">
+          No se encontró un préstamo aprobado{codigo ? <> con el código <b>{codigo}</b></> : ''}. Aprueba la solicitud primero desde la{' '}
+          <Link to={RUTA_BANDEJA}>bandeja de solicitudes</Link>.
+        </p>
+      </>
+    )
+  }
+
+  const estudiante = `${cuenta.nombres} ${cuenta.apellidos}`
+  const devolucion = `${fmtFecha(prestamo.hasta)} · ${HORA_DEVOLUCION}`
+  const registrado = Boolean(registro)
+
+  const alternar = (nombre) => setMarcados((m) => ({ ...m, [nombre]: !m[nombre] }))
+
+  const registrar = () => {
+    if (!fecha) {
+      setError('Indica la fecha y hora de entrega.')
+      return
+    }
+    const accesorios = listaAccesorios.map((nombre) => ({ nombre, entregado: Boolean(marcados[nombre]) }))
+    const r = registrarEntrega(prestamo.codigo, { fechaEntrega: fecha, accesorios, observaciones })
+    if (!r.ok) {
+      setError('No se pudo registrar la entrega.')
+      return
+    }
+    setError('')
+    setRegistro(r.prestamo.entrega)
+  }
+
+  const accesoriosConstancia = registro?.accesorios || []
+
+  const datosPdf = registro && {
+    codigo: prestamo.codigo,
+    estudiante: `${cuenta.nombres} ${cuenta.apellidos}`,
+    estudianteSub: `${cuenta.carrera}${cuenta.ciclo ? ` · ${cuenta.ciclo}` : ''}`,
+    curso: pick(solicitud, ['curso', 'cursoAsociado']),
+    docente: pick(solicitud, ['docente', 'profesor']),
+    equipo: producto?.titulo || prestamo.equipo,
+    unidad: prestamo.unidad,
+    almacen: RECOJO.lugar,
+    entrega: fmtFechaHora(registro.fechaEntrega),
+    devolucion,
+    accesorios: accesoriosConstancia,
+    penalidad: PENALIDAD_DIA
+  }
+
+  return layout(
+    <>
+      <p className="re-migas">
+        <Link to={RUTA_BANDEJA}>Solicitudes</Link> / {prestamo.codigo} / Registrar entrega
+      </p>
+      <h1 className="re-titulo">Registrar entrega</h1>
+
+      <div className={`re-grid ${registrado ? 'con-constancia' : ''}`}>
+        {/* ---------- Registro de entrega ---------- */}
+        <section className="re-panel re-no-print">
+          <div className="re-resumen">
+            <div>
+              <span className="re-etiqueta">Estudiante</span>
+              <p>{estudiante}</p>
+            </div>
+            <div>
+              <span className="re-etiqueta">Código de préstamo</span>
+              <p className="re-mono">{prestamo.codigo}</p>
+            </div>
+            <div>
+              <span className="re-etiqueta">Equipo y unidad</span>
+              <p className="re-mono">
+                {producto?.titulo || prestamo.equipo} · {prestamo.unidad}
+              </p>
+            </div>
+            <div>
+              <span className="re-etiqueta">Devolución pactada</span>
+              <p className="re-mono">{devolucion}</p>
+            </div>
+          </div>
+
+          <span className="re-etiqueta">Accesorios entregados</span>
+          <div className="re-accesorios">
+            {listaAccesorios.length === 0 && <p className="re-nota">Este equipo no tiene accesorios registrados.</p>}
+            {listaAccesorios.map((nombre) => (
+              <label key={nombre} className={`re-accesorio ${marcados[nombre] ? '' : 'no'}`}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(marcados[nombre])}
+                  disabled={registrado}
+                  onChange={() => alternar(nombre)}
+                />
+                <span>{nombre}</span>
+                <em>{marcados[nombre] ? 'entregado' : 'no se entrega'}</em>
+              </label>
+            ))}
+          </div>
+
+          <div className="re-fila">
+            <label className="re-campo">
+              <span className="re-etiqueta">Fecha de entrega</span>
+              <input
+                type="datetime-local"
+                value={fecha}
+                disabled={registrado}
+                onChange={(e) => setFecha(e.target.value)}
+              />
+            </label>
+            <label className="re-campo re-ancho">
+              <span className="re-etiqueta">Observaciones del estado inicial</span>
+              <textarea
+                rows={3}
+                value={observaciones}
+                disabled={registrado}
+                onChange={(e) => setObservaciones(e.target.value)}
+                placeholder="Describe el estado del equipo al entregarlo"
+              />
+            </label>
+          </div>
+
+          {error && <p className="re-error">{error}</p>}
+
+          <div className="re-pie">
+            <button type="button" className="re-cancelar" onClick={() => navigate(RUTA_INVENTARIO)}>
+              {registrado ? 'Ir al inventario' : 'Cancelar'}
+            </button>
+            <button type="button" className="re-btn primario" disabled={registrado} onClick={registrar}>
+              {registrado ? 'Entrega registrada' : 'Registrar entrega y generar constancia'}
+            </button>
+          </div>
+        </section>
+
+        {/* ---------- Constancia de entrega ---------- */}
+        {registrado && (
+          <section className="re-panel re-panel-constancia">
+            <div className="re-constancia-cab re-no-print">
+              <h2>Constancia de entrega</h2>
+              <div className="re-acciones">
+                <button type="button" className="re-btn outline" onClick={() => descargarConstanciaPdf(datosPdf)}>
+                  Descargar PDF
+                </button>
+                <button type="button" className="re-btn primario" onClick={() => window.print()}>
+                  Imprimir
+                </button>
+              </div>
+            </div>
+
+            <article className="re-hoja">
+              <header className="re-hoja-cab">
+                <div>
+                  <span className="re-etiqueta">Universidad de Lima · Facultad de Ingeniería</span>
+                  <h3>Constancia de entrega de equipo</h3>
+                </div>
+                <div className="re-hoja-codigo">
+                  <span className="re-etiqueta">Código de préstamo</span>
+                  <p className="re-mono">{prestamo.codigo}</p>
+                </div>
+              </header>
+
+              <div className="re-hoja-datos">
+                <div>
+                  <span className="re-etiqueta">Estudiante</span>
+                  <p>{datosPdf.estudiante}</p>
+                  <small>{datosPdf.estudianteSub}</small>
+                </div>
+                <div>
+                  <span className="re-etiqueta">Curso asociado</span>
+                  <p>{datosPdf.curso || '-'}</p>
+                  {datosPdf.docente && <small>Docente: {datosPdf.docente}</small>}
+                </div>
+                <div>
+                  <span className="re-etiqueta">Equipo y unidad</span>
+                  <p>{datosPdf.equipo}</p>
+                  <p className="re-mono">
+                    {prestamo.unidad} · {RECOJO.lugar}
+                  </p>
+                </div>
+                <div>
+                  <span className="re-etiqueta">Fechas</span>
+                  <p className="re-mono">Entrega: {datosPdf.entrega}</p>
+                  <p className="re-mono">Devolución: {devolucion}</p>
+                </div>
+              </div>
+
+              <span className="re-etiqueta">Accesorios entregados</span>
+              <table className="re-tabla">
+                <thead>
+                  <tr>
+                    <th>Accesorio</th>
+                    <th>Entregado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {accesoriosConstancia.map((a) => (
+                    <tr key={a.nombre}>
+                      <td>{a.nombre}</td>
+                      <td>{a.entregado ? 'Sí' : 'No'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <p className="re-declaracion">
+                Declaro recibir el equipo en las condiciones descritas y me comprometo a devolverlo en la fecha pactada.
+                El retraso genera una penalidad de <span className="re-mono">S/ {PENALIDAD_DIA.toFixed(2)}</span> por día
+                y suspende nuevos préstamos.
+              </p>
+
+              <div className="re-firmas">
+                <div>
+                  <hr />
+                  <small>Firma del estudiante</small>
+                </div>
+                <div>
+                  <hr />
+                  <small>Firma del encargado de almacén</small>
+                </div>
+              </div>
+            </article>
+          </section>
+        )}
+      </div>
+    </>
+  )
+}
