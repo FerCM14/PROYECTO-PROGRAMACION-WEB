@@ -1,11 +1,16 @@
+import { obtenerProducto, obtenerCategoria } from './data/Producto'
+import { imagenEquipo } from './data/imagenes'
+import { useActualizacion } from './context/DatosContext'
 import './App.css'
 import { useNavigate } from 'react-router-dom'
 import HeaderVisitante from './components/Header/Header-Visitante'
 import FooterVisitante from './components/Footer/Footer-Visitante'
-import { equiposDestacados, pasosPrestamo } from './data/datosVisitante'
+import { pasosPrestamo } from './data/datosVisitante'
 
 function App() {
   const navigate = useNavigate()
+  useActualizacion()
+  const equiposDestacados = [4, 5, 1, 9].map(obtenerProducto).filter(Boolean)
 
   return (
     <>
@@ -60,9 +65,9 @@ function App() {
               onClick={() => navigate(`/equipo/${equipo.id}`)}
             >
               <div className="Equipos-img-placeholder">
-                {equipo.imagen && (
+                {imagenEquipo(equipo) && (
                   <img
-                    src={equipo.imagen}
+                    src={imagenEquipo(equipo)}
                     alt={equipo.nombre}
                   />
                 )}
@@ -72,11 +77,11 @@ function App() {
                 <h3>{equipo.nombre}</h3>
 
                 <p className="sub">
-                  {equipo.marca} · {equipo.categoria}
+                  {equipo.marca} · {obtenerCategoria(equipo.categoria)?.nombre}
                 </p>
 
-                <p className={`status ${equipo.estadoClase}`}>
-                  {equipo.unidadesDisponibles} / {equipo.unidadesTotales} libres
+                <p className={`status ${equipo.unidades.some((u) => u.estado === 'Disponible') ? 'green' : 'orange'}`}>
+                  {equipo.unidades.filter((u) => u.estado === 'Disponible').length} / {equipo.unidades.length} libres
                 </p>
               </div>
             </article>

@@ -1,6 +1,7 @@
+import { useActualizacion } from '../../context/DatosContext'
 import { imagenEquipo } from '../../data/imagenes'
 // src/pages/visitante/FichaPublica.jsx
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
@@ -31,7 +32,8 @@ export default function FichaPublica() {
   const location = useLocation()
   const [fotoActiva, setFotoActiva] = useState(0)
 
-  const producto = useMemo(() => obtenerProducto(id), [id])
+  useActualizacion()
+  const producto = obtenerProducto(id)
 
   const hoy = new Date().toLocaleDateString('es-PE', {
     day: '2-digit',

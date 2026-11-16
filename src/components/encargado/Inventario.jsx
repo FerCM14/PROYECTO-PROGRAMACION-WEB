@@ -1,3 +1,4 @@
+import { imagenEquipo } from '../../data/imagenes'
 import { obtenerInventario } from '../../data/Inventario'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -218,13 +219,8 @@ export default function Inventario() {
               {filasPagina.map(({ producto: p, conteo }) => (
                 <tr key={p.id}>
                   <td>
-                    <div className="inv-foto">
-                      {(p.fotos?.[0] || p.imagen) && (
-                        <img
-                          src={p.fotos?.[0] || p.imagen}
-                          alt={p.nombre}
-                        />
-                      )}
+                    <div className="inv-foto" aria-hidden="true">
+                      <img src={imagenEquipo(p)} alt={p.nombre} />
                     </div>
                   </td>
                   <td className="inv-equipo">{p.nombre}</td>
