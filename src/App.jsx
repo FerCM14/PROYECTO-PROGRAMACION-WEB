@@ -38,7 +38,7 @@ function App() {
             </div>
 
             <div className="Grande-image">
-              <p>fotografía del almacén · 520 × 300</p>
+              <img src="/imagenes/almacen.svg" alt="Ilustración del almacén de equipos" />
             </div>
           </div>
         </section>
@@ -57,7 +57,7 @@ function App() {
             <article
               className="Equipos"
               key={equipo.id}
-              onClick={() => navigate(`/pubicpage:/${equipo.id}`)}
+              onClick={() => navigate(`/equipo/${equipo.id}`)}
             >
               <div className="Equipos-img-placeholder">
                 {equipo.imagen && (

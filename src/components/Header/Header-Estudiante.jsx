@@ -1,4 +1,5 @@
 import MenuCuenta from './MenuCuenta'
+import HeaderVisitante from './Header-Visitante'
 import './Header-Estudiante.css'
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -35,13 +36,15 @@ function HeaderEstudiante() {
     navigate(texto ? `/catalogo?q=${encodeURIComponent(texto)}` : '/catalogo')
   }
 
+  if (!sesion) return <HeaderVisitante />
+
   return (
     <header className="header-estudiante">
       <nav className="hdr-est-nav">
         <button
           type="button"
           className="hdr-est-logo"
-          onClick={() => navigate('/catalogo')}
+          onClick={() => navigate('/')}
         >
           <span className="hdr-est-cuadro"></span>
           <span>Almacén de Equipos</span>

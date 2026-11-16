@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { cerrarSesion } from '../../data/cuentas'
+import { useAuth } from '../../context/AuthContext'
 import './MenuCuenta.css'
 
 export default function MenuCuenta({ iniciales, cuenta, onVerCuenta }) {
+  const { cerrarSesion } = useAuth()
   const navigate = useNavigate()
   const [abierta, setAbierta] = useState(false)
 

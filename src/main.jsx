@@ -4,6 +4,9 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import './index.css'
 import App from './App.jsx'
+import ReglasPrestamoPage from './pages/visitante/ReglasPrestamoPage'
+import { DatosProvider } from './context/DatosContext.jsx'
+import { AuthProvider } from './context/AuthContext.jsx'
 
 // VISITANTE
 import FichaPublica from './pages/visitante/FichaPublica.jsx'
@@ -27,7 +30,7 @@ import AprobacionEntrega from './pages/encargado/AprobacionEntrega.jsx'
 import CondicionPrestamo from './pages/encargado/CondicionPrestamo.jsx'
 import Devoluciones from './pages/encargado/Devoluciones.jsx'
 import EditarEquipo from './pages/encargado/EditarEquipo.jsx'
-import GestionUsuarion from './pages/encargado/GestionUsuarion.jsx'
+import GestionUsuarios from './pages/encargado/GestionUsuarios.jsx'
 import Historial from './pages/encargado/Historial.jsx'
 import Inventario from './pages/encargado/Inventario.jsx'
 import ListaEspera from './pages/encargado/ListaEspera.jsx'
@@ -44,10 +47,11 @@ import NotFound from './pages/comun/404.jsx'
 const router = createBrowserRouter([
   // GLOBAL
   { path: '/', element: <App /> },
+  { path: '/reglas-prestamo', element: <ReglasPrestamoPage /> },
 
   // VISITANTE
   { path: '/inicio', element: <FichaPublica /> },
-  { path: '/pubicpage:/:id', element: <FichaPublica /> },
+  { path: '/equipo/:id', element: <FichaPublica /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/recuperar', element: <RecuperarContrasena /> },
   { path: '/register', element: <Register /> },
@@ -91,7 +95,7 @@ const router = createBrowserRouter([
   { path: '/encargado/condicion-prestamo', element: <CondicionPrestamo /> },
   { path: '/encargado/devoluciones', element: <Devoluciones /> },
   { path: '/encargado/editar-equipo', element: <EditarEquipo /> },
-  { path: '/encargado/usuarios', element: <GestionUsuarion /> },
+  { path: '/encargado/usuarios', element: <GestionUsuarios /> },
   { path: '/encargado/historial', element: <Historial /> },
   { path: '/encargado/inventario', element: <Inventario /> },
   { path: '/encargado/lista-espera', element: <ListaEspera /> },
@@ -108,6 +112,10 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <DatosProvider>
+        <RouterProvider router={router} />
+      </DatosProvider>
+    </AuthProvider>
   </StrictMode>,
 )

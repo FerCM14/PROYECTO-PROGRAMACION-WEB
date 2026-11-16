@@ -1,3 +1,4 @@
+
 export const equiposDestacados = [
   {
     id: 4,
@@ -7,7 +8,7 @@ export const equiposDestacados = [
     unidadesDisponibles: 3,
     unidadesTotales: 5,
     estadoClase: "green",
-    imagen: ""
+    imagen: "/imagenes/osciloscopio.jpg"
   },
   {
     id: 5,
@@ -17,7 +18,7 @@ export const equiposDestacados = [
     unidadesDisponibles: 2,
     unidadesTotales: 4,
     estadoClase: "green",
-    imagen: ""
+    imagen: "/imagenes/camara_canon.jpg"
   },
   {
     id: 1,
@@ -27,17 +28,17 @@ export const equiposDestacados = [
     unidadesDisponibles: 6,
     unidadesTotales: 6,
     estadoClase: "green",
-    imagen: ""
+    imagen: "/imagenes/kit_robotica_arduino_mega.jpg"
   },
   {
     id: 9,
-    nombre: "Multímetro Fluke 117",
+    nombre: "Multímetro Fluke 115",
     marca: "Fluke",
     categoria: "medición",
-    unidadesDisponibles: 0,
-    unidadesTotales: 5,
-    estadoClase: "orange",
-    imagen: ""
+    unidadesDisponibles: 8,
+    unidadesTotales: 10,
+    estadoClase: "green",
+    imagen: "/imagenes/multimetro_digital.jpg"
   }
 ]
 

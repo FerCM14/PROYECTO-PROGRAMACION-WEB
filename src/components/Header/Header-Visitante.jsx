@@ -1,9 +1,10 @@
 import './Header-Visitante.css'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 function HeaderVisitante() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [ayuda, setAyuda] = useState(false)
 
   return (
@@ -19,15 +20,15 @@ function HeaderVisitante() {
           </button>
         </div>
 
-        <button onClick={() => navigate('/pubicpage:/1')}>
+        <button aria-current={pathname === '/' ? 'page' : undefined} onClick={() => navigate('/')}>
           Inicio
         </button>
 
-        <button onClick={() => navigate('/catalogo')}>
+        <button aria-current={pathname === '/catalogo' || pathname.startsWith('/equipo/') || pathname.startsWith('/visitante/cata/') ? 'page' : undefined} onClick={() => navigate('/catalogo')}>
           Catálogo
         </button>
 
-        <button onClick={() => navigate('/reserva-anticipada')}>
+        <button aria-current={pathname === '/reglas-prestamo' ? 'page' : undefined} onClick={() => navigate('/reglas-prestamo')}>
           Reglas del préstamo
         </button>
 

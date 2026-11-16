@@ -11,22 +11,22 @@ export const CATEGORIAS = [
 ]
 
 export const PRODUCTOS = [
-  { id: 1, codigo: 'INV-0001', nombre: 'Kit de robótica Arduino Mega', marca: 'Arduino', modelo: 'Mega 2560', categoria: 'robotica', libres: 6, total: 6, duracionMax: 7 },
-  { id: 2, codigo: 'INV-0002', nombre: 'Brazo robótico Dobot', marca: 'Dobot', modelo: 'Magician Lite', categoria: 'robotica', libres: 2, total: 3, duracionMax: 7 },
-  { id: 3, codigo: 'INV-0003', nombre: 'Kit de sensores Raspberry Pi', marca: 'Raspberry', modelo: 'Pi 4 Model B', categoria: 'robotica', libres: 4, total: 5, duracionMax: 7 },
-  { id: 4, codigo: 'INV-0004', nombre: 'Osciloscopio TBS1052B', marca: 'Tektronix', modelo: 'TBS1052B', categoria: 'medicion', libres: 3, total: 5, duracionMax: 7 },
-  { id: 5, codigo: 'INV-0005', nombre: 'Cámara Canon EOS 90D', marca: 'Canon', modelo: 'EOS 90D', categoria: 'audiovisual', libres: 2, total: 4, duracionMax: 7 },
-  { id: 6, codigo: 'INV-0006', nombre: 'Tableta gráfica Wacom Intuos', marca: 'Wacom', modelo: 'CTL-4100', categoria: 'computo', libres: 1, total: 3, duracionMax: 7 },
-  { id: 7, codigo: 'INV-0007', nombre: 'Trípode Manfrotto MT055', marca: 'Manfrotto', modelo: 'MT055', categoria: 'audiovisual', libres: 4, total: 5, duracionMax: 7 },
-  { id: 8, codigo: 'INV-0008', nombre: 'Fuente de poder regulable', marca: 'Korad', modelo: 'KA3005P', categoria: 'fisica', libres: 3, total: 4, duracionMax: 7 },
-  { id: 9, codigo: 'INV-0009', nombre: 'Multímetro digital Fluke 115', marca: 'Fluke', modelo: '115', categoria: 'medicion', libres: 8, total: 10, duracionMax: 15 },
-  { id: 10, codigo: 'INV-0010', nombre: 'Laptop Dell Latitude 5420', marca: 'Dell', modelo: 'Latitude 5420', categoria: 'computo', libres: 0, total: 6, duracionMax: 15 },
-  { id: 11, codigo: 'INV-0011', nombre: 'Switch Cisco Catalyst 2960', marca: 'Cisco', modelo: 'Catalyst 2960', categoria: 'redes', libres: 2, total: 4, duracionMax: 15 },
-  { id: 12, codigo: 'INV-0012', nombre: 'Router MikroTik hAP ac²', marca: 'MikroTik', modelo: 'hAP ac2', categoria: 'redes', libres: 3, total: 5, duracionMax: 15 },
-  { id: 13, codigo: 'INV-0013', nombre: 'Micrófono Shure SM58', marca: 'Shure', modelo: 'SM58', categoria: 'audiovisual', libres: 5, total: 6, duracionMax: 7 },
-  { id: 14, codigo: 'INV-0014', nombre: 'Kit de óptica Pasco', marca: 'Pasco', modelo: 'OS-8515C', categoria: 'fisica', libres: 1, total: 2, duracionMax: null },
-  { id: 15, codigo: 'INV-0015', nombre: 'Analizador lógico Saleae', marca: 'Saleae', modelo: 'Logic Pro 8', categoria: 'medicion', libres: 0, total: 2, duracionMax: 15 },
-  { id: 16, codigo: 'INV-0016', nombre: 'Mini PC Intel NUC 11', marca: 'Intel', modelo: 'NUC 11 Pro', categoria: 'computo', libres: 3, total: 4, duracionMax: null }
+  { id: 1, codigo: 'INV-0001', nombre: 'Kit de robótica Arduino Mega', marca: 'Arduino', modelo: 'Mega 2560', categoria: 'robotica', libres: 6, total: 6, duracionMax: 7, imagen: '/imagenes/kit_robotica_arduino_mega.jpg' },
+  { id: 2, codigo: 'INV-0002', nombre: 'Brazo robótico Dobot', marca: 'Dobot', modelo: 'Magician Lite', categoria: 'robotica', libres: 2, total: 3, duracionMax: 7, imagen: '/imagenes/brazo_robotico-dobot.jpg' },
+  { id: 3, codigo: 'INV-0003', nombre: 'Kit de sensores Raspberry Pi', marca: 'Raspberry', modelo: 'Pi 4 Model B', categoria: 'robotica', libres: 4, total: 5, duracionMax: 7, imagen: '/imagenes/kit_raspberry.jpg' },
+  { id: 4, codigo: 'INV-0004', nombre: 'Osciloscopio TBS1052B', marca: 'Tektronix', modelo: 'TBS1052B', categoria: 'medicion', libres: 3, total: 5, duracionMax: 7, imagen: '/imagenes/osciloscopio.jpg' },
+  { id: 5, codigo: 'INV-0005', nombre: 'Cámara Canon EOS 90D', marca: 'Canon', modelo: 'EOS 90D', categoria: 'audiovisual', libres: 2, total: 4, duracionMax: 7, imagen: '/imagenes/camara_canon.jpg' },
+  { id: 6, codigo: 'INV-0006', nombre: 'Tableta gráfica Wacom Intuos', marca: 'Wacom', modelo: 'CTL-4100', categoria: 'computo', libres: 1, total: 3, duracionMax: 7, imagen: '/imagenes/tableta_grafica_wacom.jpg' },
+  { id: 7, codigo: 'INV-0007', nombre: 'Trípode Manfrotto MT055', marca: 'Manfrotto', modelo: 'MT055', categoria: 'audiovisual', libres: 4, total: 5, duracionMax: 7, imagen: '/imagenes/tipode_manfrotto.jpg' },
+  { id: 8, codigo: 'INV-0008', nombre: 'Fuente de poder regulable', marca: 'Korad', modelo: 'KA3005P', categoria: 'fisica', libres: 3, total: 4, duracionMax: 7, imagen: '/imagenes/fuente_de_poder.jpg' },
+  { id: 9, codigo: 'INV-0009', nombre: 'Multímetro digital Fluke 115', marca: 'Fluke', modelo: '115', categoria: 'medicion', libres: 8, total: 10, duracionMax: 15, imagen: '/imagenes/multimetro_digital.jpg' },
+  { id: 10, codigo: 'INV-0010', nombre: 'Laptop Dell Latitude 5420', marca: 'Dell', modelo: 'Latitude 5420', categoria: 'computo', libres: 0, total: 6, duracionMax: 15, imagen: '/imagenes/laptop-dell.jpg' },
+  { id: 11, codigo: 'INV-0011', nombre: 'Switch Cisco Catalyst 2960', marca: 'Cisco', modelo: 'Catalyst 2960', categoria: 'redes', libres: 2, total: 4, duracionMax: 15, imagen: '/imagenes/swich_cisco.jpg' },
+  { id: 12, codigo: 'INV-0012', nombre: 'Router MikroTik hAP ac²', marca: 'MikroTik', modelo: 'hAP ac2', categoria: 'redes', libres: 3, total: 5, duracionMax: 15, imagen: '/imagenes/router_mikro.jpg' },
+  { id: 13, codigo: 'INV-0013', nombre: 'Micrófono Shure SM58', marca: 'Shure', modelo: 'SM58', categoria: 'audiovisual', libres: 5, total: 6, duracionMax: 7, imagen: '/imagenes/microfono.jpg' },
+  { id: 14, codigo: 'INV-0014', nombre: 'Kit de óptica Pasco', marca: 'Pasco', modelo: 'OS-8515C', categoria: 'fisica', libres: 1, total: 2, duracionMax: null, imagen: '/imagenes/kit_optica.jpg' },
+  { id: 15, codigo: 'INV-0015', nombre: 'Analizador lógico Saleae', marca: 'Saleae', modelo: 'Logic Pro 8', categoria: 'medicion', libres: 0, total: 2, duracionMax: 15, imagen: '/imagenes/analizador_logico.jpg' },
+  { id: 16, codigo: 'INV-0016', nombre: 'Mini PC Intel NUC 11', marca: 'Intel', modelo: 'NUC 11 Pro', categoria: 'computo', libres: 3, total: 4, duracionMax: null, imagen: '/imagenes/mini_PC.jpg' }
 ]
 
 /* ---------- Datos para la página de detalle ---------- */

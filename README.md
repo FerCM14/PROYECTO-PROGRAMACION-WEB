@@ -1,16 +1,25 @@
-# React + Vite
+# Préstamos de equipos de laboratorio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación React con Vite para visitantes, estudiantes y encargados.
 
-Currently, two official plugins are available:
+## Ejecución
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```sh
+npm install
+npm run dev
+```
 
-## React Compiler
+`npm run build` genera la aplicación en `dist`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Organización
 
-## Expanding the ESLint configuration
+- `src/main.jsx`: rutas y proveedores de contexto.
+- `src/pages`: páginas de las rutas. Componen las vistas de `components`, siguiendo los ejemplos de clase.
+- `src/components`: vistas y estilos organizados por rol, además de encabezados, pies de página y navegación compartida.
+- `src/context/AuthContext.jsx`: estado de sesión, inicio y cierre de sesión mediante `useAuth`.
+- `src/context/DatosContext.jsx`: actualización compartida de datos mediante `useActualizacion`.
+- `src/data`: datos iniciales y operaciones de persistencia y reglas de préstamos existentes.
+- `src/assets` y `public`: recursos gráficos.
+- `tmp`: respaldos y herramientas auxiliares anteriores; no forman parte de la aplicación.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Las páginas delegan la interfaz a componentes, y los proveedores envuelven el router como en las guías de React. Se conserva la persistencia en localStorage. El contexto de datos mantiene la detección de cambios de las operaciones existentes para conservar su sincronización; el almacenamiento no es un servidor ni una base de datos compartida entre usuarios.

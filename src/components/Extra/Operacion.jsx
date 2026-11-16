@@ -5,7 +5,7 @@ import { obtenerPrestamos } from '../../data/Identificacion'
 import { obtenerCuentas } from '../../data/cuentas'
 import { obtenerTodasLasReservas } from '../../data/Reservas'
 import { hoyISO } from '../../data/fechas'
-import { useActualizacion } from '../../data/Actualizacion'
+import { useActualizacion } from '../../context/DatosContext'
 import './Operacion.css'
 const grupos = [
   ['Operación', [

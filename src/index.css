@@ -1,0 +1,4 @@
+
+.Grande-image img, .catalogo-foto img, .detalle-foto-principal img, .cp-equipo-foto img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: inherit; }
+
+.detalle-miniaturas img { width: 100%; height: 100%; object-fit: contain; }

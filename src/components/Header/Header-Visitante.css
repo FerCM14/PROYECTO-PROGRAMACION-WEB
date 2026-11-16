@@ -61,7 +61,7 @@ header {
 }
 
 /* Botón de navegación activo (Inicio): el subrayado usa el mismo color del texto */
-.nav button:nth-child(2) {
+.header-visitante .nav button[aria-current="page"] {
   color: var(--color-primary);
   font-weight: 600;
   border-bottom: 2px solid currentColor;
