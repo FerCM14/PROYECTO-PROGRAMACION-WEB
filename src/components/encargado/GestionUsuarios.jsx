@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
-import { bloquearCuenta, desbloquearCuenta } from '../../data/cuentas'
+import { useCuentas } from '../../context/cuentas/CuentasContext'
 import { usuariosConResumen } from '../../data/Ranking'
 import { useActualizacion } from '../../context/DatosContext'
 import './GestionUsuarios.css'
 export default function GestionUsuarios() {
+  const { bloquearCuenta, desbloquearCuenta } = useCuentas()
   useActualizacion()
   const [,actualizar] = useState(0)
   const [busqueda,setBusqueda] = useState(''); const [carrera,setCarrera] = useState(''); const [estado,setEstado] = useState('')

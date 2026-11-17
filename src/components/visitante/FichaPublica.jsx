@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
-import { obtenerProducto, obtenerCategoria, RECOJO } from '../../data/Producto'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import './FichaPublica.css'
 
 // Productos.js todavía no guarda la penalidad por equipo; si algún día
@@ -27,6 +27,7 @@ function formatearFecha(fecha) {
 }
 
 export default function FichaPublica() {
+  const { obtenerProducto, obtenerCategoria, RECOJO } = useCatalogo()
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()

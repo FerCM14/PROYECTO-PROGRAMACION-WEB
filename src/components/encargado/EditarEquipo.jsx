@@ -1,16 +1,10 @@
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
 
-import {
-  CATEGORIAS,
-  PRODUCTOS,
-  obtenerProducto,
-  agregarProducto,
-  actualizarProducto
-} from '../../data/Producto'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import './EditarEquipo.css'
 
 const RUTA_INVENTARIO = '/encargado/inventario'
@@ -65,11 +59,16 @@ function procesarImagen(archivo) {
 }
 
 export default function EditarEquipo() {
+  const { CATEGORIAS,
+  PRODUCTOS,
+  obtenerProducto,
+  agregarProducto,
+  actualizarProducto } = useCatalogo()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const idEditar = params.get('id')
 
-  const existente = useMemo(() => (idEditar ? obtenerProducto(idEditar) : null), [idEditar])
+  const existente = (idEditar ? obtenerProducto(idEditar) : null)
   const editando = Boolean(existente)
 
   const [form, setForm] = useState(() =>

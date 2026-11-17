@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
-import { CATEGORIAS } from '../../data/Producto'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import { calcularRanking } from '../../data/Ranking'
 import { obtenerPeriodoMetricas, guardarPeriodoMetricas, MESES } from '../../data/Metricas'
 import { formatearFecha } from '../../data/fechas'
@@ -11,6 +11,7 @@ import { useActualizacion } from '../../context/DatosContext'
 import './Ranking.css'
 const colores = ['#d9a600','#3974ad','#195662','#73a880','#9765aa','#df8650']
 export default function Ranking() {
+  const { CATEGORIAS } = useCatalogo()
   useActualizacion()
   const [periodo,setPeriodo] = useState(obtenerPeriodoMetricas)
   useEffect(() => { guardarPeriodoMetricas(periodo) }, [periodo])

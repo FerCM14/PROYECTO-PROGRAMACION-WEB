@@ -2,10 +2,10 @@
 // Ruta sugerida: /registro-entrega/:codigo   (codigo = código de préstamo, ej. PRE-2026-0001)
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { obtenerCuenta } from '../../data/cuentas'
-import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
-import { obtenerPrestamo, registrarEntrega } from '../../data/Identificacion'
-import { obtenerProducto, RECOJO } from '../../data/Producto'
+import { useCuentas } from '../../context/cuentas/CuentasContext'
+import { useSolicitudes } from '../../context/solicitudes/SolicitudesContext'
+import { usePrestamos } from '../../context/prestamos/PrestamosContext'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import { descargarConstanciaPdf } from '../../data/generarPdf'
 import HeaderEncargado from '../Header/Header-Encargado'
 import Operacion from '../Extra/Operacion'
@@ -34,6 +34,10 @@ const fmtFecha = (iso) => {
 const fmtFechaHora = (valor) => (valor ? `${fmtFecha(valor)} ${String(valor).slice(11, 16)}` : '-')
 
 export default function RegistroEntrega() {
+  const { obtenerPrestamo, registrarEntrega } = usePrestamos()
+  const { obtenerTodasLasSolicitudes } = useSolicitudes()
+  const { obtenerProducto, RECOJO } = useCatalogo()
+  const { obtenerCuenta } = useCuentas()
   const params = useParams()
   const codigo =
     params.codigo ||

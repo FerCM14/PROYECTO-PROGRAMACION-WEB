@@ -1,3 +1,8 @@
+import { PrestamosProvider } from './context/prestamos/PrestamosContext'
+import { ReservasProvider } from './context/reservas/ReservasContext'
+import { SolicitudesProvider } from './context/solicitudes/SolicitudesContext'
+import { CatalogoProvider } from './context/catalogo/CatalogoContext'
+import { CuentasProvider } from './context/cuentas/CuentasContext'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
@@ -6,7 +11,7 @@ import './index.css'
 import App from './App.jsx'
 import ReglasPrestamoPage from './pages/visitante/ReglasPrestamoPage'
 import { DatosProvider } from './context/DatosContext.jsx'
-import { AuthProvider } from './context/AuthContext.jsx'
+import { AuthProvider } from './context/cuentas/AuthContext.jsx'
 
 // VISITANTE
 import FichaPublica from './pages/visitante/FichaPublica.jsx'
@@ -114,7 +119,17 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <DatosProvider>
-        <RouterProvider router={router} />
+        <CuentasProvider>
+          <CatalogoProvider>
+            <SolicitudesProvider>
+              <ReservasProvider>
+                <PrestamosProvider>
+                  <RouterProvider router={router} />
+                </PrestamosProvider>
+              </ReservasProvider>
+            </SolicitudesProvider>
+          </CatalogoProvider>
+        </CuentasProvider>
       </DatosProvider>
     </AuthProvider>
   </StrictMode>,

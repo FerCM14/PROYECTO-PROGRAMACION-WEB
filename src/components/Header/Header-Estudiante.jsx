@@ -3,7 +3,7 @@ import HeaderVisitante from './Header-Visitante'
 import './Header-Estudiante.css'
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { obtenerSesion } from '../../data/cuentas'
+import { useCuentas } from '../../context/cuentas/CuentasContext'
 
 const ENLACES = [
   { texto: 'Catálogo', ruta: '/catalogo' },
@@ -17,6 +17,7 @@ function primeraPalabra(texto) {
 }
 
 function HeaderEstudiante() {
+  const { obtenerSesion } = useCuentas()
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [codigo, setCodigo] = useState('')

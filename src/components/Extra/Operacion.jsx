@@ -1,9 +1,9 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { contarUnidades } from '../../data/Inventario'
-import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
-import { obtenerPrestamos } from '../../data/Identificacion'
-import { obtenerCuentas } from '../../data/cuentas'
-import { obtenerTodasLasReservas } from '../../data/Reservas'
+import { useSolicitudes } from '../../context/solicitudes/SolicitudesContext'
+import { usePrestamos } from '../../context/prestamos/PrestamosContext'
+import { useCuentas } from '../../context/cuentas/CuentasContext'
+import { useReservas } from '../../context/reservas/ReservasContext'
 import { hoyISO } from '../../data/fechas'
 import { useActualizacion } from '../../context/DatosContext'
 import './Operacion.css'
@@ -20,6 +20,10 @@ const grupos = [
     ['tablero', 'Tablero', '/encargado/metricas'],
     ['usuarios', 'Usuarios', '/encargado/usuarios']]]]
 export default function Operacion({ activo = 'inventario' }) {
+  const { obtenerPrestamos } = usePrestamos()
+  const { obtenerTodasLasReservas } = useReservas()
+  const { obtenerTodasLasSolicitudes } = useSolicitudes()
+  const { obtenerCuentas } = useCuentas()
   useActualizacion()
   const navigate = useNavigate()
   const location = useLocation()

@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/cuentas/AuthContext'
 
 const DOMINIO = '@aloe.ulima.edu.pe o @ulima.edu.pe'
 const REGEX_CORREO = /^[^\s@]+@(?:aloe\.)?ulima\.edu\.pe$/i

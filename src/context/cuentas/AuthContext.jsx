@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from 'react'
-import * as cuentas from '../data/cuentas'
+import * as cuentas from '../../data/cuentas'
 
 const AuthContext = createContext(null)
 
