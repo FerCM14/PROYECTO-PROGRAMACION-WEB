@@ -48,67 +48,58 @@ import RegistroEntrega from './pages/encargado/RegistroEntrega.jsx'
 // PÁGINAS - COMUNES
 import Error403 from './pages/comun/403.jsx'
 import NotFound from './pages/comun/404.jsx'
+import RutaProtegida from './components/comun/RutaProtegida.jsx'
 
 const router = createBrowserRouter([
   // GLOBAL
   { path: '/', element: <App /> },
   { path: '/reglas-prestamo', element: <ReglasPrestamoPage /> },
 
-  // VISITANTE
+  // VISITANTE (públicas)
   { path: '/inicio', element: <FichaPublica /> },
   { path: '/equipo/:id', element: <FichaPublica /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/recuperar', element: <RecuperarContrasena /> },
   { path: '/register', element: <Register /> },
   { path: 'visitante/cata/:id', element: <FichaPublica /> },
-  // ESTUDIANTE 
-  {
-    path: '/catalogo',
-    element: <Catalogo />,
-  },
-  {
-    path: '/cuenta',
-    element: <MiCuenta />,
-  },
-  {
-    path: '/catalogo/:id',
-    element: <DetallesEquipo />,
-  },
-  {
-    path: '/catalogo/:id/solicitar',
-    element: <FormularioSolicitud />,
-  },
-  { 
-    path: '/reserva-anticipada', 
-    element: <ReservaAnticipada /> 
-  },
-  {
-    path: '/estudiante/mis-reservas',
-    element: <Reservas />,
-  },
-  {
-    path: '/estudiante/mis-solicitudes',
-    element: <Solicitudes />,
-  },
-  {
-    path: '/estudiante/calendario',
-    element: <Calendario />,
-  },
-  // ENCARGADO
   { path: '/registroencargado', element: <RegistroEncargado /> },
-  { path: '/encargado/aprobacion-entrega', element: <AprobacionEntrega /> },
-  { path: '/encargado/condicion-prestamo', element: <CondicionPrestamo /> },
-  { path: '/encargado/devoluciones', element: <Devoluciones /> },
-  { path: '/encargado/editar-equipo', element: <EditarEquipo /> },
-  { path: '/encargado/usuarios', element: <GestionUsuarios /> },
-  { path: '/encargado/historial', element: <Historial /> },
-  { path: '/encargado/inventario', element: <Inventario /> },
-  { path: '/encargado/lista-espera', element: <ListaEspera /> },
-  { path: '/encargado/metricas', element: <Metricas /> },
-  { path: '/encargado/prestamos-vigentes', element: <PrestamosVigentes /> },
-  { path: '/encargado/reservas', element: <ReservasEncargado /> },
-  { path: '/encargado/ranking', element: <Ranking /> },
-  { path: '/encargado/registro-entrega', element: <RegistroEntrega /> },
+
+  // CATÁLOGO (públicas: el visitante lo ve en modo lectura)
+  { path: '/catalogo', element: <Catalogo /> },
+  { path: '/catalogo/:id', element: <DetallesEquipo /> },
+
+  // ESTUDIANTE (protegidas)
+  {
+    element: <RutaProtegida roles={['estudiante']} />,
+    children: [
+      { path: '/cuenta', element: <MiCuenta /> },
+      { path: '/catalogo/:id/solicitar', element: <FormularioSolicitud /> },
+      { path: '/reserva-anticipada', element: <ReservaAnticipada /> },
+      { path: '/estudiante/mis-reservas', element: <Reservas /> },
+      { path: '/estudiante/mis-solicitudes', element: <Solicitudes /> },
+      { path: '/estudiante/calendario', element: <Calendario /> },
+    ],
+  },
+
+  // ENCARGADO (protegidas)
+  {
+    element: <RutaProtegida roles={['encargado']} />,
+    children: [
+      { path: '/encargado/aprobacion-entrega', element: <AprobacionEntrega /> },
+      { path: '/encargado/condicion-prestamo', element: <CondicionPrestamo /> },
+      { path: '/encargado/devoluciones', element: <Devoluciones /> },
+      { path: '/encargado/editar-equipo', element: <EditarEquipo /> },
+      { path: '/encargado/usuarios', element: <GestionUsuarios /> },
+      { path: '/encargado/historial', element: <Historial /> },
+      { path: '/encargado/inventario', element: <Inventario /> },
+      { path: '/encargado/lista-espera', element: <ListaEspera /> },
+      { path: '/encargado/metricas', element: <Metricas /> },
+      { path: '/encargado/prestamos-vigentes', element: <PrestamosVigentes /> },
+      { path: '/encargado/reservas', element: <ReservasEncargado /> },
+      { path: '/encargado/ranking', element: <Ranking /> },
+      { path: '/encargado/registro-entrega', element: <RegistroEntrega /> },
+    ],
+  },
 
   // COMUN
   { path: '/403', element: <Error403 /> },
