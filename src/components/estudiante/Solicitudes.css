@@ -363,3 +363,10 @@
   line-height: 1.6;
   color: var(--color-text);
 }
+
+.solicitudes-modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
