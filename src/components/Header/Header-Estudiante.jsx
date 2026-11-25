@@ -83,8 +83,8 @@ function HeaderEstudiante() {
           </svg>
           <input
             type="text"
-            aria-label="Buscar por código"
-            placeholder="Buscar por código: INV-OSC-0042"
+            aria-label="Buscar equipo o código"
+            placeholder="Buscar equipo o código: INV-OSC-0042"
             value={codigo}
             onChange={(e) => setCodigo(e.target.value)}
           />

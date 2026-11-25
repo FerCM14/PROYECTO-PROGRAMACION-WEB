@@ -8,6 +8,7 @@ import { obtenerSesion, obtenerCuenta } from '../../data/cuentas'
 import { obtenerProducto, RECOJO } from '../../data/Producto'
 import { totalDeuda, PENALIDAD_POR_DIA } from '../../data/deudas'
 import { registrarSolicitud } from '../../data/Solicitudes'
+import { imagenEquipo } from '../../data/imagenes'
 import {
   hoyISO,
   sumarDias,
@@ -360,15 +361,16 @@ function FormularioSolicitud() {
           <aside className="solicitud-lateral">
             <section className="solicitud-card solicitud-equipo">
               <div className="solicitud-equipo-cabecera">
-                <div className="solicitud-miniatura" aria-hidden="true" />
-                <div>
+                <div className="solicitud-miniatura">
+                  <img src={imagenEquipo(producto)} alt="{producto.nombre}" />
+                </div>
                   <strong>{producto.nombre}</strong>
                   <p>
                     {producto.marca} · {producto.libres} de {producto.total}{' '}
                     unidades libres
                   </p>
                 </div>
-              </div>
+              
 
               <h3 className="solicitud-subtitulo">Condiciones que aceptas</h3>
 

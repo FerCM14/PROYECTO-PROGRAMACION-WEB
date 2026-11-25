@@ -1,7 +1,7 @@
 import { imagenEquipo } from '../../data/imagenes'
 import './Catalogo.css'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import HeaderEstudiante from '../Header/Header-Estudiante'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
 import HeaderVisitante from '../Header/Header-Visitante'
@@ -9,6 +9,7 @@ import { obtenerSesion, obtenerCuenta } from '../../data/cuentas'
 import {
   CATEGORIAS,
   PRODUCTOS,
+  obtenerProducto,
   obtenerCategoria,
   contarPorCategoria
 } from '../../data/Producto'
@@ -44,11 +45,24 @@ function normalizarTexto(texto) {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
 }
+// libres y total salen de las unidades reales, no de números fijos
+function cargarEquipos() {
+  return PRODUCTOS.map((p) => obtenerProducto(p.id))
+    .map((p) => {
+      const activas = p.unidades.filter((u) => u.estado !== 'De baja')
+      return {
+        ...p,
+        total: activas.length,
+        libres: activas.filter((u) => u.estado === 'Disponible').length
+      }
+    })
+    .filter((p) => p.total > 0)
+}
 
 function filtrarProductos(filtros, busqueda) {
   const termino = normalizarTexto(busqueda.trim())
 
-  return PRODUCTOS.filter((producto) => {
+  return cargarEquipos().filter((producto) => {
     if (
       filtros.categorias.length > 0 &&
       !filtros.categorias.includes(producto.categoria)
@@ -68,8 +82,9 @@ function filtrarProductos(filtros, busqueda) {
     }
 
     if (termino) {
+      const codigosUnidades = producto.unidades.map((u) => u.codigo).join(' ')
       const texto = normalizarTexto(
-        `${producto.nombre} ${producto.marca} ${producto.modelo} ${producto.codigo}`
+        `${producto.nombre} ${producto.marca} ${producto.modelo} ${producto.codigo} ${codigosUnidades}`
       )
       if (!texto.includes(termino)) return false
     }
@@ -214,7 +229,8 @@ function Catalogo() {
   const navigate = useNavigate()
   const [filtros, setFiltros] = useState(FILTROS_VACIOS) // aplicados (sin recuadros al inicio)
   const [borrador, setBorrador] = useState(FILTROS_INICIALES) // sin aplicar
-  const [busqueda, setBusqueda] = useState('')
+  const [params, setParams] = useSearchParams()
+  const busqueda = params.get('q') || ''
   const [orden, setOrden] = useState('disponibles')
   const [pagina, setPagina] = useState(1)
   const [cargando, setCargando] = useState(false)
@@ -265,7 +281,7 @@ function Catalogo() {
   const limpiarTodo = () => {
     setFiltros(FILTROS_VACIOS)
     setBorrador(FILTROS_VACIOS)
-    setBusqueda('')
+    setParams({}, { replace: true })
     setPagina(1)
     simularCarga()
   }
@@ -299,9 +315,10 @@ function Catalogo() {
   }
 
   const cambiarBusqueda = (e) => {
-    setBusqueda(e.target.value)
-    setPagina(1)
-  }
+  const valor = e.target.value
+  setParams(valor ? { q: valor } : {}, { replace: true })
+  setPagina(1)
+}
 
   const irAPagina = (numero) => {
     if (numero < 1 || numero > totalPaginas || numero === paginaActual) return
