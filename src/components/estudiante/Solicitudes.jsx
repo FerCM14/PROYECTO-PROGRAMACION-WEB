@@ -214,7 +214,39 @@ function DetalleSolicitud({ solicitud, modo, onCerrar }) {
     </div>
   )
 }
+// Ventana que pide confirmar antes de retirar la solicitud
+function ConfirmarRetiro({ solicitud, onConfirmar, onCancelar }) {
+  return (
+    <div className="solicitudes-modal-fondo" onClick={onCancelar}>
+      <div
+        className="solicitudes-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Confirmar retiro de la solicitud"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2>¿Retirar esta solicitud?</h2>
+        <p className="solicitudes-modal-texto">
+          Se retirará la solicitud {solicitud.codigo} de {solicitud.equipo}. Esta acción no se
+          puede deshacer.
+        </p>
 
+        <div className="solicitudes-modal-acciones">
+          <button type="button" className="solicitudes-btn" onClick={onCancelar}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className="solicitudes-accion solicitudes-accion-peligro"
+            onClick={onConfirmar}
+          >
+            Sí, retirar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 /* ---------- Página ---------- */
 
 function Solicitudes() {
@@ -232,6 +264,7 @@ function Solicitudes() {
   const [retirada, setRetirada] = useState(false) // aviso verde
   const [bloqueada, setBloqueada] = useState(null) // código con aviso rojo
   const [detalle, setDetalle] = useState(null) // { solicitud, modo }
+  const [porRetirar, setPorRetirar] = useState(null) // solicitud pendiente de confirmar
 
   // Acceso: solo estudiantes con sesión iniciada
   if (!cuenta) {
@@ -271,6 +304,16 @@ function Solicitudes() {
       console.error('Error al retirar la solicitud:', error)
       setBloqueada(solicitud.codigo)
     }
+  // Solo las "Enviada" piden confirmación; las demás muestran el aviso rojo de siempre
+    const pedirRetiro = (solicitud) => {
+    if (solicitud.estado === 'Enviada') setPorRetirar(solicitud)
+    else retirar(solicitud)
+    }
+
+    const confirmarRetiro = () => {
+    retirar(porRetirar)
+    setPorRetirar(null)
+}
   }
 
   return (
@@ -376,7 +419,7 @@ function Solicitudes() {
                       <AccionSolicitud
                         solicitud={solicitud}
                         bloqueada={bloqueada === solicitud.codigo}
-                        onRetirar={() => retirar(solicitud)}
+                        onRetirar={() => pedirRetiro(solicitud)}
                         onVer={(modo) => setDetalle({ solicitud, modo })}
                         onCerrarBloqueo={() => setBloqueada(null)}
                       />
@@ -396,6 +439,13 @@ function Solicitudes() {
           onCerrar={() => setDetalle(null)}
         />
       )}
+      {porRetirar && (
+      <ConfirmarRetiro
+      solicitud={porRetirar}
+      onConfirmar={confirmarRetiro}
+      onCancelar={() => setPorRetirar(null)}
+  />
+)}
 
       <FooterEstudiante />
     </>
