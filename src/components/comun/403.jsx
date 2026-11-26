@@ -20,4 +20,4 @@ const CONTENIDO = {
     secundario: { texto: 'Ver solicitudes', ruta: '/encargado/aprobacion-entrega' },
   },
   visitante: {
-    texto: 'Debes iniciar sesión para ver
+    texto: 'Debes iniciar sesión para ver'}}
