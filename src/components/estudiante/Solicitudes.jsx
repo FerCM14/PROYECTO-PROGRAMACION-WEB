@@ -304,16 +304,18 @@ function Solicitudes() {
       console.error('Error al retirar la solicitud:', error)
       setBloqueada(solicitud.codigo)
     }
+  }
+
   // Solo las "Enviada" piden confirmación; las demás muestran el aviso rojo de siempre
-    const pedirRetiro = (solicitud) => {
+  const pedirRetiro = (solicitud) => {
     if (solicitud.estado === 'Enviada') setPorRetirar(solicitud)
     else retirar(solicitud)
-    }
+  }
 
-    const confirmarRetiro = () => {
+  const confirmarRetiro = () => {
     retirar(porRetirar)
     setPorRetirar(null)
-}
+    
   }
 
   return (
