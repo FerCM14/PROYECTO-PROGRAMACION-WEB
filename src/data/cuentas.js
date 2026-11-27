@@ -196,7 +196,7 @@ export function iniciarSesion(correo, contrasena) {
   if (cuenta.rol === 'encargado' && cuenta.estado !== 'Aprobado') {
   return { ok: false, motivo: 'pendiente' }
   }
-  
+
   if (cuenta.bloqueada) {
     const bloqueo = [...(cuenta.historial || [])].reverse().find((e) => e.accion === 'Cuenta bloqueada')
     return { ok: false, motivo: 'bloqueada', razon: bloqueo?.motivo || cuenta.motivoBloqueo || 'Bloqueo registrado por el encargado.', detalle: bloqueo?.detalle || '' }
@@ -230,4 +230,18 @@ export function obtenerSesion() {
 export function cerrarSesion() {
   localStorage.removeItem('rol')
   localStorage.removeItem(CLAVE_SESION)
+}
+
+const CUENTAS_DEMO = [
+  {
+    nombres: 'Estudiante', apellidos: 'Demo', carrera: 'Ingeniería de Sistemas', ciclo: '5',
+    celular: '', correo: 'estudiante@aloe.ulima.edu.pe', contrasena: 'Prueba123',
+    rol: 'estudiante', deuda: null, bloqueada: false,
+  },
+]
+
+export function sembrarCuentasDemo() {
+  const actuales = obtenerCuentas()
+  const faltan = CUENTAS_DEMO.filter((d) => !actuales.some((c) => c.correo === d.correo))
+  if (faltan.length) guardarCuentas([...actuales, ...faltan])
 }

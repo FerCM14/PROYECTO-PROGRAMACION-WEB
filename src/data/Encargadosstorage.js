@@ -58,3 +58,17 @@ export function registrarEncargado(datos) {
 export function obtenerEncargados() {
   return [...encargados]
 }
+
+const ENCARGADOS_DEMO = [
+  { id: 1, nombres: 'Elena', apellidos: 'Rivas', correo: 'encargado@ulima.edu.pe', contrasena: 'Prueba123',
+    almacen: 'Almacén H-102', anexo: '1234', estado: 'Aprobado', fechaRegistro: '2026-01-01T00:00:00.000Z' },
+  { id: 2, nombres: 'Pedro', apellidos: 'Pendiente', correo: 'pendiente@ulima.edu.pe', contrasena: 'Prueba123',
+    almacen: 'Almacén N-005', anexo: '5678', estado: 'Pendiente de aprobación', fechaRegistro: '2026-01-01T00:00:00.000Z' },
+]
+
+export function sembrarEncargadosDemo() {
+  const faltan = ENCARGADOS_DEMO.filter((d) => !correoYaRegistrado(d.correo))
+  if (!faltan.length) return
+  encargados.push(...faltan)
+  persistir()
+}

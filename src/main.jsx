@@ -50,6 +50,12 @@ import Error403 from './pages/comun/403.jsx'
 import NotFound from './pages/comun/404.jsx'
 import RutaProtegida from './components/comun/RutaProtegida.jsx'
 
+import { sembrarCuentasDemo } from './data/cuentas.js'
+import { sembrarEncargadosDemo } from './data/Encargadosstorage.js'
+
+sembrarCuentasDemo()
+sembrarEncargadosDemo()
+
 const router = createBrowserRouter([
   // GLOBAL
   { path: '/', element: <App /> },
