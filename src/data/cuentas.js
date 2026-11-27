@@ -1,5 +1,5 @@
 import { obtenerPrestamos } from './Identificacion'
-import { obtenerEncargados } from './Encargadosstorage'
+import {obtenerEncargados, obtenerEncargado, cambiarContrasenaEncargado, restablecerContrasenaEncargado,} from './Encargadosstorage'
 import { obtenerTodasLasReservas, cancelarReserva } from './Reservas'
 // Las cuentas se guardan en localStorage (el navegador no puede reescribir un .js).
 // Solo las cuentas creadas desde Register pueden iniciar sesión.
@@ -31,6 +31,11 @@ export function obtenerCuenta(correo) {
 
 export function existeCuenta(correo) {
   return obtenerCuenta(correo) !== null
+}
+
+// Busca el correo entre estudiantes y encargados (para recuperar contraseña)
+export function existeCorreo(correo) {
+  return existeCuenta(correo) || obtenerEncargado(correo) !== null
 }
 
 export function registrarCuenta(datos) {
@@ -110,14 +115,14 @@ export function desbloquearCuenta(correo) {
   return { ok: true }
 }
 
-// Recuperar contraseña (no pide la actual)
+// Recuperar contraseña (no pide la actual). Funciona para estudiantes y encargados.
 export function actualizarContrasena(correo, nuevaContrasena) {
   const buscado = normalizar(correo)
   const cuentas = obtenerCuentas()
   const indice = cuentas.findIndex((cuenta) => cuenta.correo === buscado)
 
   if (indice === -1) {
-    return { ok: false }
+    return restablecerContrasenaEncargado(correo, nuevaContrasena)
   }
 
   cuentas[indice] = { ...cuentas[indice], contrasena: nuevaContrasena }
@@ -125,14 +130,14 @@ export function actualizarContrasena(correo, nuevaContrasena) {
   return { ok: true }
 }
 
-// Mi cuenta: cambiar contraseña verificando la actual
+// Mi cuenta: cambiar contraseña verificando la actual. Funciona para estudiantes y encargados.
 export function cambiarContrasena(correo, actual, nueva) {
   const buscado = normalizar(correo)
   const cuentas = obtenerCuentas()
   const indice = cuentas.findIndex((cuenta) => cuenta.correo === buscado)
 
   if (indice === -1) {
-    return { ok: false, motivo: 'no-existe' }
+    return cambiarContrasenaEncargado(correo, actual, nueva)
   }
 
   if (cuentas[indice].contrasena !== actual) {
@@ -181,6 +186,7 @@ export function actualizarPerfil(correo, cambios) {
 }
 
 // Devuelve { ok: false } si las credenciales fallan,
+// { ok: false, motivo: 'pendiente' } si el encargado aún no fue aprobado,
 // o { ok: false, motivo: 'bloqueada' } si la cuenta fue bloqueada por el encargado.
 export function iniciarSesion(correo, contrasena) {
   const buscado = normalizar(correo)
@@ -194,7 +200,7 @@ export function iniciarSesion(correo, contrasena) {
   }
 
   if (cuenta.rol === 'encargado' && cuenta.estado !== 'Aprobado') {
-  return { ok: false, motivo: 'pendiente' }
+    return { ok: false, motivo: 'pendiente' }
   }
 
   if (cuenta.bloqueada) {
@@ -232,6 +238,7 @@ export function cerrarSesion() {
   localStorage.removeItem(CLAVE_SESION)
 }
 
+// Cuentas de prueba para el profesor (ver CUENTAS-DE-PRUEBA.md)
 const CUENTAS_DEMO = [
   {
     nombres: 'Estudiante', apellidos: 'Demo', carrera: 'Ingeniería de Sistemas', ciclo: '5',

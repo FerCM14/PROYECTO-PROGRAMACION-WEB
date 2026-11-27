@@ -72,3 +72,42 @@ export function sembrarEncargadosDemo() {
   encargados.push(...faltan)
   persistir()
 }
+
+export function obtenerEncargado(correo) {
+  const buscado = correo.trim().toLowerCase()
+  return encargados.find((e) => e.correo === buscado) || null
+}
+
+export function actualizarEncargado(correo, cambios) {
+  const e = obtenerEncargado(correo)
+  if (!e) return { ok: false }
+  ;['nombres', 'apellidos', 'almacen', 'anexo'].forEach((campo) => {
+    if (campo in cambios) e[campo] = String(cambios[campo]).trim()
+  })
+  persistir()
+
+  const sesion = JSON.parse(localStorage.getItem('sesionActual') || 'null')
+  if (sesion?.correo === e.correo) {
+    localStorage.setItem('sesionActual', JSON.stringify({
+      ...sesion, nombres: e.nombres, apellidos: e.apellidos, almacen: e.almacen,
+    }))
+  }
+  return { ok: true, cuenta: e }
+}
+
+export function cambiarContrasenaEncargado(correo, actual, nueva) {
+  const e = obtenerEncargado(correo)
+  if (!e) return { ok: false, motivo: 'no-existe' }
+  if (e.contrasena !== actual) return { ok: false, motivo: 'actual-incorrecta' }
+  e.contrasena = nueva
+  persistir()
+  return { ok: true }
+}
+
+export function restablecerContrasenaEncargado(correo, nueva) {
+  const e = obtenerEncargado(correo)
+  if (!e) return { ok: false }
+  e.contrasena = nueva
+  persistir()
+  return { ok: true }
+}
