@@ -58,3 +58,56 @@ export function registrarEncargado(datos) {
 export function obtenerEncargados() {
   return [...encargados]
 }
+
+const ENCARGADOS_DEMO = [
+  { id: 1, nombres: 'Elena', apellidos: 'Rivas', correo: 'encargado@ulima.edu.pe', contrasena: 'Prueba123',
+    almacen: 'Almacén H-102', anexo: '1234', estado: 'Aprobado', fechaRegistro: '2026-01-01T00:00:00.000Z' },
+  { id: 2, nombres: 'Pedro', apellidos: 'Pendiente', correo: 'pendiente@ulima.edu.pe', contrasena: 'Prueba123',
+    almacen: 'Almacén N-005', anexo: '5678', estado: 'Pendiente de aprobación', fechaRegistro: '2026-01-01T00:00:00.000Z' },
+]
+
+export function sembrarEncargadosDemo() {
+  const faltan = ENCARGADOS_DEMO.filter((d) => !correoYaRegistrado(d.correo))
+  if (!faltan.length) return
+  encargados.push(...faltan)
+  persistir()
+}
+
+export function obtenerEncargado(correo) {
+  const buscado = correo.trim().toLowerCase()
+  return encargados.find((e) => e.correo === buscado) || null
+}
+
+export function actualizarEncargado(correo, cambios) {
+  const e = obtenerEncargado(correo)
+  if (!e) return { ok: false }
+  ;['nombres', 'apellidos', 'almacen', 'anexo'].forEach((campo) => {
+    if (campo in cambios) e[campo] = String(cambios[campo]).trim()
+  })
+  persistir()
+
+  const sesion = JSON.parse(localStorage.getItem('sesionActual') || 'null')
+  if (sesion?.correo === e.correo) {
+    localStorage.setItem('sesionActual', JSON.stringify({
+      ...sesion, nombres: e.nombres, apellidos: e.apellidos, almacen: e.almacen,
+    }))
+  }
+  return { ok: true, cuenta: e }
+}
+
+export function cambiarContrasenaEncargado(correo, actual, nueva) {
+  const e = obtenerEncargado(correo)
+  if (!e) return { ok: false, motivo: 'no-existe' }
+  if (e.contrasena !== actual) return { ok: false, motivo: 'actual-incorrecta' }
+  e.contrasena = nueva
+  persistir()
+  return { ok: true }
+}
+
+export function restablecerContrasenaEncargado(correo, nueva) {
+  const e = obtenerEncargado(correo)
+  if (!e) return { ok: false }
+  e.contrasena = nueva
+  persistir()
+  return { ok: true }
+}

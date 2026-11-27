@@ -3,10 +3,10 @@ import { Fragment, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
-import { existeCuenta, actualizarContrasena } from '../../data/cuentas'
+import { existeCorreo, actualizarContrasena } from '../../data/cuentas'
 
 const DOMINIO = '@aloe.ulima.edu.pe'
-const REGEX_CORREO = /^[^\s@]+@aloe\.ulima\.edu\.pe$/i
+const REGEX_CORREO = /^[^\s@]+@(?:aloe\.)?ulima\.edu\.pe$/i
 
 // Segundos que el usuario debe esperar para poder reenviar el enlace
 const ESPERA_REENVIO = 45
@@ -239,7 +239,7 @@ function RecuperarContrasena() {
   const enviarEnlace = (e) => {
     e.preventDefault()
 
-    const limpio = correo.trim().toLowerCase()
+  const limpio = correo.trim().toLowerCase()
 
     if (!limpio) {
       setErrorCorreo('Ingresa tu correo institucional.')
@@ -247,14 +247,14 @@ function RecuperarContrasena() {
     }
 
     if (!REGEX_CORREO.test(limpio)) {
-      setErrorCorreo(`Debe terminar en ${DOMINIO}`)
+      setErrorCorreo('Usa tu correo institucional (@aloe.ulima.edu.pe o @ulima.edu.pe)')
       return
     }
 
-    let registrado = false
+  let registrado = false
     try {
-      registrado = existeCuenta(limpio)
-    } catch (error) {
+      registrado = existeCorreo(limpio)
+    }   catch (error) {
       console.error('Error al leer las cuentas:', error)
     }
 

@@ -1,10 +1,7 @@
 import './403.css'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/cuentas/AuthContext'
 import HeaderEstudiante from '../Header/Header-Estudiante'
-import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
-import FooterEncargado from '../Footer/Footer-Encargado'
 
 const CORREO_SOPORTE = 'almacen.equipos@ulima.edu.pe'
 
@@ -70,7 +67,6 @@ function Error403() {
             </a>{' '}
             indicando tu código de estudiante.
           </p>
-
           <div className="error403-acciones">
             <button
               type="button"

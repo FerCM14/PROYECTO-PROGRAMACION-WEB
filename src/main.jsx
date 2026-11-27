@@ -44,11 +44,18 @@ import PrestamosVigentes from './pages/encargado/PrestamosVigentes.jsx'
 import Ranking from './pages/encargado/Ranking.jsx'
 import ReservasEncargado from './pages/encargado/ReservasEncargado.jsx'
 import RegistroEntrega from './pages/encargado/RegistroEntrega.jsx'
+import CuentaEncargado from './pages/encargado/CuentaEncargado.jsx'
 
 // PÁGINAS - COMUNES
 import Error403 from './pages/comun/403.jsx'
 import NotFound from './pages/comun/404.jsx'
 import RutaProtegida from './components/comun/RutaProtegida.jsx'
+
+import { sembrarCuentasDemo } from './data/cuentas.js'
+import { sembrarEncargadosDemo } from './data/Encargadosstorage.js'
+
+sembrarCuentasDemo()
+sembrarEncargadosDemo()
 
 const router = createBrowserRouter([
   // GLOBAL
@@ -98,6 +105,7 @@ const router = createBrowserRouter([
       { path: '/encargado/reservas', element: <ReservasEncargado /> },
       { path: '/encargado/ranking', element: <Ranking /> },
       { path: '/encargado/registro-entrega', element: <RegistroEntrega /> },
+      { path: '/encargado/cuenta', element: <CuentaEncargado /> },
     ],
   },
 

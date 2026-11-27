@@ -1,0 +1,29 @@
+## Cómo levantar la aplicación
+1. Abre una terminal en la carpeta del proyecto.
+2. Ejecuta `npm install`.
+3. Ejecuta `npm run dev`.
+4. Abre en el navegador `http://localhost:5173` (o la dirección que aparezca en la terminal).
+
+## Cómo levantar la aplicación
+    npm install
+    npm run dev
+Luego abre `http://localhost:5173` en el navegador.
+
+## Cuentas de prueba
+Las cuentas se crean solas al abrir la aplicación, no hace falta registrarse.
+
+## Cuentas
+Rol	                             Correo	                    Contraseña
+Estudiante	          `estudiante@aloe.ulima.edu.pe`	     Prueba123
+Encargado (aprobado)	`encargado@ulima.edu.pe`	         Prueba123
+Encargado (pendiente)	`pendiente@ulima.edu.pe`	         Prueba123
+
+## Qué probar
+
+Estudiante: entra a /cuenta . Si abre una ruta de encargado, ve el error 403.
+Encargado aprobado: entra al panel /encargado/inventario y puede editar su cuenta en /encargado/cuenta. Si abre una ruta de estudiante, ve el error 403.
+Encargado pendiente: no puede iniciar sesión, el sistema avisa que su cuenta está pendiente de aprobación.
+Sin sesión: si abre una ruta protegida, es enviado a /login.
+
+## Restablecer los datos
+Si algo quedó modificado: F12 → Application → Local Storage → Clear All y recarga la página.
