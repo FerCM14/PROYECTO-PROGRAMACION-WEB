@@ -59,6 +59,7 @@ function Error403() {
           </p>
 
           <h1>No tienes permiso para ver esta página</h1>
+
           <p className="error403-texto">
             {contenido.texto} Si crees que es un error, escribe a{' '}
             <a href={`mailto:${CORREO_SOPORTE}`}>

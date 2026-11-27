@@ -255,7 +255,7 @@ function DetalleEquipo() {
               <button
                 type="button"
                 className="detalle-btn-primario"
-                onClick={() => navigate('/reservas')}
+                onClick={() => navigate(`/estudiante/calendario?equipo=${producto.id}`)}
               >
                 Reservar
               </button>

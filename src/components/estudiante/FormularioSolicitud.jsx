@@ -362,7 +362,7 @@ function FormularioSolicitud() {
             <section className="solicitud-card solicitud-equipo">
               <div className="solicitud-equipo-cabecera">
                 <div className="solicitud-miniatura">
-                  <img src={imagenEquipo(producto)} alt="{producto.nombre}" />
+                  <img src={imagenEquipo(producto)} alt={producto.nombre} />
                 </div>
                   <strong>{producto.nombre}</strong>
                   <p>
