@@ -193,6 +193,10 @@ export function iniciarSesion(correo, contrasena) {
     return { ok: false }
   }
 
+  if (cuenta.rol === 'encargado' && cuenta.estado !== 'Aprobado') {
+  return { ok: false, motivo: 'pendiente' }
+  }
+  
   if (cuenta.bloqueada) {
     const bloqueo = [...(cuenta.historial || [])].reverse().find((e) => e.accion === 'Cuenta bloqueada')
     return { ok: false, motivo: 'bloqueada', razon: bloqueo?.motivo || cuenta.motivoBloqueo || 'Bloqueo registrado por el encargado.', detalle: bloqueo?.detalle || '' }

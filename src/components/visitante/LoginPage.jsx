@@ -122,6 +122,7 @@ function LoginPage() {
         if (!respuesta.ok) {
           setCargando(false)
           if (respuesta.motivo === 'bloqueada') { setBloqueo(respuesta); setEstado('bloqueada') }
+          else if (respuesta.motivo === 'pendiente') setEstado('pendiente')
           else setEstado('credenciales')
           return
         }
@@ -163,14 +164,22 @@ function LoginPage() {
           <p className="login-subtitulo">
             Usa tu correo institucional para solicitar y seguir tus préstamos.
           </p>
-
+          
           {estado === 'credenciales' && (
             <EstadoCredenciales onRegistro={() => navigate('/register')} />
           )}
 
           {estado === 'error' && <EstadoError />}
           {estado === 'bloqueada' && <div className="login-alerta" role="alert"><strong>Cuenta bloqueada.</strong><p>Motivo: {bloqueo?.razon}</p>{bloqueo?.detalle && <p>{bloqueo.detalle}</p>}</div>}
-
+          {estado === 'pendiente' && (
+              <div className="login-alerta" role="alert">
+              <strong>Cuenta pendiente de aprobación.</strong>
+                <p>
+                Tu cuenta de encargado aún no ha sido aprobada por el jefe de laboratorio.
+                Podrás ingresar cuando sea aprobada.
+                </p>
+              </div>
+          )}
           {estado === 'deuda' && <EstadoDeuda deuda={deuda} />}
 
           <div className="login-campo">
