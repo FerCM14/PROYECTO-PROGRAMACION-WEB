@@ -13,7 +13,7 @@ export default function MenuCuenta({ iniciales, cuenta, onVerCuenta }) {
     evento.target.value = ''
     if (opcion === 'cuenta') {
       if (onVerCuenta) onVerCuenta()
-      else if (cuenta) setAbierta(true)
+      else if (cuenta) navigate('/encargado/cuenta')
       else navigate('/cuenta')
     }
     if (opcion === 'salir') {
