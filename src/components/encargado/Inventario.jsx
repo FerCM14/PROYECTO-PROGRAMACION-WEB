@@ -215,7 +215,7 @@ export default function Inventario() {
           </Link>
         </div>
 
-        <div>
+        <div className="inv-filtros">
           <label htmlFor="inv-categoria">Categoría </label>
           <select
             id="inv-categoria"

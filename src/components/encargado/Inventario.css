@@ -44,6 +44,39 @@
   gap: 16px;
 }
 
+.inv-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.inv-filtros label {
+  color: #5e7073;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inv-filtros select,
+.inv-filtros input {
+  min-height: 40px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 12px;
+  margin-right: 8px;
+  border: 1px solid #d8e0e2;
+  border-radius: 4px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+.inv-filtros :is(select, input):focus-visible {
+  outline: 2px solid #17505c;
+  outline-offset: 2px;
+}
+
 .inv-btn--link {
   display: inline-block;
   text-decoration: none;
