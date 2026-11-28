@@ -435,10 +435,14 @@ function ModalAltaUnidad({ nombreEquipo, existentes, onCancelar, onRegistrar }) 
 
   function enviar(e) {
     e.preventDefault()
-    const limpio = codigo.trim().toUpperCase()
+    const limpio = codigo.replace(/\s+/g, '').toUpperCase()
 
+    if (!limpio) {
+      setError('Ingresa el código de inventario.')
+      return
+    }
     if (!FORMATO_CODIGO.test(limpio)) {
-      setError('El código debe tener el formato INV-XXX-0000.')
+      setError('Usa INV-, tres letras y cuatro dígitos. Ejemplo: INV-OSC-0042.')
       return
     }
     if (existentes.includes(limpio)) {
@@ -471,12 +475,15 @@ function ModalAltaUnidad({ nombreEquipo, existentes, onCancelar, onRegistrar }) 
               className={`cp-input ${error ? 'cp-input-error' : ''}`}
               placeholder="INV-OSC-0047"
               value={codigo}
+              required
+              aria-invalid={Boolean(error)}
+              aria-describedby="cp-codigo-ayuda"
               onChange={(e) => {
                 setCodigo(e.target.value)
                 setError('')
               }}
             />
-            <small className={error ? 'cp-ayuda cp-ayuda-error' : 'cp-ayuda'}>
+            <small id="cp-codigo-ayuda" className={error ? 'cp-ayuda cp-ayuda-error' : 'cp-ayuda'}>
               {error || 'Formato INV-XXX-0000, único en el almacén.'}
             </small>
           </div>
