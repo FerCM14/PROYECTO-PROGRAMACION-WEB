@@ -364,7 +364,7 @@
 /* Interruptor */
 .cp-interruptor {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   font-size: 12px;
   cursor: pointer;
@@ -385,6 +385,11 @@
   border-radius: 999px;
   background: #c4cdd1;
   transition: background 0.15s;
+}
+
+.cp-interruptor-texto {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .cp-interruptor-pista::after {

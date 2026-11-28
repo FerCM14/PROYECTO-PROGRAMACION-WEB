@@ -244,7 +244,6 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
 
                       <Interruptor
                         id="cp-autorizacion"
-                        mostrarEstado
                         marcado={condiciones.requiereAutorizacion}
                         onCambio={(v) => cambiarCondicion('requiereAutorizacion', v)}
                         texto="Requiere autorización del docente"
@@ -334,7 +333,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
 
 /* ---------- Subcomponentes ---------- */
 
-function Interruptor({ id, marcado, onCambio, texto, mostrarEstado }) {
+function Interruptor({ id, marcado, onCambio, texto }) {
   const activo = marcado === true
   return (
     <label className="cp-interruptor" htmlFor={id}>
@@ -348,7 +347,7 @@ function Interruptor({ id, marcado, onCambio, texto, mostrarEstado }) {
       <span className="cp-interruptor-pista" aria-hidden="true" />
       <span className="cp-interruptor-texto">
         {texto}
-        {mostrarEstado && <small className="cp-interruptor-estado" aria-hidden="true">{activo ? 'Activada' : 'Desactivada'}</small>}
+        <small className="cp-interruptor-estado" aria-hidden="true">{activo ? 'Activada' : 'Desactivada'}</small>
       </span>
     </label>
   )
