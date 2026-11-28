@@ -151,6 +151,7 @@
 /* Pestañas */
 .cp-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 22px;
   margin: 18px 0 16px;
   border-bottom: 1px solid var(--cp-borde);
@@ -172,6 +173,11 @@
 .cp-tab-activa {
   color: var(--cp-primario);
   border-bottom-color: var(--cp-primario);
+}
+
+.cp-tab:focus-visible {
+  outline: 2px solid var(--cp-primario);
+  outline-offset: 2px;
 }
 
 .cp-aviso {

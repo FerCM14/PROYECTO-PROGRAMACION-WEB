@@ -19,6 +19,11 @@ const UBICACIONES = [
 ]
 
 const FORMATO_CODIGO = /^INV-[A-Z]{3}-\d{4}$/
+const PESTANAS = [
+  ['unidades', 'Unidades'],
+  ['condiciones', 'Condiciones del préstamo'],
+  ['historial', 'Historial']
+]
 
 function leer(clave, porDefecto) {
   try {
@@ -40,9 +45,9 @@ function formatearSoles(valor) {
 
 export default function CondicionPrestamo() {
   const { obtenerProducto, obtenerCategoria } = useCatalogo()
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const id = params.get('id')
-  const pestanaInicial = params.get('pestana') === 'condiciones' ? 'condiciones' : 'unidades'
+  const pestana = PESTANAS.find(([valor]) => valor === params.get('pestana'))?.[0] || 'unidades'
   const producto = obtenerProducto(id)
   if (!producto) {
     return (
@@ -58,25 +63,31 @@ export default function CondicionPrestamo() {
     )
   }
   const categoria = obtenerCategoria(producto.categoria)?.nombre || producto.categoria
-  return <CondicionEquipo key={`${producto.id}-${pestanaInicial}`} producto={producto} categoria={categoria} pestanaInicial={pestanaInicial} />
+  function cambiarPestana(valor) {
+    if (valor === pestana) return
+    const siguientes = new URLSearchParams(params)
+    siguientes.set('pestana', valor)
+    setParams(siguientes)
+  }
+
+  return <CondicionEquipo key={producto.id} producto={producto} categoria={categoria} pestana={pestana} cambiarPestana={cambiarPestana} />
 }
 
-function CondicionEquipo({ producto, categoria, pestanaInicial }) {
+function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   const { registrarUnidadProducto, cambiarEstadoUnidadManual, RECOJO } = useCatalogo()
   const CLAVE_CONDICIONES = `condiciones-${producto.id}`
   const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
   const [condiciones, setCondiciones] = useState(guardadas)
   const unidades = producto.unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || RECOJO.lugar }))
   const solicitudes = obtenerTodasLasSolicitudes()
-  const [pestana, setPestana] = useState(pestanaInicial)
   const tituloCondiciones = useRef(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const [unidadSeleccionada, setUnidadSeleccionada] = useState(null)
   const [mensaje, setMensaje] = useState('')
 
   useEffect(() => {
-    if (pestanaInicial === 'condiciones') tituloCondiciones.current?.focus()
-  }, [pestanaInicial])
+    if (pestana === 'condiciones') tituloCondiciones.current?.focus({ preventScroll: true })
+  }, [pestana])
 
   useEffect(() => {
     if (!mensaje) return undefined
@@ -170,19 +181,17 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
             </div>
           </header>
 
-          <div className="cp-tabs" role="tablist">
-            {[
-              ['unidades', 'Unidades'],
-              ['condiciones', 'Condiciones del préstamo'],
-              ['historial', 'Historial']
-            ].map(([id, texto]) => (
+          <div className="cp-tabs" role="tablist" aria-label="Información del equipo">
+            {PESTANAS.map(([id, texto]) => (
               <button
                 key={id}
                 type="button"
                 role="tab"
+                id={`cp-tab-${id}`}
+                aria-controls="cp-panel-equipo"
                 aria-selected={pestana === id}
                 className={`cp-tab ${pestana === id ? 'cp-tab-activa' : ''}`}
-                onClick={() => setPestana(id)}
+                onClick={() => cambiarPestana(id)}
               >
                 {texto}
               </button>
@@ -195,14 +204,17 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
             </p>
           )}
 
+          <div id="cp-panel-equipo" role="tabpanel" aria-labelledby={`cp-tab-${pestana}`}>
           {unidades.length === 0 && pestana === 'unidades' ? (
             <EstadoVacio onNueva={() => setModalAbierto(true)} />
           ) : (
             <div className="cp-contenido">
               {pestana === 'historial' ? (
                 <TablaHistorial historial={historial} />
-              ) : unidades.length > 0 && (
+              ) : unidades.length > 0 ? (
                 <TablaUnidades unidades={unidades} prestamos={prestamoPorUnidad} onCambiarEstado={setUnidadSeleccionada} />
+              ) : (
+                <EstadoVacio onNueva={() => setModalAbierto(true)} />
               )}
 
               {pestana !== 'historial' && (
@@ -290,6 +302,7 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
               )}
             </div>
           )}
+          </div>
         </main>
       </div>
 
