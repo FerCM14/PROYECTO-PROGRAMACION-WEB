@@ -24,7 +24,7 @@ function presentarEstado(estado) {
 function proximaDevolucion(unidades, hoy) {
   const codigosPrestados = unidades.filter((u) => u.estado === 'Prestada').map((u) => u.codigo)
   return obtenerPrestamos()
-    .filter((p) => p.estado === 'Entregado' && codigosPrestados.includes(p.unidad))
+    .filter((p) => p?.estado === 'Entregado' && codigosPrestados.includes(p.unidad))
     .map((p) => p.hasta)
     .filter((fecha) => typeof fecha === 'string' && fecha >= hoy && formatearFecha(fecha) !== '—')
     .sort()[0]
@@ -60,7 +60,7 @@ function DetallePublico({ producto, categoria, recojo }) {
   const { usuario } = useAuth()
   const location = useLocation()
   const [fotoActiva, setFotoActiva] = useState(0)
-  const nombre = producto.nombre?.trim() || 'Equipo'
+  const nombre = typeof producto.nombre === 'string' && producto.nombre.trim() ? producto.nombre.trim() : 'Equipo'
   const identificacion = [producto.marca, producto.modelo].filter((dato) => typeof dato === 'string' && dato.trim()).join(' · ')
   const nombreCategoria = categoria?.nombre || 'Sin categoría'
   const descripcion = typeof producto.descripcion === 'string' ? producto.descripcion.trim() : ''
@@ -71,6 +71,7 @@ function DetallePublico({ producto, categoria, recojo }) {
   const hoy = hoyISO()
 
   const alternativa = imagenEquipo({ ...producto, fotos: [] })
+  const respaldo = imagenEquipo({ ...producto, fotos: [], imagen: '' })
   const fotosGuardadas = Array.isArray(producto.fotos)
     ? producto.fotos.filter((foto) => typeof foto === 'string' && foto.trim()).slice(0, 4)
     : []
@@ -112,21 +113,21 @@ function DetallePublico({ producto, categoria, recojo }) {
           {/* Galería */}
           <section className="fp-galeria" aria-label="Fotografías del equipo">
             <div className="fp-foto-principal">
-              <FotoEquipo key={fotos[indiceFoto]} origen={fotos[indiceFoto]} alternativa={alternativa} alt={`${nombre}, foto ${indiceFoto + 1}`} />
+              <FotoEquipo key={fotos[indiceFoto]} origen={fotos[indiceFoto]} alternativa={alternativa} respaldo={respaldo} alt={`${nombre}, foto ${indiceFoto + 1}`} />
             </div>
 
             <div className="fp-miniaturas">
               {fotos.map((foto, i) => (
-                  <button
-                    key={`${i}-${foto}`}
-                    type="button"
-                    className={`fp-miniatura ${i === indiceFoto ? 'fp-miniatura-activa' : ''}`}
-                    onClick={() => setFotoActiva(i)}
-                    aria-label={`Ver foto ${i + 1}`}
-                    aria-pressed={i === indiceFoto}
-                  >
-                    <FotoEquipo origen={foto} alternativa={alternativa} alt="" />
-                  </button>
+                <button
+                  key={`${i}-${foto}`}
+                  type="button"
+                  className={`fp-miniatura ${i === indiceFoto ? 'fp-miniatura-activa' : ''}`}
+                  onClick={() => setFotoActiva(i)}
+                  aria-label={`Ver foto ${i + 1}`}
+                  aria-pressed={i === indiceFoto}
+                >
+                  <FotoEquipo origen={foto} alternativa={alternativa} respaldo={respaldo} alt="" />
+                </button>
               ))}
             </div>
           </section>
@@ -230,9 +231,11 @@ function DetallePublico({ producto, categoria, recojo }) {
   )
 }
 
-function FotoEquipo({ origen, alternativa, alt }) {
-  const [fuente, setFuente] = useState(origen)
+function FotoEquipo({ origen, alternativa, respaldo, alt }) {
+  const [intento, setIntento] = useState(0)
+  const fuentes = [...new Set([origen, alternativa, respaldo].filter(Boolean))]
+  const fuente = fuentes[intento]
   if (!fuente) return alt ? <span>Fotografía no disponible</span> : null
 
-  return <img src={fuente} alt={alt} onError={() => setFuente(fuente === alternativa ? '' : alternativa)} />
+  return <img src={fuente} alt={alt} onError={() => setIntento((actual) => actual + 1)} />
 }
