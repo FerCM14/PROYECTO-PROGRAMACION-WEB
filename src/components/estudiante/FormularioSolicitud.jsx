@@ -6,6 +6,7 @@ import FooterEstudiante from '../Footer/Footer-Estudiante'
 import Error403 from '../comun/403'
 import { obtenerSesion, obtenerCuenta } from '../../data/cuentas'
 import { obtenerProducto, RECOJO } from '../../data/Producto'
+import { disponibilidadEquipo } from '../../data/CupoEquipo'
 import { totalDeuda } from '../../data/deudas'
 import { registrarSolicitud } from '../../data/Solicitudes'
 import { imagenEquipo } from '../../data/imagenes'
@@ -116,6 +117,7 @@ function FormularioSolicitud() {
   /* ----- Cálculos de fechas ----- */
 
   const max = producto.duracionMax // null = sin límite
+  const { activas, libres } = disponibilidadEquipo(producto)
   const fechasCompletas = Boolean(inicio && devolucion)
 
   // Duración = fecha de devolución - fecha de inicio (no editable)
@@ -370,7 +372,7 @@ function FormularioSolicitud() {
                 </div>
                   <strong>{producto.nombre}</strong>
                   <p>
-                    {producto.marca} · {producto.libres} de {producto.total}{' '}
+                    {producto.marca} · {libres} de {activas.length}{' '}
                     unidades libres
                   </p>
                 </div>
