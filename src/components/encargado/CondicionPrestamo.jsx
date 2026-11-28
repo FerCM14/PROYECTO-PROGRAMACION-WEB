@@ -1,10 +1,11 @@
 import { imagenEquipo } from '../../data/imagenes'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
-import { PRODUCTOS, obtenerProducto, obtenerCategoria, registrarUnidadProducto, cambiarEstadoUnidad } from '../../data/Producto'
+import { obtenerCategoria, registrarUnidadProducto, cambiarEstadoUnidad } from '../../data/Producto'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import { obtenerPrestamos } from '../../data/Identificacion'
 import { useActualizacion } from '../../context/DatosContext'
 import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
@@ -39,15 +40,29 @@ function formatearSoles(valor) {
 }
 
 export default function CondicionPrestamo() {
+  const { obtenerProducto } = useCatalogo()
   const [params] = useSearchParams()
-  const id = params.get('id') || PRODUCTOS[0]?.id
+  const id = params.get('id')
   const pestanaInicial = params.get('pestana') === 'condiciones' ? 'condiciones' : 'unidades'
   const producto = obtenerProducto(id)
-  if (!producto) return <div className="cp-pagina"><HeaderEncargado /><main className="cp-main"><h1>Equipo no encontrado</h1></main><FooterEncargado /></div>
+  if (!producto) {
+    return (
+      <div className="cp-pagina">
+        <HeaderEncargado />
+        <main className="cp-main">
+          <h1>Equipo no encontrado</h1>
+          <p>Selecciona un equipo del inventario para consultar sus unidades.</p>
+          <Link to="/encargado/inventario">Volver al inventario</Link>
+        </main>
+        <FooterEncargado />
+      </div>
+    )
+  }
   return <CondicionEquipo key={`${producto.id}-${pestanaInicial}`} producto={producto} pestanaInicial={pestanaInicial} />
 }
 
 function CondicionEquipo({ producto, pestanaInicial }) {
+  const { obtenerProducto } = useCatalogo()
   useActualizacion()
   const navigate = useNavigate()
   const EQUIPO = { ...producto, categoria: obtenerCategoria(producto.categoria)?.nombre || producto.categoria }
