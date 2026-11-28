@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
-import { PRODUCTOS, obtenerCategoria, obtenerProducto } from '../../data/Producto'
+import { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto } from '../../data/Producto'
 import './Inventario.css'
 
 const ESTADOS = ['Disponible', 'Prestada', 'Mantenimiento', 'De baja']
@@ -151,6 +151,7 @@ export default function Inventario() {
   const [cambios, setCambios] = useState(leerCambios)
   const [seleccionado, setSeleccionado] = useState(null)
   const [pagina, setPagina] = useState(1)
+  const [categoria, setCategoria] = useState('')
 
   const filas = useMemo(
     () =>
@@ -175,10 +176,14 @@ export default function Inventario() {
   const filaModal = seleccionado && filas.find((f) => f.producto.id === seleccionado)
   const totalUnidades = filas.reduce((a, f) => a + f.unidades.length, 0)
 
-  const totalPaginas = Math.max(1, Math.ceil(filas.length / POR_PAGINA))
+  const filasFiltradas = filas.filter((f) =>
+    categoria === '' || f.producto.categoria === categoria
+  )
+
+  const totalPaginas = Math.max(1, Math.ceil(filasFiltradas.length / POR_PAGINA))
   const inicio = (pagina - 1) * POR_PAGINA
-  const filasPagina = filas.slice(inicio, inicio + POR_PAGINA)
-  const desde = filas.length ? inicio + 1 : 0
+  const filasPagina = filasFiltradas.slice(inicio, inicio + POR_PAGINA)
+  const desde = filasFiltradas.length ? inicio + 1 : 0
   const hasta = inicio + filasPagina.length
 
   return (
@@ -201,6 +206,23 @@ export default function Inventario() {
           <Link to={RUTA_EDITAR} className="inv-btn inv-btn--pri inv-btn--link">
             Nuevo equipo
           </Link>
+        </div>
+
+        <div>
+          <label htmlFor="inv-categoria">Categoría </label>
+          <select
+            id="inv-categoria"
+            value={categoria}
+            onChange={(e) => {
+              setCategoria(e.target.value)
+              setPagina(1)
+            }}
+          >
+            <option value="">Todas</option>
+            {CATEGORIAS.map((c) => (
+              <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
         </div>
 
         <div className="inv-tabla__marco">
@@ -249,10 +271,10 @@ export default function Inventario() {
                   </td>
                 </tr>
               ))}
-              {!filas.length && (
+              {!filasFiltradas.length && (
                 <tr>
                   <td colSpan={6} className="inv-vacio">
-                    No hay equipos registrados.
+                    {categoria ? 'No hay equipos en esta categoría.' : 'No hay equipos registrados.'}
                   </td>
                 </tr>
               )}
@@ -261,7 +283,7 @@ export default function Inventario() {
 
           <div className="inv-pie">
             <span className="inv-pie__texto">
-              Mostrando {desde} a {hasta} de {filas.length} equipos
+              Mostrando {desde} a {hasta} de {filasFiltradas.length} equipos
             </span>
             <div className="inv-paginacion" role="navigation" aria-label="Paginación">
               <button
