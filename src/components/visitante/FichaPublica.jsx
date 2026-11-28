@@ -10,8 +10,7 @@ import './FichaPublica.css'
 const ESTADOS = {
   Disponible: { orden: 0, clase: 'disponible', etiqueta: 'Disponible' },
   Mantenimiento: { orden: 1, clase: 'mantenimiento', etiqueta: 'En mantenimiento' },
-  Prestada: { orden: 2, clase: 'prestada', etiqueta: 'Prestada' },
-  'De baja': { orden: 3, clase: 'sin-dato', etiqueta: 'Dada de baja' }
+  Prestada: { orden: 2, clase: 'prestada', etiqueta: 'Prestada' }
 }
 const ESTADO_DESCONOCIDO = { orden: 4, clase: 'sin-dato', etiqueta: 'Estado sin informar' }
 
@@ -82,12 +81,13 @@ function DetallePublico({ producto, categoria, recojo }) {
   const indiceFoto = fotoActiva < fotos.length ? fotoActiva : 0
   const penalidad = producto.penalizacion
 
-  const unidades = [...producto.unidades].sort(
+  const unidades = producto.unidades.filter((unidad) => unidad.estado !== 'De baja').sort(
     (a, b) =>
       presentarEstado(a.estado).orden - presentarEstado(b.estado).orden ||
       a.codigo.localeCompare(b.codigo)
   )
   const libres = producto.libres
+  const todasDeBaja = producto.unidades.length > 0 && unidades.length === 0
 
   const textoDuracion =
     producto.duracionMax == null
@@ -167,7 +167,9 @@ function DetallePublico({ producto, categoria, recojo }) {
             <h2 className="fp-etiqueta">Disponibilidad actual</h2>
 
             {unidades.length === 0 ? (
-              <p className="fp-sin-unidades">Este equipo aún no tiene unidades registradas.</p>
+              <p className="fp-sin-unidades">
+                {todasDeBaja ? 'Este equipo ya no tiene unidades activas para nuevos préstamos.' : 'Este equipo aún no tiene unidades registradas.'}
+              </p>
             ) : (
               <>
                 <p className="fp-contador">
@@ -195,10 +197,10 @@ function DetallePublico({ producto, categoria, recojo }) {
               </>
             )}
 
-            <button type="button" className="fp-btn fp-btn-primario fp-btn-ancho" onClick={solicitarPrestamo}>
+            <button type="button" className="fp-btn fp-btn-primario fp-btn-ancho" onClick={solicitarPrestamo} disabled={!unidades.length}>
               Solicitar préstamo
             </button>
-            <p className="fp-aviso">Necesitas iniciar sesión para solicitar.</p>
+            {unidades.length > 0 && <p className="fp-aviso">Necesitas iniciar sesión para solicitar.</p>}
 
             <p className="fp-recojo">
               Recojo en <strong>{recojo.lugar}</strong>, {recojo.horario}.

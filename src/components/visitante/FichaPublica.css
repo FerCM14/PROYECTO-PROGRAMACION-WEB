@@ -261,6 +261,13 @@
   background: var(--fp-primario-oscuro);
 }
 
+.fp-btn-primario:disabled {
+  background: #e4e8ea;
+  border-color: var(--fp-borde);
+  color: var(--fp-suave);
+  cursor: not-allowed;
+}
+
 .fp-btn-ancho {
   width: 100%;
 }
