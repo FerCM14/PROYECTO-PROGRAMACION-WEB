@@ -197,7 +197,7 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
             </p>
           )}
 
-          {unidades.length === 0 && pestana !== 'condiciones' ? (
+          {unidades.length === 0 && pestana === 'unidades' ? (
             <EstadoVacio onNueva={() => setModalAbierto(true)} />
           ) : (
             <div className="cp-contenido">
@@ -409,7 +409,7 @@ function EstadoVacio({ onNueva }) {
         +
       </button>
       <h2>Este equipo aún no tiene unidades</h2>
-      <p>Registra al menos una unidad con su código de inventario para que aparezca en el catálogo.</p>
+      <p>Registra al menos una unidad con su código de inventario para que el equipo pueda aparecer en el catálogo.</p>
     </section>
   )
 }
