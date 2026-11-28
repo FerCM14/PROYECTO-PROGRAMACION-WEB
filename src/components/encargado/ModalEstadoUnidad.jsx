@@ -22,6 +22,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   const [nota, setNota] = useState('')
   const [error, setError] = useState('')
   const [errorMotivo, setErrorMotivo] = useState('')
+  const [confirmandoBaja, setConfirmandoBaja] = useState(false)
   const bloqueada = unidad?.estado === 'Prestada' || unidad?.estado === 'De baja'
   const motivoObligatorio = estado === 'Mantenimiento' || estado === 'De baja'
   let prestamos = []
@@ -54,9 +55,19 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
     setNota('')
     setError('')
     setErrorMotivo('')
+    setConfirmandoBaja(false)
   }
 
   function guardar() {
+    if (estado === 'De baja' && !confirmandoBaja) {
+      if (!nota.trim()) {
+        setErrorMotivo('Ingresa un motivo para el cambio de estado.')
+        return
+      }
+      setConfirmandoBaja(true)
+      return
+    }
+
     const resultado = onGuardar(codigo, estado, nota)
     if (resultado.campo === 'motivo') setErrorMotivo(resultado.mensaje)
     else if (!resultado.ok) setError(resultado.mensaje)
@@ -103,7 +114,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
                 name="inv-nuevo-estado"
                 checked={estado === valor}
                 disabled={!unidad || Boolean(errorTransicionManual(unidad.estado, valor))}
-                onChange={() => { setEstado(valor); setError(''); setErrorMotivo('') }}
+                onChange={() => { setEstado(valor); setError(''); setErrorMotivo(''); setConfirmandoBaja(false) }}
               />
               {etiqueta}
             </label>
@@ -139,10 +150,16 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           aria-required={motivoObligatorio && !bloqueada}
           aria-describedby={errorMotivo ? 'inv-error-motivo' : undefined}
           disabled={!unidad || bloqueada}
-          onChange={(e) => { setNota(e.target.value); setErrorMotivo('') }}
+          onChange={(e) => { setNota(e.target.value); setErrorMotivo(''); setConfirmandoBaja(false) }}
           placeholder="Ej.: lente con hongos; enviada al servicio técnico."
         />
         {errorMotivo && <p id="inv-error-motivo" role="alert">{errorMotivo}</p>}
+        {confirmandoBaja && (
+          <div className="inv-modal__confirmacion" role="status">
+            <strong>¿Confirmas la baja definitiva?</strong>
+            <p>La unidad {codigo} de {producto.nombre} dejará de estar disponible para nuevos préstamos.</p>
+          </div>
+        )}
 
         {error && <p role="alert">{error}</p>}
         <div className="inv-modal__acciones">
@@ -151,11 +168,11 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           </button>
           <button
             type="button"
-            className="inv-btn inv-btn--pri"
+            className={`inv-btn ${confirmandoBaja ? 'inv-btn--eliminar' : 'inv-btn--pri'}`}
             disabled={!unidad || errorConsulta || prestamos.length > 0 || (retiraUnidad && (reservaComprometida || errorReservas)) || Boolean(errorTransicionManual(unidad.estado, estado))}
             onClick={guardar}
           >
-            Guardar estado
+            {confirmandoBaja ? 'Confirmar baja' : 'Guardar estado'}
           </button>
         </div>
       </div>
