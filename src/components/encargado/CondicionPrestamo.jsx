@@ -71,7 +71,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [unidadSeleccionada, setUnidadSeleccionada] = useState(null)
   const [mensaje, setMensaje] = useState('')
-  const [errorGuardado, setErrorGuardado] = useState('')
+  const [avisoCondiciones, setAvisoCondiciones] = useState(null)
 
   useEffect(() => {
     if (pestana === 'condiciones') tituloCondiciones.current?.focus({ preventScroll: true })
@@ -121,23 +121,24 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
 
   function cambiarCondicion(campo, valor) {
     setCondiciones((previo) => ({ ...previo, [campo]: valor }))
+    setAvisoCondiciones(null)
   }
 
   function descartar() {
     setCondiciones(guardadas)
+    setAvisoCondiciones(null)
   }
 
   function guardarCondiciones() {
     if (!hayCambios || errorDias || errorPenalidad) return
     const resultado = guardarCondicionesProducto(producto.id, { ...condiciones, dias, penalizacion })
     if (!resultado.ok) {
-      setErrorGuardado(resultado.mensaje)
+      setAvisoCondiciones({ error: true, texto: resultado.mensaje })
       return
     }
-    setErrorGuardado('')
     setGuardadas(resultado.condiciones)
     setCondiciones(resultado.condiciones)
-    setMensaje('Condiciones guardadas')
+    setAvisoCondiciones({ error: false, texto: 'Condiciones del préstamo guardadas.' })
   }
 
   function registrarUnidad({ codigo, ubicacion, observaciones }) {
@@ -314,7 +315,14 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
                     </div>
                   </div>
 
-                  {errorGuardado && <p role="alert">{errorGuardado}</p>}
+                  {avisoCondiciones && (
+                    <p
+                      className={`cp-aviso cp-aviso--condiciones ${avisoCondiciones.error ? 'cp-aviso--error' : ''}`}
+                      role={avisoCondiciones.error ? 'alert' : 'status'}
+                    >
+                      {avisoCondiciones.texto}
+                    </p>
+                  )}
                   <div className="cp-condiciones-acciones">
                     <button
                       type="button"

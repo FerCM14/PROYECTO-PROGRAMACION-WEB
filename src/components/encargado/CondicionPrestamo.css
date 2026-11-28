@@ -197,6 +197,16 @@
   color: #b3261e;
 }
 
+.cp-aviso--condiciones {
+  margin: 14px 0 0;
+}
+
+.cp-aviso--condiciones.cp-aviso--error {
+  border-color: #dca5a5;
+  background: #faeaea;
+  color: #b3261e;
+}
+
 /* Contenido: tabla + condiciones */
 .cp-contenido {
   display: grid;
