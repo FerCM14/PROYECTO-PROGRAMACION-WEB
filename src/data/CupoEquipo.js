@@ -58,8 +58,17 @@ export function hayCupoEquipo(producto, prestamos, confirmadas, desde, hasta, ho
     fechaValida(p.hasta) ? sumarDias(p.hasta, 1) : ''
   ]), ...confirmadas.map((r) => r.desde)]
   const fechas = new Set([inicio, ...cambios.filter((f) => fechaValida(f) && f >= inicio && f <= hasta)])
-  return [...fechas].every((fecha) => {
+  const conCapacidad = [...fechas].every((fecha) => {
     const ocupadas = confirmadas.filter((r) => r.desde <= fecha && r.hasta >= fecha).length
     return capacidadEquipoEnFecha(producto, prestamos, fecha, hoy, unidadExcluida) > ocupadas
   })
+  if (!conCapacidad) return false
+
+  // Tener una unidad libre cada día no basta si ninguna cubre todo el intervalo.
+  const asignados = prestamos.filter((p) => p.unidad)
+  return unidadesActivas(producto).some((unidad) =>
+    [...fechas].every((fecha) =>
+      capacidadEquipoEnFecha({ unidades: [unidad] }, asignados, fecha, hoy, unidadExcluida) > 0
+    )
+  )
 }
