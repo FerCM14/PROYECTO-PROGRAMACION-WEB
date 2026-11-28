@@ -3,10 +3,11 @@ import { imagenEquipo } from '../../data/imagenes'
 import { formatearFecha, hoyISO } from '../../data/fechas'
 import { obtenerPrestamos } from '../../data/Identificacion'
 import { useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
+import { useAuth } from '../../context/cuentas/AuthContext'
 import './FichaPublica.css'
 
 const ESTADOS = {
@@ -56,7 +57,7 @@ export default function FichaPublica() {
 }
 
 function DetallePublico({ producto, categoria, recojo }) {
-  const navigate = useNavigate()
+  const { usuario } = useAuth()
   const location = useLocation()
   const [fotoActiva, setFotoActiva] = useState(0)
   const nombre = producto.nombre?.trim() || 'Equipo'
@@ -68,11 +69,6 @@ function DetallePublico({ producto, categoria, recojo }) {
     : []
 
   const hoy = hoyISO()
-
-  function solicitarPrestamo() {
-    // El visitante debe iniciar sesión; se guarda a dónde volver
-    navigate('/login', { state: { desde: location.pathname } })
-  }
 
   const alternativa = imagenEquipo({ ...producto, fotos: [] })
   const fotosGuardadas = Array.isArray(producto.fotos)
@@ -90,6 +86,9 @@ function DetallePublico({ producto, categoria, recojo }) {
   const libres = producto.libres
   const todasDeBaja = producto.unidades.length > 0 && unidades.length === 0
   const devolucionPactada = libres === 0 && unidades.length > 0 ? proximaDevolucion(unidades, hoy) : null
+  const puedeSolicitar = unidades.length > 0 && (!usuario || usuario.rol === 'estudiante')
+  const accion = libres > 0 || !unidades.length ? 'Solicitar préstamo' : 'Consultar opciones de reserva'
+  const destino = !usuario ? '/login' : libres > 0 ? `/catalogo/${producto.id}/solicitar` : `/catalogo/${producto.id}`
 
   const textoDuracion =
     producto.duracionMax == null
@@ -201,10 +200,23 @@ function DetallePublico({ producto, categoria, recojo }) {
               </>
             )}
 
-            <button type="button" className="fp-btn fp-btn-primario fp-btn-ancho" onClick={solicitarPrestamo} disabled={!unidades.length}>
-              Solicitar préstamo
-            </button>
-            {unidades.length > 0 && <p className="fp-aviso">Necesitas iniciar sesión para solicitar.</p>}
+            {puedeSolicitar ? (
+              <>
+                <Link
+                  to={destino}
+                  state={!usuario ? { desde: location.pathname } : undefined}
+                  className="fp-btn fp-btn-primario fp-btn-ancho"
+                >
+                  {accion}
+                </Link>
+                {!usuario && <p className="fp-aviso">Necesitas iniciar sesión para continuar.</p>}
+              </>
+            ) : (
+              <>
+                <button type="button" className="fp-btn fp-btn-primario fp-btn-ancho" disabled>{accion}</button>
+                {unidades.length > 0 && <p className="fp-aviso">Solo las cuentas de estudiante pueden solicitar préstamos.</p>}
+              </>
+            )}
 
             <p className="fp-recojo">
               Recojo en <strong>{recojo.lugar}</strong>, {recojo.horario}.
