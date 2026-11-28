@@ -351,8 +351,16 @@ export function cambiarEstadoUnidad(codigoUnidad, estado, motivo) {
 }
 
 export function registrarUnidadProducto(id, unidad) {
-  if (!obtenerProducto(id) || PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === unidad.codigo))) return {ok:false}
+  if (!obtenerProducto(id)) return { ok: false }
+
+  const normalizarCodigo = (codigo) => String(codigo ?? '').replace(/\s+/g, '').toUpperCase()
+  const codigo = normalizarCodigo(unidad.codigo)
   const todas = leerJSON('producto-unidades', {})
-  todas[id] = [...(todas[id] || []), { ...unidad, estado:'Disponible' }]
-  return {ok:guardarJSON('producto-unidades', todas)}
+  const coincide = (u) => normalizarCodigo(u.codigo) === codigo
+  const enCatalogo = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some(coincide))
+  const enAlmacenamiento = Object.values(todas).some((lista) => Array.isArray(lista) && lista.some(coincide))
+  if (enCatalogo || enAlmacenamiento) return { ok: false, motivo: 'codigo-duplicado' }
+
+  todas[id] = [...(todas[id] || []), { ...unidad, codigo, estado: 'Disponible' }]
+  return { ok: guardarJSON('producto-unidades', todas) }
 }

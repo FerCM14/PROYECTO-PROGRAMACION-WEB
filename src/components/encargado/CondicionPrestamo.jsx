@@ -114,9 +114,10 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
 
   function registrarUnidad({ codigo, ubicacion, observaciones }) {
     const resultado = registrarUnidadProducto(producto.id, { codigo, ubicacion, observaciones })
-    if (!resultado.ok) { setMensaje('No se pudo registrar: el código ya existe.'); return }
+    if (!resultado.ok) return resultado
     setModalAbierto(false)
     setMensaje(`Unidad ${codigo} registrada`)
+    return resultado
   }
 
   function confirmarBaja(e) {
@@ -301,7 +302,6 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
       {modalAbierto && (
         <ModalAltaUnidad
           nombreEquipo={producto.nombre}
-          existentes={unidades.map((u) => u.codigo)}
           onCancelar={() => setModalAbierto(false)}
           onRegistrar={registrarUnidad}
         />
@@ -418,7 +418,7 @@ function EstadoVacio({ onNueva }) {
   )
 }
 
-function ModalAltaUnidad({ nombreEquipo, existentes, onCancelar, onRegistrar }) {
+function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
   const [codigo, setCodigo] = useState('')
   const [ubicacion, setUbicacion] = useState(UBICACIONES[0])
   const [observaciones, setObservaciones] = useState('')
@@ -445,11 +445,12 @@ function ModalAltaUnidad({ nombreEquipo, existentes, onCancelar, onRegistrar }) 
       setError('Usa INV-, tres letras y cuatro dígitos. Ejemplo: INV-OSC-0042.')
       return
     }
-    if (existentes.includes(limpio)) {
+    const resultado = onRegistrar({ codigo: limpio, ubicacion, observaciones: observaciones.trim() })
+    if (resultado.motivo === 'codigo-duplicado') {
       setError('Ya existe una unidad con ese código en el almacén.')
-      return
+    } else if (!resultado.ok) {
+      setError('No se pudo registrar la unidad. Inténtalo de nuevo.')
     }
-    onRegistrar({ codigo: limpio, ubicacion, observaciones: observaciones.trim() })
   }
 
   return (
