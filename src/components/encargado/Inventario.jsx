@@ -153,6 +153,7 @@ export default function Inventario() {
   const [pagina, setPagina] = useState(1)
   const [categoria, setCategoria] = useState('')
   const [estadoFiltro, setEstadoFiltro] = useState('')
+  const [busqueda, setBusqueda] = useState('')
 
   const filas = useMemo(
     () =>
@@ -177,9 +178,13 @@ export default function Inventario() {
   const filaModal = seleccionado && filas.find((f) => f.producto.id === seleccionado)
   const totalUnidades = filas.reduce((a, f) => a + f.unidades.length, 0)
 
+  const codigoBuscado = busqueda.replace(/\s+/g, '').toUpperCase()
   const filasFiltradas = filas.filter((f) =>
     (!categoria || f.producto.categoria === categoria) &&
-    (!estadoFiltro || f.unidades.some((u) => u.estado === estadoFiltro))
+    ((!estadoFiltro && !codigoBuscado) || f.unidades.some((u) =>
+      (!estadoFiltro || u.estado === estadoFiltro) &&
+      (!codigoBuscado || u.codigo.toUpperCase().includes(codigoBuscado))
+    ))
   )
 
   const totalPaginas = Math.max(1, Math.ceil(filasFiltradas.length / POR_PAGINA))
@@ -239,6 +244,16 @@ export default function Inventario() {
               <option key={estado} value={estado}>{estado}</option>
             ))}
           </select>
+          <label htmlFor="inv-codigo">Código de inventario </label>
+          <input
+            id="inv-codigo"
+            type="search"
+            value={busqueda}
+            onChange={(e) => {
+              setBusqueda(e.target.value)
+              setPagina(1)
+            }}
+          />
         </div>
 
         <div className="inv-tabla__marco">
@@ -290,7 +305,7 @@ export default function Inventario() {
               {!filasFiltradas.length && (
                 <tr>
                   <td colSpan={6} className="inv-vacio">
-                    {categoria || estadoFiltro ? 'No hay equipos que coincidan con los filtros.' : 'No hay equipos registrados.'}
+                    {categoria || estadoFiltro || codigoBuscado ? 'No hay equipos que coincidan con los filtros.' : 'No hay equipos registrados.'}
                   </td>
                 </tr>
               )}
