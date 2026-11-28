@@ -1,6 +1,5 @@
 import { useActualizacion } from '../../context/DatosContext'
 import { imagenEquipo } from '../../data/imagenes'
-// src/pages/visitante/FichaPublica.jsx
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
@@ -29,12 +28,33 @@ function formatearFecha(fecha) {
 export default function FichaPublica() {
   const { obtenerProducto, obtenerCategoria, RECOJO } = useCatalogo()
   const { id } = useParams()
+  useActualizacion()
+  const producto = /^[0-9]+$/.test(id ?? '') && Number.isSafeInteger(Number(id)) ? obtenerProducto(id) : null
+
+  if (!producto) {
+    return (
+      <div className="fp-pagina">
+        <HeaderVisitante />
+        <main className="fp-main">
+          <section className="fp-no-encontrado">
+            <h1>{id ? 'No encontramos este equipo' : 'Consulta los equipos del catálogo'}</h1>
+            <p>{id ? 'El enlace puede ser incorrecto o el equipo puede haber sido retirado.' : 'Selecciona un equipo para consultar su ficha pública.'}</p>
+            <Link to="/catalogo" className="fp-btn fp-btn-primario">Volver al catálogo</Link>
+          </section>
+        </main>
+        <FooterEstudiante />
+      </div>
+    )
+  }
+
+  const categoria = obtenerCategoria(producto.categoria)
+  return <DetallePublico key={producto.id} producto={producto} categoria={categoria} recojo={RECOJO} />
+}
+
+function DetallePublico({ producto, categoria, recojo }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [fotoActiva, setFotoActiva] = useState(0)
-
-  useActualizacion()
-  const producto = obtenerProducto(id)
 
   const hoy = new Date().toLocaleDateString('es-PE', {
     day: '2-digit',
@@ -47,25 +67,6 @@ export default function FichaPublica() {
     navigate('/login', { state: { desde: location.pathname } })
   }
 
-  if (!producto) {
-    return (
-      <div className="fp-pagina">
-        <HeaderVisitante />
-        <main className="fp-main">
-          <section className="fp-no-encontrado">
-            <h1>No encontramos este equipo</h1>
-            <p>Puede que haya sido retirado del catálogo o que el enlace sea incorrecto.</p>
-            <Link to="/catalogo" className="fp-btn fp-btn-primario">
-              Volver al catálogo
-            </Link>
-          </section>
-        </main>
-        <FooterEstudiante />
-      </div>
-    )
-  }
-
-  const categoria = obtenerCategoria(producto.categoria)
   const fotos = producto.fotos?.length ? producto.fotos : [imagenEquipo(producto)]
   const penalidad = Number(producto.penalizacion ?? producto.penalidad ?? PENALIDAD_POR_DEFECTO)
 
@@ -89,7 +90,7 @@ export default function FichaPublica() {
 
       <main className="fp-main">
         <nav className="fp-migas" aria-label="Ruta de navegación">
-          <Link to="/catalogo">Catálogo</Link> / {categoria?.nombre || 'Sin categoría'} / {producto.nombre}
+          <Link to="/catalogo">Catálogo</Link> / {categoria?.nombre || 'Sin categoría'} / <span aria-current="page">{producto.nombre}</span>
         </nav>
 
         <div className="fp-grid">
@@ -189,7 +190,7 @@ export default function FichaPublica() {
             <p className="fp-aviso">Necesitas iniciar sesión para solicitar.</p>
 
             <p className="fp-recojo">
-              Recojo en <strong>{RECOJO.lugar}</strong>, {RECOJO.horario}.
+              Recojo en <strong>{recojo.lugar}</strong>, {recojo.horario}.
             </p>
           </aside>
         </div>
