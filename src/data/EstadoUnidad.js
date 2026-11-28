@@ -58,7 +58,12 @@ export function errorTransicionManual(actual, nuevo) {
 }
 
 export function cambiarEstadoUnidadManual(codigo, estado, motivo) {
-  const producto = PRODUCTOS.map((p) => obtenerProducto(p.id)).find((p) => p.unidades.some((u) => u.codigo === codigo))
+  let producto
+  try {
+    producto = PRODUCTOS.map((p) => obtenerProducto(p.id)).find((p) => p.unidades.some((u) => u.codigo === codigo))
+  } catch {
+    return { ok: false, mensaje: 'No se pudo consultar la unidad en este navegador.' }
+  }
   const unidad = producto?.unidades.find((u) => u.codigo === codigo)
   if (!unidad) return { ok: false, mensaje: 'No se encontró la unidad en el inventario.' }
 

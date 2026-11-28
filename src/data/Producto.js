@@ -342,12 +342,26 @@ export function eliminarProducto(id) {
 }
 
 export function cambiarEstadoUnidad(codigoUnidad, estado, motivo) {
-  const encontrada = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === codigoUnidad))
-  if (!encontrada) return { ok: false }
-  const cambios = leerJSON('inventario-estados', {})
-  cambios[codigoUnidad] = { ...cambios[codigoUnidad], estado, ...(motivo ? { nota: motivo, motivoBaja: motivo } : {}) }
-  if (motivo === '') cambios[codigoUnidad].nota = ''
-  return { ok: guardarJSON('inventario-estados', cambios) }
+  if (!['Disponible', 'Prestada', 'Mantenimiento', 'De baja'].includes(estado)) {
+    return { ok: false, motivo: 'estado-invalido' }
+  }
+
+  const fallo = { ok: false, motivo: 'almacenamiento' }
+  try {
+    const encontrada = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === codigoUnidad))
+    if (!encontrada) return { ok: false, motivo: 'unidad-inexistente' }
+    const cambios = JSON.parse(localStorage.getItem('inventario-estados')) ?? {}
+    if (typeof cambios !== 'object' || Array.isArray(cambios)) return fallo
+
+    const cambio = { ...cambios[codigoUnidad], estado }
+    if (typeof motivo === 'string') cambio.nota = motivo
+    if (estado === 'De baja' && motivo) cambio.motivoBaja = motivo
+    cambios[codigoUnidad] = cambio
+
+    return guardarJSON('inventario-estados', cambios) ? { ok: true } : fallo
+  } catch {
+    return fallo
+  }
 }
 
 export function registrarUnidadProducto(id, unidad) {
