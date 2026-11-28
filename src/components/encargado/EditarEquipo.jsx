@@ -174,25 +174,32 @@ function FormularioEquipo({ existente }) {
 
   /* ---------- Guardar ---------- */
 
-  function validar() {
+  function validar(datos) {
     const e = {}
-    if (!form.nombre.trim()) e.nombre = 'El nombre es obligatorio.'
-    if (!form.categoria) e.categoria = 'Elige una categoría.'
-    if (!form.marca.trim()) e.marca = 'La marca es obligatoria.'
-    if (!form.modelo.trim()) e.modelo = 'El modelo es obligatorio.'
+    if (!datos.nombre) e.nombre = 'El nombre es obligatorio.'
+    if (!CATEGORIAS.some((c) => c.id === datos.categoria)) e.categoria = 'Elige una categoría de la lista.'
+    if (!datos.marca) e.marca = 'La marca es obligatoria.'
+    if (!datos.modelo) e.modelo = 'El modelo es obligatorio.'
     return e
   }
 
   function guardarEquipo(evento) {
     evento.preventDefault()
 
-    const e = validar()
+    const datos = {
+      ...form,
+      nombre: form.nombre.trim(),
+      categoria: form.categoria.trim(),
+      marca: form.marca.trim(),
+      modelo: form.modelo.trim()
+    }
+    const e = validar(datos)
     if (Object.keys(e).length) {
       setErrores(e)
       return
     }
 
-    const resultado = editando ? actualizarProducto(idEditar, form) : agregarProducto(form)
+    const resultado = editando ? actualizarProducto(idEditar, datos) : agregarProducto(datos)
 
     if (!resultado.ok) {
       setErrores(resultado.errores || {})
@@ -250,8 +257,10 @@ function FormularioEquipo({ existente }) {
                       value={form.nombre}
                       onChange={(e) => cambiar('nombre', e.target.value)}
                       aria-invalid={Boolean(errores.nombre)}
+                      aria-describedby={errores.nombre ? 'eq-error-nombre' : undefined}
+                      required
                     />
-                    {errores.nombre && <p className="eq-error">{errores.nombre}</p>}
+                    {errores.nombre && <p id="eq-error-nombre" className="eq-error">{errores.nombre}</p>}
                   </div>
 
                   <div className="eq-campo">
@@ -262,13 +271,15 @@ function FormularioEquipo({ existente }) {
                       value={form.categoria}
                       onChange={(e) => cambiar('categoria', e.target.value)}
                       aria-invalid={Boolean(errores.categoria)}
+                      aria-describedby={errores.categoria ? 'eq-error-categoria' : undefined}
+                      required
                     >
                       <option value="" disabled>Selecciona…</option>
                       {CATEGORIAS.map((c) => (
                         <option key={c.id} value={c.id}>{c.nombre}</option>
                       ))}
                     </select>
-                    {errores.categoria && <p className="eq-error">{errores.categoria}</p>}
+                    {errores.categoria && <p id="eq-error-categoria" className="eq-error">{errores.categoria}</p>}
                   </div>
                 </div>
 
@@ -281,8 +292,10 @@ function FormularioEquipo({ existente }) {
                       value={form.marca}
                       onChange={(e) => cambiar('marca', e.target.value)}
                       aria-invalid={Boolean(errores.marca)}
+                      aria-describedby={errores.marca ? 'eq-error-marca' : undefined}
+                      required
                     />
-                    {errores.marca && <p className="eq-error">{errores.marca}</p>}
+                    {errores.marca && <p id="eq-error-marca" className="eq-error">{errores.marca}</p>}
                   </div>
 
                   <div className="eq-campo">
@@ -293,8 +306,10 @@ function FormularioEquipo({ existente }) {
                       value={form.modelo}
                       onChange={(e) => cambiar('modelo', e.target.value)}
                       aria-invalid={Boolean(errores.modelo)}
+                      aria-describedby={errores.modelo ? 'eq-error-modelo' : undefined}
+                      required
                     />
-                    {errores.modelo && <p className="eq-error">{errores.modelo}</p>}
+                    {errores.modelo && <p id="eq-error-modelo" className="eq-error">{errores.modelo}</p>}
                   </div>
                 </div>
 
