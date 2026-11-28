@@ -77,6 +77,10 @@
   outline-offset: 2px;
 }
 
+.inv-filtros .inv-limpiar {
+  min-height: 40px;
+}
+
 .inv-btn--link {
   display: inline-block;
   text-decoration: none;

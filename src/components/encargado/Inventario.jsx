@@ -154,6 +154,7 @@ export default function Inventario() {
   const [categoria, setCategoria] = useState('')
   const [estadoFiltro, setEstadoFiltro] = useState('')
   const [busqueda, setBusqueda] = useState('')
+  const [reinicioCabecera, setReinicioCabecera] = useState(0)
 
   const filas = useMemo(
     () =>
@@ -173,6 +174,18 @@ export default function Inventario() {
       /* sin almacenamiento: el cambio vive solo en pantalla */
     }
     setSeleccionado(null)
+  }
+
+  function buscar(codigo) {
+    setBusqueda(codigo)
+    setPagina(1)
+  }
+
+  function limpiarFiltros() {
+    setCategoria('')
+    setEstadoFiltro('')
+    buscar('')
+    setReinicioCabecera((actual) => actual + 1)
   }
 
   const filaModal = seleccionado && filas.find((f) => f.producto.id === seleccionado)
@@ -195,7 +208,7 @@ export default function Inventario() {
 
   return (
     <div className="inv-pagina">
-      <HeaderEncargado />
+      <HeaderEncargado key={reinicioCabecera} onBuscar={buscar} />
 
       <div className="inv-cuerpo">
         <aside className="inv-lateral">
@@ -249,11 +262,11 @@ export default function Inventario() {
             id="inv-codigo"
             type="search"
             value={busqueda}
-            onChange={(e) => {
-              setBusqueda(e.target.value)
-              setPagina(1)
-            }}
+            onChange={(e) => buscar(e.target.value)}
           />
+          <button type="button" className="inv-btn inv-btn--sec inv-limpiar" onClick={limpiarFiltros}>
+            Limpiar filtros
+          </button>
         </div>
 
         <div className="inv-tabla__marco">
