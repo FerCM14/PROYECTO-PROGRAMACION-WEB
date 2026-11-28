@@ -86,7 +86,7 @@
 
 .fp-miniaturas {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin-top: 10px;
 }
@@ -277,11 +277,6 @@
   margin: 10px 0 16px;
   font-size: 12px;
   color: var(--fp-suave);
-}
-
-.fp-miniatura-vacia {
-  cursor: default;
-  background: repeating-linear-gradient(45deg, #e9edef, #e9edef 5px, #f4f6f7 5px, #f4f6f7 10px);
 }
 
 .fp-recojo {

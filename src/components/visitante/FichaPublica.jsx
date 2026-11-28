@@ -70,7 +70,12 @@ function DetallePublico({ producto, categoria, recojo }) {
     navigate('/login', { state: { desde: location.pathname } })
   }
 
-  const fotos = producto.fotos?.length ? producto.fotos : [imagenEquipo(producto)]
+  const alternativa = imagenEquipo({ ...producto, fotos: [] })
+  const fotosGuardadas = Array.isArray(producto.fotos)
+    ? producto.fotos.filter((foto) => typeof foto === 'string' && foto.trim()).slice(0, 4)
+    : []
+  const fotos = fotosGuardadas.length ? fotosGuardadas : [alternativa]
+  const indiceFoto = fotoActiva < fotos.length ? fotoActiva : 0
   const penalidad = Number(producto.penalizacion ?? producto.penalidad ?? PENALIDAD_POR_DEFECTO)
 
   const unidades = [...producto.unidades].sort(
@@ -100,30 +105,22 @@ function DetallePublico({ producto, categoria, recojo }) {
           {/* Galería */}
           <section className="fp-galeria" aria-label="Fotografías del equipo">
             <div className="fp-foto-principal">
-              {fotos[fotoActiva] ? (
-                <img src={fotos[fotoActiva]} alt={`${nombre}, foto ${fotoActiva + 1}`} />
-              ) : (
-                <span>fotografía principal 1:1</span>
-              )}
+              <FotoEquipo key={fotos[indiceFoto]} origen={fotos[indiceFoto]} alternativa={alternativa} alt={`${nombre}, foto ${indiceFoto + 1}`} />
             </div>
 
             <div className="fp-miniaturas">
-              {[0, 1, 2].map((i) =>
-                fotos[i] ? (
+              {fotos.map((foto, i) => (
                   <button
-                    key={i}
+                    key={`${i}-${foto}`}
                     type="button"
-                    className={`fp-miniatura ${i === fotoActiva ? 'fp-miniatura-activa' : ''}`}
+                    className={`fp-miniatura ${i === indiceFoto ? 'fp-miniatura-activa' : ''}`}
                     onClick={() => setFotoActiva(i)}
                     aria-label={`Ver foto ${i + 1}`}
-                    aria-pressed={i === fotoActiva}
+                    aria-pressed={i === indiceFoto}
                   >
-                    <img src={fotos[i]} alt="" />
+                    <FotoEquipo origen={foto} alternativa={alternativa} alt="" />
                   </button>
-                ) : (
-                  <div key={i} className="fp-miniatura fp-miniatura-vacia" aria-hidden="true" />
-                )
-              )}
+              ))}
             </div>
           </section>
 
@@ -202,4 +199,11 @@ function DetallePublico({ producto, categoria, recojo }) {
       <FooterEstudiante />
     </div>
   )
+}
+
+function FotoEquipo({ origen, alternativa, alt }) {
+  const [fuente, setFuente] = useState(origen)
+  if (!fuente) return alt ? <span>Fotografía no disponible</span> : null
+
+  return <img src={fuente} alt={alt} onError={() => setFuente(fuente === alternativa ? '' : alternativa)} />
 }
