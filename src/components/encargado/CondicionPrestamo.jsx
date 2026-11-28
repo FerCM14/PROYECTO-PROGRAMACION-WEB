@@ -115,7 +115,7 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
     const resultado = registrarUnidadProducto(producto.id, { codigo, ubicacion, observaciones })
     if (!resultado.ok) return resultado
     setModalAbierto(false)
-    setMensaje(`Unidad ${codigo} registrada`)
+    setMensaje(`La unidad ${codigo} se registró como disponible.`)
     return resultado
   }
 
@@ -339,18 +339,18 @@ function TablaUnidades({ unidades, prestamos, onBaja }) {
       <table className="cp-tabla cp-tabla-unidades" aria-label="Unidades del equipo">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Ubicación</th>
-            <th>Estado</th>
-            <th>Observaciones</th>
-            <th>Préstamo vigente</th>
-            <th>Acción</th>
+            <th scope="col">Código</th>
+            <th scope="col">Ubicación</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Observaciones</th>
+            <th scope="col">Préstamo vigente</th>
+            <th scope="col">Acción</th>
           </tr>
         </thead>
         <tbody>
           {unidades.map((u) => (
             <tr key={u.codigo}>
-              <td className="cp-codigo">{u.codigo}</td>
+              <th scope="row" className="cp-codigo">{u.codigo}</th>
               <td className="cp-suave">{u.ubicacion}</td>
               <td>
                 <Estado estado={u.estado} />
@@ -482,8 +482,9 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
             <input
               id="cp-codigo"
               ref={campoCodigo}
-              className={`cp-input ${error ? 'cp-input-error' : ''}`}
+              className={`cp-input cp-codigo ${error ? 'cp-input-error' : ''}`}
               placeholder="INV-OSC-0047"
+              autoComplete="off"
               value={codigo}
               required
               aria-invalid={Boolean(error)}
@@ -536,7 +537,7 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
           />
         </div>
 
-        {errorRegistro && <p className="cp-ayuda cp-ayuda-error" role="alert">{errorRegistro}</p>}
+        {errorRegistro && <p className="cp-aviso cp-aviso--registro-error" role="alert">{errorRegistro}</p>}
         <div className="cp-modal-acciones">
           <button type="button" className="cp-btn cp-btn-secundario" onClick={onCancelar}>
             Cancelar

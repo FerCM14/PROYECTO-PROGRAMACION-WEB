@@ -182,6 +182,13 @@
   border: 1px solid #bfe0cd;
 }
 
+.cp-aviso--registro-error {
+  margin: 12px 0 0;
+  border-color: #dca5a5;
+  background: #faeaea;
+  color: #b3261e;
+}
+
 /* Contenido: tabla + condiciones */
 .cp-contenido {
   display: grid;
@@ -207,7 +214,7 @@
   font-size: 12px;
 }
 
-.cp-tabla th {
+.cp-tabla thead th {
   text-align: left;
   padding: 11px 14px;
   font-size: 10px;
@@ -218,7 +225,8 @@
   background: #fafbfb;
 }
 
-.cp-tabla td {
+.cp-tabla td,
+.cp-tabla tbody th {
   padding: 13px 14px;
   border-bottom: 1px solid #edf0f1;
   vertical-align: middle;
@@ -478,8 +486,14 @@
 .cp-modal-alta {
   box-sizing: border-box;
   max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  overflow: auto;
   border: 0;
   color: inherit;
+}
+
+.cp-modal-alta .cp-modal-acciones {
+  flex-wrap: wrap;
 }
 
 .cp-modal-alta::backdrop {
