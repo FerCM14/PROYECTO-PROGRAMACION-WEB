@@ -67,7 +67,6 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
   const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
   const [condiciones, setCondiciones] = useState(guardadas)
   const unidades = producto.unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || RECOJO.lugar }))
-  const disponibles = unidades.filter((u) => u.estado === 'Disponible').length
   const solicitudes = obtenerTodasLasSolicitudes()
   const [pestana, setPestana] = useState(pestanaInicial)
   const tituloCondiciones = useRef(null)
@@ -151,10 +150,8 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
               <p>
                 {producto.marca} · {producto.modelo} · {unidades.length}{' '}
                 {unidades.length === 1 ? 'unidad registrada' : 'unidades registradas'}
-                {' · '}{disponibles} {disponibles === 1 ? 'disponible' : 'disponibles'}
+                {' · '}{RECOJO.lugar}
               </p>
-              <p>{producto.descripcion}</p>
-              <p>Accesorios: {producto.accesorios.join(', ') || 'Sin accesorios registrados'}</p>
             </div>
             <div className="cp-equipo-acciones">
               <Link
