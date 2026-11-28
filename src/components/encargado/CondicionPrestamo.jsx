@@ -1,6 +1,6 @@
 import { imagenEquipo } from '../../data/imagenes'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useBlocker, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
@@ -92,13 +92,36 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   const prestamoPorUnidad = Object.fromEntries(prestamosVigentes.map((p) => [p.unidad, p.codigo]))
   const historial = solicitudes.filter((s) => unidades.some((u) => u.codigo === s.unidad))
 
-  const hayCambios = JSON.stringify(condiciones) !== JSON.stringify(guardadas)
   const dias = normalizarDiasPrestamo(condiciones.dias)
   const errorDias = dias === undefined ? 'Ingresa un número entero de 1 a 30 días o deja el campo vacío.' : ''
   const penalizacion = normalizarPenalidadPrestamo(condiciones.penalizacion)
   const errorPenalidad = penalizacion === undefined
     ? 'Ingresa un importe válido, mayor o igual a cero y con hasta dos decimales.'
     : ''
+  const hayCambios = (condiciones.dias !== guardadas.dias && dias !== guardadas.dias) ||
+    (condiciones.penalizacion !== guardadas.penalizacion && penalizacion !== guardadas.penalizacion) ||
+    condiciones.requiereAutorizacion !== guardadas.requiereAutorizacion ||
+    condiciones.admiteRenovacion !== guardadas.admiteRenovacion
+  const bloqueo = useBlocker(({ currentLocation, nextLocation }) => hayCambios && (
+    currentLocation.pathname !== nextLocation.pathname ||
+    new URLSearchParams(currentLocation.search).get('id') !== new URLSearchParams(nextLocation.search).get('id')
+  ))
+
+  useEffect(() => {
+    if (bloqueo.state !== 'blocked') return
+    if (window.confirm('Hay cambios sin guardar en las condiciones. ¿Deseas salir del equipo?')) bloqueo.proceed()
+    else bloqueo.reset()
+  }, [bloqueo])
+
+  useEffect(() => {
+    if (!hayCambios) return undefined
+    function advertirSalida(evento) {
+      evento.preventDefault()
+      evento.returnValue = true
+    }
+    window.addEventListener('beforeunload', advertirSalida)
+    return () => window.removeEventListener('beforeunload', advertirSalida)
+  }, [hayCambios])
 
   function cambiarCondicion(campo, valor) {
     setCondiciones((previo) => ({ ...previo, [campo]: valor }))
@@ -109,7 +132,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   }
 
   function guardarCondiciones() {
-    if (errorDias || errorPenalidad) return
+    if (!hayCambios || errorDias || errorPenalidad) return
     const nuevas = { ...condiciones, dias, penalizacion }
     guardar(CLAVE_CONDICIONES, nuevas)
     setGuardadas(nuevas)
