@@ -152,6 +152,7 @@ export default function Inventario() {
   const [seleccionado, setSeleccionado] = useState(null)
   const [pagina, setPagina] = useState(1)
   const [categoria, setCategoria] = useState('')
+  const [estadoFiltro, setEstadoFiltro] = useState('')
 
   const filas = useMemo(
     () =>
@@ -177,7 +178,8 @@ export default function Inventario() {
   const totalUnidades = filas.reduce((a, f) => a + f.unidades.length, 0)
 
   const filasFiltradas = filas.filter((f) =>
-    categoria === '' || f.producto.categoria === categoria
+    (!categoria || f.producto.categoria === categoria) &&
+    (!estadoFiltro || f.unidades.some((u) => u.estado === estadoFiltro))
   )
 
   const totalPaginas = Math.max(1, Math.ceil(filasFiltradas.length / POR_PAGINA))
@@ -221,6 +223,20 @@ export default function Inventario() {
             <option value="">Todas</option>
             {CATEGORIAS.map((c) => (
               <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
+          <label htmlFor="inv-estado">Estado </label>
+          <select
+            id="inv-estado"
+            value={estadoFiltro}
+            onChange={(e) => {
+              setEstadoFiltro(e.target.value)
+              setPagina(1)
+            }}
+          >
+            <option value="">Todos</option>
+            {ESTADOS.map((estado) => (
+              <option key={estado} value={estado}>{estado}</option>
             ))}
           </select>
         </div>
@@ -274,7 +290,7 @@ export default function Inventario() {
               {!filasFiltradas.length && (
                 <tr>
                   <td colSpan={6} className="inv-vacio">
-                    {categoria ? 'No hay equipos en esta categoría.' : 'No hay equipos registrados.'}
+                    {categoria || estadoFiltro ? 'No hay equipos que coincidan con los filtros.' : 'No hay equipos registrados.'}
                   </td>
                 </tr>
               )}
