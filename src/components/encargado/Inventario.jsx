@@ -1,5 +1,5 @@
 import { imagenEquipo } from '../../data/imagenes'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
@@ -125,14 +125,43 @@ function ModalEstado({ producto, unidades, onCerrar, onGuardar }) {
   )
 }
 
+function ModalEliminar({ producto, onCerrar, onConfirmar }) {
+  const modal = useRef(null)
+
+  useEffect(() => {
+    const dialogo = modal.current
+    dialogo.showModal()
+    return () => dialogo.close()
+  }, [])
+
+  return (
+    <dialog
+      ref={modal}
+      className="inv-modal inv-modal--eliminar"
+      aria-labelledby="inv-eliminar-titulo"
+      aria-describedby="inv-eliminar-detalle"
+      onCancel={onCerrar}
+    >
+      <h2 id="inv-eliminar-titulo" className="inv-modal__titulo">Eliminar equipo</h2>
+      <p id="inv-eliminar-detalle">¿Deseas eliminar «{producto.nombre}» del inventario?</p>
+      <div className="inv-modal__acciones">
+        <button type="button" className="inv-btn inv-btn--sec" onClick={onCerrar}>Cancelar</button>
+        <button type="button" className="inv-btn inv-btn--eliminar" onClick={onConfirmar}>Eliminar</button>
+      </div>
+    </dialog>
+  )
+}
+
 export default function Inventario() {
-  const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, cambiarEstadoUnidad } = useCatalogo()
+  const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, cambiarEstadoUnidad, eliminarProducto } = useCatalogo()
   const [seleccionado, setSeleccionado] = useState(null)
   const [pagina, setPagina] = useState(1)
   const [categoria, setCategoria] = useState('')
   const [estadoFiltro, setEstadoFiltro] = useState('')
   const [busqueda, setBusqueda] = useState('')
   const [reinicioCabecera, setReinicioCabecera] = useState(0)
+  const [equipoPorEliminar, setEquipoPorEliminar] = useState(null)
+  const [aviso, setAviso] = useState(null)
 
   const filas = PRODUCTOS.map((p) => {
     const producto = obtenerProducto(p.id)
@@ -147,6 +176,15 @@ export default function Inventario() {
   function buscar(codigo) {
     setBusqueda(codigo)
     setPagina(1)
+  }
+
+  function confirmarEliminacion() {
+    const resultado = eliminarProducto(equipoPorEliminar.id)
+    setAviso({
+      error: !resultado.ok,
+      texto: resultado.ok ? `Se eliminó «${equipoPorEliminar.nombre}» del inventario.` : resultado.motivo
+    })
+    setEquipoPorEliminar(null)
   }
 
   function limpiarFiltros() {
@@ -241,6 +279,12 @@ export default function Inventario() {
           </button>
         </div>
 
+        {aviso && (
+          <p className={`inv-aviso ${aviso.error ? 'inv-aviso--error' : ''}`} role={aviso.error ? 'alert' : 'status'}>
+            {aviso.texto}
+          </p>
+        )}
+
         <div className="inv-tabla__marco">
           <table className="inv-tabla">
             <thead>
@@ -283,6 +327,18 @@ export default function Inventario() {
                       <Link to={`${RUTA_CONDICION}?id=${p.id}`}>Condiciones</Link>
                       <span className="inv-acciones__sep"> · </span>
                       <Link to={`${RUTA_EDITAR}?id=${p.id}`}>Editar</Link>
+                      <span className="inv-acciones__sep"> · </span>
+                      <button
+                        type="button"
+                        className="inv-accion-eliminar"
+                        aria-label={`Eliminar ${p.nombre}`}
+                        onClick={() => {
+                          setAviso(null)
+                          setEquipoPorEliminar(p)
+                        }}
+                      >
+                        Eliminar
+                      </button>
                     </span>
                   </td>
                 </tr>
@@ -338,6 +394,14 @@ export default function Inventario() {
       </div>
 
       <FooterEncargado />
+
+      {equipoPorEliminar && (
+        <ModalEliminar
+          producto={equipoPorEliminar}
+          onCerrar={() => setEquipoPorEliminar(null)}
+          onConfirmar={confirmarEliminacion}
+        />
+      )}
 
       {filaModal && (
         <ModalEstado
