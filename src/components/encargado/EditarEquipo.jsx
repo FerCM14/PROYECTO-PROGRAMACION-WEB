@@ -23,12 +23,19 @@ const VACIO = {
   fotos: []
 }
 
-function leerBorrador() {
+function leerBorrador(clave) {
   try {
-    const datos = JSON.parse(localStorage.getItem(CLAVE_BORRADOR))
-    return datos && typeof datos === 'object' ? { ...VACIO, ...datos } : VACIO
+    const datos = JSON.parse(localStorage.getItem(clave))
+    if (!datos || typeof datos !== 'object' || Array.isArray(datos)) return null
+
+    return Object.fromEntries(Object.entries(VACIO).map(([campo, defecto]) => [
+      campo,
+      Array.isArray(defecto)
+        ? (Array.isArray(datos[campo]) ? datos[campo].filter((valor) => typeof valor === 'string') : defecto)
+        : (typeof datos[campo] === 'string' ? datos[campo] : defecto)
+    ]))
   } catch {
-    return VACIO
+    return null
   }
 }
 
@@ -95,8 +102,10 @@ function FormularioEquipo({ existente }) {
   const navigate = useNavigate()
   const idEditar = existente?.id
   const editando = Boolean(existente)
+  const claveBorrador = editando ? `${CLAVE_BORRADOR}-${idEditar}` : CLAVE_BORRADOR
 
-  const [form, setForm] = useState(() =>
+  const [borradorInicial] = useState(() => leerBorrador(claveBorrador))
+  const [form, setForm] = useState(() => borradorInicial || (
     existente
       ? {
           nombre: existente.nombre,
@@ -107,11 +116,14 @@ function FormularioEquipo({ existente }) {
           accesorios: [...(existente.accesorios || [])],
           fotos: [...(existente.fotos || [])]
         }
-      : leerBorrador()
-  )
+      : VACIO
+  ))
+  const [formGuardado, setFormGuardado] = useState(form)
   const [errores, setErrores] = useState({})
   const [mensajeFotos, setMensajeFotos] = useState('')
-  const [avisoBorrador, setAvisoBorrador] = useState('')
+  const [avisoBorrador, setAvisoBorrador] = useState(() =>
+    borradorInicial ? { texto: 'Se recuperó el borrador de este formulario.' } : null
+  )
   const [nuevoAccesorio, setNuevoAccesorio] = useState('')
   const [errorAccesorio, setErrorAccesorio] = useState('')
   const [arrastrando, setArrastrando] = useState(false)
@@ -125,7 +137,7 @@ function FormularioEquipo({ existente }) {
   function cambiar(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }))
     if (errores[campo]) setErrores((e) => ({ ...e, [campo]: undefined }))
-    setAvisoBorrador('')
+    setAvisoBorrador(null)
   }
 
   /* ---------- Accesorios ---------- */
@@ -245,12 +257,10 @@ function FormularioEquipo({ existente }) {
       return
     }
 
-    if (!editando) {
-      try {
-        localStorage.removeItem(CLAVE_BORRADOR)
-      } catch {
-        /* sin almacenamiento */
-      }
+    try {
+      localStorage.removeItem(claveBorrador)
+    } catch {
+      /* El equipo ya se guardó. */
     }
     navigate(RUTA_INVENTARIO)
   }
@@ -258,10 +268,11 @@ function FormularioEquipo({ existente }) {
   function guardarBorrador() {
     if (lecturaEnCurso.current) return
     try {
-      localStorage.setItem(CLAVE_BORRADOR, JSON.stringify(form))
-      setAvisoBorrador('Borrador guardado en este navegador.')
+      localStorage.setItem(claveBorrador, JSON.stringify(form))
+      setFormGuardado(form)
+      setAvisoBorrador({ texto: 'Borrador guardado en este navegador.' })
     } catch {
-      setAvisoBorrador('No se pudo guardar el borrador.')
+      setAvisoBorrador({ error: true, texto: 'No se pudo guardar el borrador en este navegador.' })
     }
   }
 
@@ -516,14 +527,21 @@ function FormularioEquipo({ existente }) {
 
               <div className="eq-acciones">
                 <Link to={RUTA_INVENTARIO} className="eq-cancelar">Cancelar</Link>
-                {!editando && (
-                  <button type="button" className="eq-btn eq-btn--sec" onClick={guardarBorrador} disabled={procesandoFotos}>
-                    Guardar borrador
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="eq-btn eq-btn--sec"
+                  onClick={guardarBorrador}
+                  disabled={procesandoFotos || (Boolean(avisoBorrador) && !avisoBorrador.error && form === formGuardado)}
+                >
+                  Guardar borrador
+                </button>
                 <button type="submit" className="eq-btn eq-btn--pri" disabled={procesandoFotos}>Guardar equipo</button>
               </div>
-              {avisoBorrador && <p className="eq-ayuda eq-ayuda--der">{avisoBorrador}</p>}
+              {avisoBorrador && (
+                <p className={avisoBorrador.error ? 'eq-error' : 'eq-ayuda eq-ayuda--der'} role={avisoBorrador.error ? 'alert' : 'status'}>
+                  {avisoBorrador.texto}
+                </p>
+              )}
             </div>
           </form>
         </main>
