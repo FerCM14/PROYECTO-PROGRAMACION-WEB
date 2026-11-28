@@ -9,8 +9,7 @@ import { obtenerSesion, obtenerCuenta } from '../../data/cuentas'
 import { obtenerProducto, obtenerCategoria, RECOJO } from '../../data/Producto'
 import {
   obtenerDeudasPendientes,
-  totalDeuda,
-  PENALIDAD_POR_DIA
+  totalDeuda
 } from '../../data/deudas'
 
 const MINIATURAS = [0, 1, 2]
@@ -138,7 +137,9 @@ function DetalleEquipo() {
       ? 'requiere autorización del docente'
       : 'no requiere autorización',
     producto.renovable ? 'admite renovación' : 'no admite renovación',
-    `penalidad de ${formatearSoles(PENALIDAD_POR_DIA)} por día de retraso`
+    Number.isFinite(producto.penalizacion)
+      ? `penalidad de ${formatearSoles(producto.penalizacion)} por día de retraso`
+      : 'penalidad diaria sin informar'
   ]
 
   return (
