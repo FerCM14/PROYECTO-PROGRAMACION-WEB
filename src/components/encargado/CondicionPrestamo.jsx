@@ -30,11 +30,6 @@ function guardar(clave, valor) {
   localStorage.setItem(clave, JSON.stringify(valor))
 }
 
-function formatearSoles(valor) {
-  const numero = Number(valor)
-  return `S/ ${(Number.isFinite(numero) ? numero : 0).toFixed(2)}`
-}
-
 export default function CondicionPrestamo() {
   const { obtenerProducto, obtenerCategoria } = useCatalogo()
   const [params, setParams] = useSearchParams()
@@ -280,13 +275,18 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
 
                     <div className="cp-vista">
                       <span className="cp-etiqueta">Vista previa para el estudiante</span>
-                      <div className="cp-vista-caja">
+                      <div className="cp-vista-caja" aria-live="polite">
                         <strong>Condiciones de este equipo</strong>
-                        <p>
-                          Préstamo <b>{condiciones.dias == null || condiciones.dias === '' ? 'sin límite de días' : `de hasta ${condiciones.dias} días calendario`}</b>.{' '}
-                          {textoAutorizacion} <b>{textoRenovacion}</b> El retraso genera una penalidad
-                          de {formatearSoles(condiciones.penalizacion)} por día.
-                        </p>
+                        {hayCambios && <small className="cp-vista-borrador">Cambios sin guardar</small>}
+                        {errorDias || errorPenalidad ? (
+                          <p>Corrige los campos marcados para ver la vista previa.</p>
+                        ) : (
+                          <p>
+                            Préstamo <b>{dias === null ? 'sin límite de días' : `de hasta ${dias} ${dias === 1 ? 'día calendario' : 'días calendario'}`}</b>.{' '}
+                            {textoAutorizacion} <b>{textoRenovacion}</b> El retraso genera una penalidad
+                            de S/ {penalizacion.toFixed(2)} por día.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

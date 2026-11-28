@@ -459,6 +459,12 @@
   margin: 6px 0 0;
 }
 
+.cp-vista-borrador {
+  display: block;
+  margin-top: 4px;
+  color: var(--cp-suave);
+}
+
 .cp-condiciones-acciones {
   display: flex;
   justify-content: flex-end;
