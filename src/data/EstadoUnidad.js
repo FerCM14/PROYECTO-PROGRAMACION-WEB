@@ -1,4 +1,13 @@
 import { PRODUCTOS, cambiarEstadoUnidad, obtenerProducto } from './Producto.js'
+import { obtenerPrestamos } from './Identificacion.js'
+
+export function consultarPrestamosUnidad(codigo) {
+  const almacenados = JSON.parse(localStorage.getItem('prestamos')) ?? []
+  if (!Array.isArray(almacenados)) throw new Error('Préstamos no disponibles')
+  return obtenerPrestamos().filter((p) =>
+    p?.unidad === codigo && ['Pendiente de entrega', 'Entregado'].includes(p.estado)
+  )
+}
 
 export function errorTransicionManual(actual, nuevo) {
   if (!['Disponible', 'Mantenimiento', 'De baja'].includes(nuevo)) return 'Selecciona un estado manual válido.'
@@ -15,6 +24,14 @@ export function cambiarEstadoUnidadManual(codigo, estado, motivo) {
 
   const mensaje = errorTransicionManual(unidad.estado, estado)
   if (mensaje) return { ok: false, mensaje }
+
+  try {
+    if (consultarPrestamosUnidad(codigo).length) {
+      return { ok: false, mensaje: 'La unidad tiene un préstamo comprometido. Resuélvelo antes de cambiar su estado.' }
+    }
+  } catch {
+    return { ok: false, mensaje: 'No se pudieron verificar los préstamos de esta unidad.' }
+  }
 
   const nota = (motivo ?? '').trim()
   if (!nota && (estado === 'Mantenimiento' || estado === 'De baja' || motivo)) {

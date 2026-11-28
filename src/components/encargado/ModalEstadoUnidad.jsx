@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { errorTransicionManual } from '../../data/EstadoUnidad'
+import { consultarPrestamosUnidad, errorTransicionManual } from '../../data/EstadoUnidad'
 import './Inventario.css'
 
 const ESTADOS = [
@@ -17,6 +17,13 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   const [errorMotivo, setErrorMotivo] = useState('')
   const bloqueada = unidad?.estado === 'Prestada' || unidad?.estado === 'De baja'
   const motivoObligatorio = estado === 'Mantenimiento' || estado === 'De baja'
+  let prestamos = []
+  let errorConsulta = false
+  try {
+    if (unidad) prestamos = consultarPrestamosUnidad(unidad.codigo)
+  } catch {
+    errorConsulta = true
+  }
 
   useEffect(() => {
     const alTeclear = (e) => e.key === 'Escape' && onCerrar()
@@ -87,6 +94,8 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           ))}
         </div>
         {bloqueada && <p className="inv-modal__label">{errorTransicionManual(unidad.estado, 'Disponible')}</p>}
+        {prestamos.length > 0 && <p>Préstamos comprometidos: {prestamos.map((p) => p.codigo).join(', ')}.</p>}
+        {errorConsulta && <p role="alert">No se pudieron verificar los préstamos de esta unidad.</p>}
 
         <label className="inv-modal__label" htmlFor="inv-nota">
           Motivo del cambio{motivoObligatorio ? ' (obligatorio)' : ' (opcional)'}
@@ -113,7 +122,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           <button
             type="button"
             className="inv-btn inv-btn--pri"
-            disabled={!unidad || Boolean(errorTransicionManual(unidad.estado, estado))}
+            disabled={!unidad || errorConsulta || prestamos.length > 0 || Boolean(errorTransicionManual(unidad.estado, estado))}
             onClick={guardar}
           >
             Guardar estado

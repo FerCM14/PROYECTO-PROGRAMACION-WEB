@@ -120,9 +120,6 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
   }
 
   function guardarEstado(codigo, estado, motivo) {
-    if (estado === 'De baja' && obtenerPrestamos().some((p) => p.unidad === codigo && p.estado !== 'Devuelto')) {
-      return { ok: false, mensaje: 'No se puede dar de baja una unidad con un préstamo pendiente.' }
-    }
     const resultado = cambiarEstadoUnidadManual(codigo, estado, motivo)
     if (resultado.ok) {
       setMensaje(`Se actualizó el estado de ${codigo}.`)
