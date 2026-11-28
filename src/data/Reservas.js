@@ -3,13 +3,14 @@
 // ocupación). Se guarda en localStorage.
 //
 // El ESTADO no se guarda: se calcula en base a la disponibilidad del producto
-// (PRODUCTOS[].total) y a las reservas que se cruzan en fechas.
+// y a los préstamos y reservas que se cruzan en fechas.
 //   - Cumplida   -> la fecha "hasta" ya pasó
 //   - Confirmada -> hay una unidad libre en el rango
 //   - En espera  -> no hay unidades libres; entra a la cola del producto
 // Si alguien cancela, la cola avanza sola porque todo se recalcula.
 
-import { PRODUCTOS } from './Producto' // <- ajusta la ruta/nombre a tu archivo de productos
+import { obtenerProducto } from './Producto'
+import { hayCupoEquipo, prestamosComprometidos } from './CupoEquipo'
 
 const CLAVE = 'reservas'
 
@@ -93,8 +94,8 @@ export function calcularEstados(reservas = obtenerTodasLasReservas(), hoy = hoyI
   })
 
   Object.entries(porProducto).forEach(([productoId, lista]) => {
-    const producto = PRODUCTOS.find((p) => p.id === Number(productoId))
-    const capacidad = producto ? producto.total : 0
+    const producto = obtenerProducto(productoId)
+    const prestamos = producto ? prestamosComprometidos(producto) : []
 
     // Se atiende por orden de llegada
     const orden = [...lista].sort((a, b) => a.creadaEn - b.creadaEn)
@@ -106,8 +107,7 @@ export function calcularEstados(reservas = obtenerTodasLasReservas(), hoy = hoyI
         resultado[r.id] = { estado: 'Cumplida' }
         return
       }
-      const ocupadas = confirmadas.filter((c) => c.desde <= r.hasta && c.hasta >= r.desde).length
-      if (ocupadas < capacidad) {
+      if (producto && hayCupoEquipo(producto, prestamos, confirmadas, r.desde, r.hasta, hoy)) {
         confirmadas.push(r)
         resultado[r.id] = { estado: 'Confirmada' }
       } else {
