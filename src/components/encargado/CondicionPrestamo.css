@@ -412,6 +412,16 @@
   outline-offset: 2px;
 }
 
+.cp-interruptor-estado {
+  display: block;
+  margin-top: 2px;
+  color: var(--cp-suave);
+}
+
+.cp-interruptor input:checked ~ .cp-interruptor-texto .cp-interruptor-estado {
+  color: var(--cp-primario);
+}
+
 /* Vista previa */
 .cp-vista {
   display: flex;

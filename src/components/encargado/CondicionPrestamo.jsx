@@ -244,6 +244,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
 
                       <Interruptor
                         id="cp-autorizacion"
+                        mostrarEstado
                         marcado={condiciones.requiereAutorizacion}
                         onCambio={(v) => cambiarCondicion('requiereAutorizacion', v)}
                         texto="Requiere autorización del docente"
@@ -333,18 +334,22 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
 
 /* ---------- Subcomponentes ---------- */
 
-function Interruptor({ id, marcado, onCambio, texto }) {
+function Interruptor({ id, marcado, onCambio, texto, mostrarEstado }) {
+  const activo = marcado === true
   return (
     <label className="cp-interruptor" htmlFor={id}>
       <input
         id={id}
         type="checkbox"
         role="switch"
-        checked={marcado}
+        checked={activo}
         onChange={(e) => onCambio(e.target.checked)}
       />
       <span className="cp-interruptor-pista" aria-hidden="true" />
-      <span className="cp-interruptor-texto">{texto}</span>
+      <span className="cp-interruptor-texto">
+        {texto}
+        {mostrarEstado && <small className="cp-interruptor-estado" aria-hidden="true">{activo ? 'Activada' : 'Desactivada'}</small>}
+      </span>
     </label>
   )
 }
