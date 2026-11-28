@@ -12,6 +12,13 @@ const CLAVE_BORRADOR = 'equipo-borrador'
 const MAX_DESCRIPCION = 400
 const MAX_FOTOS = 4
 const LADO_FOTO = 600
+const ETIQUETAS_CAMPOS = {
+  nombre: 'Nombre del equipo',
+  categoria: 'Categoría',
+  marca: 'Marca',
+  modelo: 'Modelo',
+  descripcion: 'Descripción'
+}
 
 const VACIO = {
   nombre: '',
@@ -136,7 +143,8 @@ function FormularioEquipo({ existente }) {
   const inputFotos = useRef(null)
   const lecturaEnCurso = useRef(false)
 
-  const cantErrores = Object.entries(errores).filter(([campo, mensaje]) => campo !== 'general' && mensaje).length
+  const camposConError = Object.keys(ETIQUETAS_CAMPOS).filter((campo) => errores[campo])
+  const cantErrores = camposConError.length
   const cambiosSinGuardar = JSON.stringify(form) !== JSON.stringify(formGuardado) || Boolean(nuevoAccesorio.trim()) || procesandoFotos
 
   function cambiar(campo, valor) {
@@ -532,13 +540,28 @@ function FormularioEquipo({ existente }) {
                 {mensajeFotos && <p className="eq-error" role="alert">{mensajeFotos}</p>}
               </section>
 
-              {/* Solo aparece cuando falla la validación */}
               {cantErrores > 0 && (
-                <section className="eq-tarjeta eq-tarjeta--errores" role="alert">
-                  <h2 className="eq-seccion">Estado del formulario · con errores</h2>
-                  <p className="eq-banner">
+                <section className="eq-tarjeta eq-tarjeta--errores" aria-labelledby="eq-titulo-errores">
+                  <h2 id="eq-titulo-errores" className="eq-seccion">Estado del formulario · con errores</h2>
+                  <p className="eq-banner" role="alert">
                     No se pudo guardar. Revisa {cantErrores} {cantErrores === 1 ? 'campo marcado' : 'campos marcados'}.
                   </p>
+                  <ul className="eq-resumen-errores">
+                    {camposConError.map((campo) => (
+                      <li key={campo}>
+                        <a className="eq-label" href={`#eq-${campo}`} onClick={(evento) => {
+                          evento.preventDefault()
+                          document.getElementById(`eq-${campo}`)?.focus()
+                        }}>
+                          {ETIQUETAS_CAMPOS[campo]}
+                        </a>
+                        <p className={`eq-resumen-errores__valor ${campo === 'modelo' ? 'eq-input--mono' : ''}`}>
+                          {campo === 'categoria' ? CATEGORIAS.find((c) => c.id === form.categoria)?.nombre : form[campo]}
+                        </p>
+                        <p className="eq-error">{errores[campo]}</p>
+                      </li>
+                    ))}
+                  </ul>
                 </section>
               )}
 
