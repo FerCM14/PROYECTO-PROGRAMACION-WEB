@@ -265,12 +265,54 @@ export function actualizarProducto(id, datos) {
 
 export function eliminarProducto(id) {
   const indice = PRODUCTOS.findIndex((p) => p.id === Number(id))
-  if (indice === -1) return { ok: false }
+  if (indice === -1) return { ok: false, motivo: 'El equipo no existe.' }
 
-  const productoId = PRODUCTOS[indice].id
-  if (!guardarJSON(CLAVE_ELIMINADOS, [...eliminados, productoId])) return { ok: false }
+  const producto = PRODUCTOS[indice]
+  const leerRegistro = (clave) => JSON.parse(localStorage.getItem(clave))
 
-  eliminados.add(productoId)
+  let idsEliminados
+  try {
+    const unidadesGuardadas = leerRegistro('producto-unidades')?.[producto.id] || []
+    const estados = leerRegistro('inventario-estados') || {}
+    const unidades = [...generarUnidades(producto, DETALLES[producto.id]), ...unidadesGuardadas]
+    if (unidades.some((u) => (estados[u.codigo]?.estado || u.estado) === 'Prestada')) {
+      return { ok: false, motivo: 'El equipo tiene unidades prestadas.' }
+    }
+
+    const haceReferencia = (registro) => {
+      const idRegistro = registro.productoId ?? registro.equipoId
+      return Number(idRegistro) === producto.id ||
+        unidades.some((u) => u.codigo === registro.unidad) ||
+        (idRegistro == null && normalizar(registro.equipo) === normalizar(producto.nombre))
+    }
+
+    const solicitudes = leerRegistro('solicitudes') ?? []
+    if (solicitudes.some(haceReferencia)) {
+      return { ok: false, motivo: 'El equipo tiene solicitudes asociadas.' }
+    }
+
+    const prestamos = leerRegistro('prestamos') ?? []
+    const prestamosPorCuenta = leerRegistro('bdPrestamos') ?? {}
+    if (prestamos.some(haceReferencia) || Object.values(prestamosPorCuenta).flat().some(haceReferencia)) {
+      return { ok: false, motivo: 'El equipo figura en el historial de préstamos.' }
+    }
+
+    const reservas = leerRegistro('reservas') ?? []
+    const reservasAnteriores = leerRegistro('calendario-reservas') ?? []
+    if (reservas.some(haceReferencia) || reservasAnteriores.some(haceReferencia)) {
+      return { ok: false, motivo: 'El equipo tiene reservas asociadas.' }
+    }
+
+    idsEliminados = new Set([...eliminados, ...(leerRegistro(CLAVE_ELIMINADOS) ?? []), producto.id])
+  } catch {
+    return { ok: false, motivo: 'No se pudieron verificar los datos del equipo.' }
+  }
+
+  if (!guardarJSON(CLAVE_ELIMINADOS, [...idsEliminados])) {
+    return { ok: false, motivo: 'No se pudo guardar la eliminación.' }
+  }
+
+  idsEliminados.forEach((idEliminado) => eliminados.add(idEliminado))
   PRODUCTOS.splice(indice, 1)
   return { ok: true }
 }
