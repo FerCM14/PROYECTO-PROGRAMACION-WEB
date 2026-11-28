@@ -55,7 +55,7 @@ export function CatalogoProvider({ children }) {
 
   function registrarUnidadProducto(...argumentos) {
     const resultado = datos.registrarUnidadProducto(...argumentos)
-    setCambios((actual) => actual + 1)
+    if (resultado.ok) setCambios((actual) => actual + 1)
     return resultado
   }
 

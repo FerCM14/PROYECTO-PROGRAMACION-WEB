@@ -4,10 +4,9 @@ import { Link, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
-import { registrarUnidadProducto, cambiarEstadoUnidad } from '../../data/Producto'
+import { cambiarEstadoUnidad } from '../../data/Producto'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import { obtenerPrestamos } from '../../data/Identificacion'
-import { useActualizacion } from '../../context/DatosContext'
 import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
 import './CondicionPrestamo.css'
 
@@ -63,12 +62,12 @@ export default function CondicionPrestamo() {
 }
 
 function CondicionEquipo({ producto, categoria, pestanaInicial }) {
-  const { obtenerProducto } = useCatalogo()
-  useActualizacion()
+  const { registrarUnidadProducto, RECOJO } = useCatalogo()
   const CLAVE_CONDICIONES = `condiciones-${producto.id}`
   const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
   const [condiciones, setCondiciones] = useState(guardadas)
-  const unidades = obtenerProducto(producto.id).unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || 'Almacén H-102' }))
+  const unidades = producto.unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || RECOJO.lugar }))
+  const disponibles = unidades.filter((u) => u.estado === 'Disponible').length
   const solicitudes = obtenerTodasLasSolicitudes()
   const [pestana, setPestana] = useState(pestanaInicial)
   const tituloCondiciones = useRef(null)
@@ -152,6 +151,7 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
               <p>
                 {producto.marca} · {producto.modelo} · {unidades.length}{' '}
                 {unidades.length === 1 ? 'unidad registrada' : 'unidades registradas'}
+                {' · '}{disponibles} {disponibles === 1 ? 'disponible' : 'disponibles'}
               </p>
               <p>{producto.descripcion}</p>
               <p>Accesorios: {producto.accesorios.join(', ') || 'Sin accesorios registrados'}</p>
