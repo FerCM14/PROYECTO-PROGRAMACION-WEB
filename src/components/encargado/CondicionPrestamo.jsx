@@ -1,6 +1,6 @@
 import { imagenEquipo } from '../../data/imagenes'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useBlocker, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
@@ -8,6 +8,7 @@ import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import ModalEstadoUnidad from './ModalEstadoUnidad'
 import { obtenerPrestamos } from '../../data/Identificacion'
 import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
+import { normalizarDiasPrestamo, normalizarPenalidadPrestamo } from '../../data/Producto'
 import './CondicionPrestamo.css'
 
 const UBICACIONES = [
@@ -19,30 +20,29 @@ const UBICACIONES = [
 ]
 
 const FORMATO_CODIGO = /^INV-[A-Z]{3}-\d{4}$/
+const PESTANAS = [
+  ['unidades', 'Unidades'],
+  ['condiciones', 'Condiciones del préstamo'],
+  ['historial', 'Historial']
+]
 
-function leer(clave, porDefecto) {
-  try {
-    const dato = JSON.parse(localStorage.getItem(clave))
-    return dato ?? porDefecto
-  } catch {
-    return porDefecto
-  }
-}
-
-function guardar(clave, valor) {
-  localStorage.setItem(clave, JSON.stringify(valor))
-}
-
-function formatearSoles(valor) {
-  const numero = Number(valor)
-  return `S/ ${(Number.isFinite(numero) ? numero : 0).toFixed(2)}`
+function moverFocoPestana(evento) {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return
+  const pestañas = Array.from(evento.currentTarget.querySelectorAll('[role="tab"]'))
+  const actual = pestañas.indexOf(evento.target)
+  if (actual === -1) return
+  evento.preventDefault()
+  const desplazamiento = evento.key === 'ArrowLeft' ? -1 : 1
+  const siguiente = (actual + desplazamiento + pestañas.length) % pestañas.length
+  const indice = evento.key === 'Home' ? 0 : evento.key === 'End' ? pestañas.length - 1 : siguiente
+  pestañas[indice].focus()
 }
 
 export default function CondicionPrestamo() {
   const { obtenerProducto, obtenerCategoria } = useCatalogo()
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const id = params.get('id')
-  const pestanaInicial = params.get('pestana') === 'condiciones' ? 'condiciones' : 'unidades'
+  const pestana = PESTANAS.find(([valor]) => valor === params.get('pestana'))?.[0] || 'unidades'
   const producto = obtenerProducto(id)
   if (!producto) {
     return (
@@ -58,25 +58,36 @@ export default function CondicionPrestamo() {
     )
   }
   const categoria = obtenerCategoria(producto.categoria)?.nombre || producto.categoria
-  return <CondicionEquipo key={`${producto.id}-${pestanaInicial}`} producto={producto} categoria={categoria} pestanaInicial={pestanaInicial} />
+  function cambiarPestana(valor) {
+    if (valor === pestana) return
+    const siguientes = new URLSearchParams(params)
+    siguientes.set('pestana', valor)
+    setParams(siguientes)
+  }
+
+  return <CondicionEquipo key={producto.id} producto={producto} categoria={categoria} pestana={pestana} cambiarPestana={cambiarPestana} />
 }
 
-function CondicionEquipo({ producto, categoria, pestanaInicial }) {
-  const { registrarUnidadProducto, cambiarEstadoUnidadManual, RECOJO } = useCatalogo()
-  const CLAVE_CONDICIONES = `condiciones-${producto.id}`
-  const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
+function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
+  const { registrarUnidadProducto, cambiarEstadoUnidadManual, guardarCondicionesProducto, RECOJO } = useCatalogo()
+  const [guardadas, setGuardadas] = useState(() => ({
+    dias: producto.duracionMax,
+    requiereAutorizacion: producto.autorizacion,
+    admiteRenovacion: producto.renovable,
+    penalizacion: producto.penalizacion
+  }))
   const [condiciones, setCondiciones] = useState(guardadas)
   const unidades = producto.unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || RECOJO.lugar }))
   const solicitudes = obtenerTodasLasSolicitudes()
-  const [pestana, setPestana] = useState(pestanaInicial)
   const tituloCondiciones = useRef(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const [unidadSeleccionada, setUnidadSeleccionada] = useState(null)
   const [mensaje, setMensaje] = useState('')
+  const [avisoCondiciones, setAvisoCondiciones] = useState(null)
 
   useEffect(() => {
-    if (pestanaInicial === 'condiciones') tituloCondiciones.current?.focus()
-  }, [pestanaInicial])
+    if (pestana === 'condiciones') tituloCondiciones.current?.focus()
+  }, [pestana])
 
   useEffect(() => {
     if (!mensaje) return undefined
@@ -89,24 +100,58 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
   const prestamoPorUnidad = Object.fromEntries(prestamosVigentes.map((p) => [p.unidad, p.codigo]))
   const historial = solicitudes.filter((s) => unidades.some((u) => u.codigo === s.unidad))
 
-  const hayCambios = JSON.stringify(condiciones) !== JSON.stringify(guardadas)
+  const dias = normalizarDiasPrestamo(condiciones.dias)
+  const errorDias = dias === undefined ? 'Ingresa un número entero de 1 a 30 días o deja el campo vacío.' : ''
+  const penalizacion = normalizarPenalidadPrestamo(condiciones.penalizacion)
+  const errorPenalidad = penalizacion === undefined
+    ? 'Ingresa un importe válido, mayor o igual a cero y con hasta dos decimales.'
+    : ''
+  const hayCambios = (condiciones.dias !== guardadas.dias && dias !== guardadas.dias) ||
+    (condiciones.penalizacion !== guardadas.penalizacion && penalizacion !== guardadas.penalizacion) ||
+    condiciones.requiereAutorizacion !== guardadas.requiereAutorizacion ||
+    condiciones.admiteRenovacion !== guardadas.admiteRenovacion
+  const bloqueo = useBlocker(({ currentLocation, nextLocation }) => hayCambios && (
+    currentLocation.pathname !== nextLocation.pathname ||
+    new URLSearchParams(currentLocation.search).get('id') !== new URLSearchParams(nextLocation.search).get('id')
+  ))
+
+  useEffect(() => {
+    if (bloqueo.state !== 'blocked') return
+    if (window.confirm('Hay cambios sin guardar en las condiciones. ¿Deseas salir del equipo?')) bloqueo.proceed()
+    else bloqueo.reset()
+  }, [bloqueo])
+
+  useEffect(() => {
+    if (!hayCambios) return undefined
+    function advertirSalida(evento) {
+      evento.preventDefault()
+      evento.returnValue = true
+    }
+    window.addEventListener('beforeunload', advertirSalida)
+    return () => window.removeEventListener('beforeunload', advertirSalida)
+  }, [hayCambios])
 
   function cambiarCondicion(campo, valor) {
     setCondiciones((previo) => ({ ...previo, [campo]: valor }))
+    setAvisoCondiciones(null)
   }
 
   function descartar() {
     setCondiciones(guardadas)
+    setAvisoCondiciones(null)
   }
 
-  function guardarCondiciones() {
-    const dias = condiciones.dias === '' || condiciones.dias === null ? null : Math.min(30, Math.max(1, Number(condiciones.dias) || 1))
-    const penalizacion = Math.max(0, Number(condiciones.penalizacion) || 0)
-    const nuevas = { ...condiciones, dias, penalizacion }
-    guardar(CLAVE_CONDICIONES, nuevas)
-    setGuardadas(nuevas)
-    setCondiciones(nuevas)
-    setMensaje('Condiciones guardadas')
+  function guardarCondiciones(evento) {
+    evento.preventDefault()
+    if (!hayCambios || errorDias || errorPenalidad) return
+    const resultado = guardarCondicionesProducto(producto.id, { ...condiciones, dias, penalizacion })
+    if (!resultado.ok) {
+      setAvisoCondiciones({ error: true, texto: resultado.mensaje })
+      return
+    }
+    setGuardadas(resultado.condiciones)
+    setCondiciones(resultado.condiciones)
+    setAvisoCondiciones({ error: false, texto: 'Condiciones del préstamo guardadas.' })
   }
 
   function registrarUnidad({ codigo, ubicacion, observaciones }) {
@@ -170,19 +215,18 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
             </div>
           </header>
 
-          <div className="cp-tabs" role="tablist">
-            {[
-              ['unidades', 'Unidades'],
-              ['condiciones', 'Condiciones del préstamo'],
-              ['historial', 'Historial']
-            ].map(([id, texto]) => (
+          <div className="cp-tabs" role="tablist" aria-label="Información del equipo" onKeyDown={moverFocoPestana}>
+            {PESTANAS.map(([id, texto]) => (
               <button
                 key={id}
                 type="button"
                 role="tab"
+                id={`cp-tab-${id}`}
+                aria-controls="cp-panel-equipo"
                 aria-selected={pestana === id}
+                tabIndex={pestana === id ? 0 : -1}
                 className={`cp-tab ${pestana === id ? 'cp-tab-activa' : ''}`}
-                onClick={() => setPestana(id)}
+                onClick={() => cambiarPestana(id)}
               >
                 {texto}
               </button>
@@ -195,101 +239,126 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
             </p>
           )}
 
-          {unidades.length === 0 && pestana === 'unidades' ? (
-            <EstadoVacio onNueva={() => setModalAbierto(true)} />
-          ) : (
-            <div className="cp-contenido">
-              {pestana === 'historial' ? (
-                <TablaHistorial historial={historial} />
-              ) : unidades.length > 0 && (
-                <TablaUnidades unidades={unidades} prestamos={prestamoPorUnidad} onCambiarEstado={setUnidadSeleccionada} />
-              )}
+          <div id="cp-panel-equipo" role="tabpanel" aria-labelledby={`cp-tab-${pestana}`}>
+            {unidades.length === 0 && pestana === 'unidades' ? (
+              <EstadoVacio onNueva={() => setModalAbierto(true)} />
+            ) : (
+              <div className="cp-contenido">
+                {pestana === 'historial' ? (
+                  <TablaHistorial historial={historial} />
+                ) : unidades.length > 0 ? (
+                  <TablaUnidades unidades={unidades} prestamos={prestamoPorUnidad} onCambiarEstado={setUnidadSeleccionada} />
+                ) : (
+                  <EstadoVacio onNueva={() => setModalAbierto(true)} />
+                )}
 
-              {pestana !== 'historial' && (
-                <aside className="cp-condiciones">
-                  <h2 ref={tituloCondiciones} tabIndex={-1}>2.5 Condiciones del préstamo</h2>
-                  <p className="cp-condiciones-sub">Pestaña del mismo equipo</p>
+                {pestana !== 'historial' && (
+                  <form className="cp-condiciones" aria-labelledby="cp-condiciones-titulo" onSubmit={guardarCondiciones}>
+                    <h2 id="cp-condiciones-titulo" ref={tituloCondiciones} tabIndex={-1}>2.5 Condiciones del préstamo</h2>
+                    <p className="cp-condiciones-sub">Pestaña del mismo equipo</p>
 
-                  <div className="cp-condiciones-grid">
-                    <div className="cp-campos">
-                      <label className="cp-etiqueta" htmlFor="cp-dias">
-                        Duración máxima
-                      </label>
-                      <div className="cp-dias">
-                        <input
-                          id="cp-dias"
-                          type="number"
-                          min="1"
-                          max="30"
-                          className="cp-input cp-input-corto"
-                          value={condiciones.dias ?? ''} placeholder="Sin límite"
-                          onChange={(e) => cambiarCondicion('dias', e.target.value)}
+                    <div className="cp-condiciones-grid">
+                      <div className="cp-campos">
+                        <label className="cp-etiqueta" htmlFor="cp-dias">
+                          Duración máxima
+                        </label>
+                        <div className="cp-dias">
+                          <input
+                            id="cp-dias"
+                            type="text"
+                            inputMode="numeric"
+                            className={`cp-input cp-input-corto ${errorDias ? 'cp-input-error' : ''}`}
+                            value={condiciones.dias ?? ''} placeholder="Sin límite"
+                            aria-invalid={Boolean(errorDias)}
+                            aria-describedby={errorDias ? 'cp-dias-ayuda cp-dias-error' : 'cp-dias-ayuda'}
+                            onChange={(e) => cambiarCondicion('dias', e.target.value)}
+                          />
+                          <span>días calendario</span>
+                        </div>
+                        <small id="cp-dias-ayuda" className="cp-ayuda">Deja el campo vacío para prestar sin límite.</small>
+                        {errorDias && <small id="cp-dias-error" className="cp-ayuda cp-ayuda-error">{errorDias}</small>}
+
+                        <Interruptor
+                          id="cp-autorizacion"
+                          marcado={condiciones.requiereAutorizacion}
+                          onCambio={(v) => cambiarCondicion('requiereAutorizacion', v)}
+                          texto="Requiere autorización del docente"
                         />
-                        <span>días calendario</span>
+                        <Interruptor
+                          id="cp-renovacion"
+                          marcado={condiciones.admiteRenovacion}
+                          onCambio={(v) => cambiarCondicion('admiteRenovacion', v)}
+                          texto="Admite renovación"
+                        />
+
+                        <label className="cp-etiqueta" htmlFor="cp-penalizacion">
+                          Penalidad por día
+                        </label>
+                        <div className="cp-penalidad">
+                          <span aria-hidden="true">S/</span>
+                          <input
+                            id="cp-penalizacion"
+                            type="text"
+                            inputMode="decimal"
+                            className={`cp-input ${errorPenalidad ? 'cp-input-error' : ''}`}
+                            value={condiciones.penalizacion}
+                            aria-invalid={Boolean(errorPenalidad)}
+                            aria-describedby={errorPenalidad ? 'cp-penalizacion-ayuda cp-penalizacion-error' : 'cp-penalizacion-ayuda'}
+                            onChange={(e) => cambiarCondicion('penalizacion', e.target.value)}
+                          />
+                        </div>
+                        <small id="cp-penalizacion-ayuda" className="cp-ayuda">Importe en soles. Usa 0 si no hay penalidad.</small>
+                        {errorPenalidad && <small id="cp-penalizacion-error" className="cp-ayuda cp-ayuda-error">{errorPenalidad}</small>}
                       </div>
 
-                      <Interruptor
-                        id="cp-autorizacion"
-                        marcado={condiciones.requiereAutorizacion}
-                        onCambio={(v) => cambiarCondicion('requiereAutorizacion', v)}
-                        texto="Requiere autorización del docente"
-                      />
-                      <Interruptor
-                        id="cp-renovacion"
-                        marcado={condiciones.admiteRenovacion}
-                        onCambio={(v) => cambiarCondicion('admiteRenovacion', v)}
-                        texto="Admite renovación"
-                      />
-
-                      <label className="cp-etiqueta" htmlFor="cp-penalizacion">
-                        Penalidad por día
-                      </label>
-                      <input
-                        id="cp-penalizacion"
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        className="cp-input"
-                        value={condiciones.penalizacion}
-                        onChange={(e) => cambiarCondicion('penalizacion', e.target.value)}
-                      />
-                    </div>
-
-                    <div className="cp-vista">
-                      <span className="cp-etiqueta">Vista previa para el estudiante</span>
-                      <div className="cp-vista-caja">
-                        <strong>Condiciones de este equipo</strong>
-                        <p>
-                          Préstamo <b>{condiciones.dias == null || condiciones.dias === '' ? 'sin límite de días' : `de hasta ${condiciones.dias} días calendario`}</b>.{' '}
-                          {textoAutorizacion} <b>{textoRenovacion}</b> El retraso genera una penalidad
-                          de {formatearSoles(condiciones.penalizacion)} por día.
-                        </p>
+                      <div className="cp-vista">
+                        <span className="cp-etiqueta">Vista previa para el estudiante</span>
+                        <div className="cp-vista-caja" aria-live="polite">
+                          <strong>Condiciones de este equipo</strong>
+                          {hayCambios && <small className="cp-vista-borrador">Cambios sin guardar</small>}
+                          {errorDias || errorPenalidad ? (
+                            <p>Corrige los campos marcados para ver la vista previa.</p>
+                          ) : (
+                            <p>
+                              Préstamo <b>{dias === null ? 'sin límite de días' : `de hasta ${dias} ${dias === 1 ? 'día calendario' : 'días calendario'}`}</b>.{' '}
+                              {textoAutorizacion} <b>{textoRenovacion}</b> El retraso genera una penalidad
+                              de S/ {penalizacion.toFixed(2)} por día.
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="cp-condiciones-acciones">
-                    <button
-                      type="button"
-                      className="cp-btn cp-btn-secundario"
-                      onClick={descartar}
-                      disabled={!hayCambios}
-                    >
-                      Descartar
-                    </button>
-                    <button
-                      type="button"
-                      className="cp-btn cp-btn-primario"
-                      onClick={guardarCondiciones}
-                      disabled={!hayCambios}
-                    >
-                      Guardar condiciones
-                    </button>
-                  </div>
-                </aside>
-              )}
-            </div>
-          )}
+                    {avisoCondiciones && (
+                      <p
+                        className={`cp-aviso cp-aviso--condiciones ${avisoCondiciones.error ? 'cp-aviso--error' : ''}`}
+                        role={avisoCondiciones.error ? 'alert' : 'status'}
+                      >
+                        {avisoCondiciones.texto}
+                      </p>
+                    )}
+                    <div className="cp-condiciones-acciones">
+                      <button
+                        type="button"
+                        className="cp-btn cp-btn-secundario"
+                        onClick={descartar}
+                        disabled={!hayCambios}
+                      >
+                        Descartar
+                      </button>
+                      <button
+                        type="submit"
+                        className="cp-btn cp-btn-primario"
+                        disabled={!hayCambios || Boolean(errorDias || errorPenalidad)}
+                      >
+                        Guardar condiciones
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
+          </div>
         </main>
       </div>
 
@@ -319,17 +388,21 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
 /* ---------- Subcomponentes ---------- */
 
 function Interruptor({ id, marcado, onCambio, texto }) {
+  const activo = marcado === true
   return (
     <label className="cp-interruptor" htmlFor={id}>
       <input
         id={id}
         type="checkbox"
         role="switch"
-        checked={marcado}
+        checked={activo}
         onChange={(e) => onCambio(e.target.checked)}
       />
       <span className="cp-interruptor-pista" aria-hidden="true" />
-      <span className="cp-interruptor-texto">{texto}</span>
+      <span className="cp-interruptor-texto">
+        {texto}
+        <small className="cp-interruptor-estado" aria-hidden="true">{activo ? 'Activada' : 'Desactivada'}</small>
+      </span>
     </label>
   )
 }

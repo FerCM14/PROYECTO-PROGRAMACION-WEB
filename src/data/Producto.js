@@ -90,20 +90,73 @@ export function obtenerProducto(id) {
   const detalle = DETALLES[producto.id] || { prefijo: 'EQP', inicio: 1 }
 
   const condiciones = leerJSON(`condiciones-${producto.id}`, {})
+  const duracion = numeroGuardado(condiciones.dias)
   const unidades = [...generarUnidades(producto, detalle), ...(leerJSON('producto-unidades', {})[producto.id] || [])].map((u) => ({ ...u, ...(leerJSON('inventario-estados', {})[u.codigo] || {}) }))
   return {
     ...producto,
     total: unidades.length,
-    duracionMax: condiciones.dias !== undefined ? condiciones.dias : producto.duracionMax,
-    penalizacion: condiciones.penalizacion ?? 15,
+    duracionMax: condiciones.dias === null ? null : duracion ?? producto.duracionMax,
+    penalizacion: numeroGuardado(condiciones.penalizacion) ?? 15,
     titulo: detalle.titulo || producto.nombre,
     descripcion: detalle.descripcion || '',
     accesorios: detalle.accesorios || [],
-    autorizacion: condiciones.requiereAutorizacion ?? Boolean(detalle.autorizacion),
-    renovable: condiciones.admiteRenovacion ?? Boolean(detalle.renovable),
+    autorizacion: typeof condiciones.requiereAutorizacion === 'boolean' ? condiciones.requiereAutorizacion : Boolean(detalle.autorizacion),
+    renovable: typeof condiciones.admiteRenovacion === 'boolean' ? condiciones.admiteRenovacion : Boolean(detalle.renovable),
     proximaLiberacion: detalle.proximaLiberacion || null,
     unidades
   }
+}
+
+function numeroGuardado(valor) {
+  if (typeof valor === 'string' && valor.trim()) valor = Number(valor)
+  return Number.isFinite(valor) ? valor : undefined
+}
+
+export function normalizarDiasPrestamo(valor) {
+  if (valor === null) return null
+  if (typeof valor !== 'string' && typeof valor !== 'number') return undefined
+  const texto = String(valor).trim()
+  if (!texto) return null
+  const dias = Number(texto)
+  return /^\d+$/.test(texto) && dias >= 1 && dias <= 30 ? dias : undefined
+}
+
+export function normalizarPenalidadPrestamo(valor) {
+  if (typeof valor !== 'string' && typeof valor !== 'number') return undefined
+  const texto = String(valor).trim().replace(',', '.')
+  if (!/^(?:\d+(?:\.\d{1,2})?|\.\d{1,2})$/.test(texto)) return undefined
+
+  const [soles, centimos = ''] = texto.split('.')
+  const esperado = `${(soles || '0').replace(/^0+(?=\d)/, '')}.${centimos.padEnd(2, '0')}`
+  const importe = Number(texto)
+  return Number.isFinite(importe) && importe.toFixed(2) === esperado ? importe : undefined
+}
+
+export function guardarCondicionesProducto(id, condiciones) {
+  const producto = PRODUCTOS.find((p) => p.id === Number(id))
+  const bajas = leerJSON(CLAVE_ELIMINADOS, [])
+  if (!producto || (Array.isArray(bajas) && bajas.includes(producto.id))) {
+    return { ok: false, mensaje: 'El equipo ya no está en el inventario.' }
+  }
+
+  const dias = normalizarDiasPrestamo(condiciones?.dias)
+  const penalizacion = normalizarPenalidadPrestamo(condiciones?.penalizacion)
+  if (dias === undefined || penalizacion === undefined ||
+      typeof condiciones.requiereAutorizacion !== 'boolean' || typeof condiciones.admiteRenovacion !== 'boolean') {
+    return { ok: false, mensaje: 'Revisa los datos de las condiciones antes de guardar.' }
+  }
+
+  const valores = {
+    dias,
+    penalizacion,
+    requiereAutorizacion: condiciones.requiereAutorizacion,
+    admiteRenovacion: condiciones.admiteRenovacion
+  }
+  if (!guardarJSON(`condiciones-${producto.id}`, valores)) {
+    return { ok: false, mensaje: 'No se pudieron guardar las condiciones en este navegador. Puedes volver a intentarlo.' }
+  }
+
+  return { ok: true, condiciones: valores }
 }
 
 /* ---------- Altas y ediciones (se guardan en localStorage) ---------- */

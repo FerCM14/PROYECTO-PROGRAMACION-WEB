@@ -151,6 +151,7 @@
 /* Pestañas */
 .cp-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 22px;
   margin: 18px 0 16px;
   border-bottom: 1px solid var(--cp-borde);
@@ -174,6 +175,11 @@
   border-bottom-color: var(--cp-primario);
 }
 
+.cp-tab:focus-visible {
+  outline: 2px solid var(--cp-primario);
+  outline-offset: 2px;
+}
+
 .cp-aviso {
   margin: 0 0 12px;
   padding: 8px 12px;
@@ -186,6 +192,16 @@
 
 .cp-aviso--registro-error {
   margin: 12px 0 0;
+  border-color: #dca5a5;
+  background: #faeaea;
+  color: #b3261e;
+}
+
+.cp-aviso--condiciones {
+  margin: 14px 0 0;
+}
+
+.cp-aviso--condiciones.cp-aviso--error {
   border-color: #dca5a5;
   background: #faeaea;
   color: #b3261e;
@@ -285,6 +301,8 @@
 
 /* Tarjeta de condiciones */
 .cp-condiciones {
+  min-width: 0;
+  container-type: inline-size;
   background: #fff;
   border: 1px solid var(--cp-borde);
   border-radius: 6px;
@@ -324,10 +342,28 @@
 
 .cp-dias {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   font-size: 12px;
   color: var(--cp-suave);
+}
+
+.cp-campos .cp-input-corto {
+  width: 7rem;
+  max-width: 100%;
+}
+
+.cp-penalidad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--cp-suave);
+}
+
+.cp-penalidad input {
+  min-width: 0;
 }
 
 .cp-input {
@@ -353,7 +389,7 @@
 /* Interruptor */
 .cp-interruptor {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   font-size: 12px;
   cursor: pointer;
@@ -374,6 +410,11 @@
   border-radius: 999px;
   background: #c4cdd1;
   transition: background 0.15s;
+}
+
+.cp-interruptor-texto {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .cp-interruptor-pista::after {
@@ -401,6 +442,16 @@
   outline-offset: 2px;
 }
 
+.cp-interruptor-estado {
+  display: block;
+  margin-top: 2px;
+  color: var(--cp-suave);
+}
+
+.cp-interruptor input:checked ~ .cp-interruptor-texto .cp-interruptor-estado {
+  color: var(--cp-primario);
+}
+
 /* Vista previa */
 .cp-vista {
   display: flex;
@@ -421,11 +472,24 @@
   margin: 6px 0 0;
 }
 
+.cp-vista-borrador {
+  display: block;
+  margin-top: 4px;
+  color: var(--cp-suave);
+}
+
 .cp-condiciones-acciones {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 18px;
+}
+
+@container (max-width: 360px) {
+  .cp-condiciones-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Estado vacío */

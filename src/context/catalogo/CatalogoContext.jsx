@@ -61,7 +61,13 @@ export function CatalogoProvider({ children }) {
     return resultado
   }
 
-  return <CatalogoContext.Provider value={{ version: version + cambios, obtenerCategoria, contarPorCategoria, obtenerProducto, existeEquipo: datos.existeEquipo, agregarProducto, actualizarProducto, eliminarProducto, cambiarEstadoUnidad, cambiarEstadoUnidadManual, registrarUnidadProducto, CATEGORIAS: datos.CATEGORIAS, PRODUCTOS: datos.PRODUCTOS, RECOJO: datos.RECOJO }}>
+  function guardarCondicionesProducto(id, condiciones) {
+    const resultado = datos.guardarCondicionesProducto(id, condiciones)
+    if (resultado.ok) setCambios((actual) => actual + 1)
+    return resultado
+  }
+
+  return <CatalogoContext.Provider value={{ version: version + cambios, obtenerCategoria, contarPorCategoria, obtenerProducto, existeEquipo: datos.existeEquipo, agregarProducto, actualizarProducto, eliminarProducto, cambiarEstadoUnidad, cambiarEstadoUnidadManual, registrarUnidadProducto, guardarCondicionesProducto, CATEGORIAS: datos.CATEGORIAS, PRODUCTOS: datos.PRODUCTOS, RECOJO: datos.RECOJO }}>
     {children}
   </CatalogoContext.Provider>
 }
