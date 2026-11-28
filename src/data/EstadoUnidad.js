@@ -1,6 +1,6 @@
 import { PRODUCTOS, cambiarEstadoUnidad, obtenerProducto } from './Producto.js'
 import { obtenerPrestamos } from './Identificacion.js'
-import { hoyISO } from './Reservas.js'
+import { calcularEstados, hoyISO } from './Reservas.js'
 
 function leerLista(clave) {
   const datos = JSON.parse(localStorage.getItem(clave)) ?? []
@@ -15,18 +15,6 @@ export function consultarPrestamosUnidad(codigo) {
   )
 }
 
-function reservasConCupo(reservas, capacidad, hoy) {
-  const confirmadas = []
-  for (const reserva of reservas) {
-    const inicio = reserva.desde < hoy ? hoy : reserva.desde
-    const fechas = [inicio, ...confirmadas.map((r) => r.desde).filter((dia) => dia >= inicio && dia <= reserva.hasta)]
-    if (fechas.every((dia) => confirmadas.filter((r) => r.desde <= dia && r.hasta >= dia).length < capacidad)) {
-      confirmadas.push(reserva)
-    }
-  }
-  return confirmadas
-}
-
 export function consultarReservasUnidad(producto, unidad, hoy = hoyISO()) {
   const actuales = leerLista('reservas')
   // El lector habitual migra el calendario. Aquí solo se consultan los registros.
@@ -38,13 +26,12 @@ export function consultarReservasUnidad(producto, unidad, hoy = hoyISO()) {
     .sort((a, b) => (a.creadaEn || 0) - (b.creadaEn || 0))
   const directas = activas.filter((r) => r.unidad === unidad.codigo)
 
-  if (unidad.estado !== 'Disponible') return { directas, porModelo: [] }
-
   const delModelo = activas.filter((r) => Number(r.productoId) === producto.id)
-  const capacidad = producto.unidades.filter((u) => u.estado === 'Disponible').length
-  const conCupo = reservasConCupo(delModelo, capacidad, hoy)
-  const conCupoTrasRetiro = reservasConCupo(delModelo, capacidad - 1, hoy)
-  const porModelo = conCupo.filter((r) => !r.unidad && !conCupoTrasRetiro.includes(r))
+  const conCupo = calcularEstados(delModelo, hoy)
+  const trasRetiro = calcularEstados(delModelo, hoy, unidad.codigo)
+  const porModelo = delModelo.filter((r) =>
+    !r.unidad && conCupo[r.id]?.estado === 'Confirmada' && trasRetiro[r.id]?.estado !== 'Confirmada'
+  )
   return { directas, porModelo }
 }
 

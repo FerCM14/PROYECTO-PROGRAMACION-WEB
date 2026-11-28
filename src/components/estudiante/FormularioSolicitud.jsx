@@ -6,7 +6,8 @@ import FooterEstudiante from '../Footer/Footer-Estudiante'
 import Error403 from '../comun/403'
 import { obtenerSesion, obtenerCuenta } from '../../data/cuentas'
 import { obtenerProducto, RECOJO } from '../../data/Producto'
-import { totalDeuda, PENALIDAD_POR_DIA } from '../../data/deudas'
+import { disponibilidadEquipo } from '../../data/CupoEquipo'
+import { totalDeuda } from '../../data/deudas'
 import { registrarSolicitud } from '../../data/Solicitudes'
 import { imagenEquipo } from '../../data/imagenes'
 import {
@@ -15,9 +16,8 @@ import {
   diferenciaDias,
   formatearFecha,
   formatearCorto,
-  obtenerRangosOcupados,
-  hayConflicto,
-  proximoRangoLibre
+  consultarCupoSolicitud,
+  proximoRangoConCupo
 } from '../../data/Disponibilidad'
 
 const MIN_MOTIVO = 20
@@ -54,12 +54,14 @@ function AvisoSinDisponibilidad({ inicio, fin, sugerido, onUsar }) {
     <div className="solicitud-aviso solicitud-aviso-amarillo" role="alert">
       Fechas no disponibles: no hay unidades libres entre el{' '}
       <strong>{formatearCorto(inicio)}</strong> y el{' '}
-      <strong>{formatearCorto(fin)}</strong>. Próximo rango libre del{' '}
-      <strong>{formatearCorto(sugerido.inicio)}</strong> al{' '}
-      <strong>{formatearFecha(sugerido.fin)}</strong>.{' '}
-      <button type="button" className="solicitud-enlace" onClick={onUsar}>
-        Usar este rango
-      </button>
+      <strong>{formatearCorto(fin)}</strong>.{' '}
+      {sugerido ? (
+        <>
+          Rango con cupo estimado del <strong>{formatearCorto(sugerido.inicio)}</strong> al{' '}
+          <strong>{formatearFecha(sugerido.fin)}</strong>.{' '}
+          <button type="button" className="solicitud-enlace" onClick={onUsar}>Usar este rango</button>
+        </>
+      ) : 'No se pudo confirmar otro rango con los datos actuales.'}
     </div>
   )
 }
@@ -115,6 +117,7 @@ function FormularioSolicitud() {
   /* ----- Cálculos de fechas ----- */
 
   const max = producto.duracionMax // null = sin límite
+  const { activas, libres } = disponibilidadEquipo(producto)
   const fechasCompletas = Boolean(inicio && devolucion)
 
   // Duración = fecha de devolución - fecha de inicio (no editable)
@@ -123,13 +126,13 @@ function FormularioSolicitud() {
   const duracionValida = dias !== null && !ordenInvalido
   const excedida = duracionValida && max !== null && dias > max
 
-  const rangosOcupados = obtenerRangosOcupados(producto.id)
+  const hayCupo = consultarCupoSolicitud(producto.id)
   const sinDisponibilidad =
-    duracionValida && hayConflicto(rangosOcupados, inicio, devolucion)
+    duracionValida && !hayCupo(inicio, devolucion)
 
   const sugerido = sinDisponibilidad
-    ? proximoRangoLibre(
-        rangosOcupados,
+    ? proximoRangoConCupo(
+        hayCupo,
         inicio,
         Math.min(DIAS_SUGERIDOS, max ?? DIAS_SUGERIDOS)
       )
@@ -187,6 +190,9 @@ function FormularioSolicitud() {
     }
 
     if (!acepto) nuevos.acepto = 'Debes aceptar las condiciones del préstamo.'
+    if (duracionValida && !sinDisponibilidad && !consultarCupoSolicitud(producto.id)(inicio, devolucion)) {
+      nuevos.fechas = 'El cupo cambió. Revisa las fechas antes de enviar la solicitud.'
+    }
 
     setErrores(nuevos)
 
@@ -366,7 +372,7 @@ function FormularioSolicitud() {
                 </div>
                   <strong>{producto.nombre}</strong>
                   <p>
-                    {producto.marca} · {producto.libres} de {producto.total}{' '}
+                    {producto.marca} · {libres} de {activas.length}{' '}
                     unidades libres
                   </p>
                 </div>
@@ -381,8 +387,10 @@ function FormularioSolicitud() {
                 </strong>{' '}
                 antes de las {HORA_DEVOLUCION} en el {RECOJO.lugar} ·
                 verificación de accesorios en la entrega y el retorno ·
-                penalidad de {formatearSoles(PENALIDAD_POR_DIA)} por día de
-                retraso · {producto.renovable ? 'admite renovación' : 'sin renovación'}.
+                {Number.isFinite(producto.penalizacion)
+                  ? `penalidad de ${formatearSoles(producto.penalizacion)} por día de retraso`
+                  : 'penalidad diaria sin informar'} · {producto.renovable ? 'admite renovación' : 'sin renovación'} ·{' '}
+                {producto.autorizacion ? 'requiere autorización del docente' : 'no requiere autorización del docente'}.
               </p>
 
               <label className="solicitud-check">

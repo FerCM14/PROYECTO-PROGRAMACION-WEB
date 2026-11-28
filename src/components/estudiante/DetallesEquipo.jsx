@@ -6,22 +6,16 @@ import HeaderEstudiante from '../Header/Header-Estudiante'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
 import Error403 from '../comun/403'
 import { obtenerSesion, obtenerCuenta } from '../../data/cuentas'
-import { obtenerProducto, obtenerCategoria, RECOJO } from '../../data/Producto'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
+import { disponibilidadEquipo, proximaDevolucionEquipo } from '../../data/CupoEquipo'
+import { formatearFecha } from '../../data/fechas'
 import {
   obtenerDeudasPendientes,
-  totalDeuda,
-  PENALIDAD_POR_DIA
+  totalDeuda
 } from '../../data/deudas'
-
-const MINIATURAS = [0, 1, 2]
 
 function formatearSoles(monto) {
   return `S/ ${monto.toFixed(2)}`
-}
-
-function formatearFechaISO(iso) {
-  const [anio, mes, dia] = iso.split('-')
-  return `${dia}/${mes}/${anio}`
 }
 
 function fechaDeHoy() {
@@ -70,7 +64,7 @@ function AvisoSinUnidades({ libres, total, proximaLiberacion }) {
       </span>{' '}
       ·{' '}
       {proximaLiberacion
-        ? `la próxima se libera el ${formatearFechaISO(proximaLiberacion)}.`
+        ? `devolución pactada para el ${formatearFecha(proximaLiberacion)}. La disponibilidad se confirma al devolverla.`
         : 'aún no hay fecha estimada de liberación.'}
     </div>
   )
@@ -91,6 +85,11 @@ function UnidadEquipo({ unidad }) {
 
 function DetalleEquipo() {
   const { id } = useParams()
+  return <DetalleEstudiante key={id} id={id} />
+}
+
+function DetalleEstudiante({ id }) {
+  const { obtenerProducto, obtenerCategoria, RECOJO } = useCatalogo()
   const navigate = useNavigate()
   const [miniatura, setMiniatura] = useState(0)
 
@@ -124,7 +123,10 @@ function DetalleEquipo() {
     )
   }
 
-  const sinLibres = producto.libres === 0
+  const { activas, libres } = disponibilidadEquipo(producto)
+  const sinLibres = libres === 0
+  const fotos = (producto.fotos || []).filter(Boolean).slice(0, 4)
+  const galeria = fotos.length ? fotos : [imagenEquipo(producto)]
 
   const condiciones = [
     producto.duracionMax === null ? (
@@ -138,7 +140,9 @@ function DetalleEquipo() {
       ? 'requiere autorización del docente'
       : 'no requiere autorización',
     producto.renovable ? 'admite renovación' : 'no admite renovación',
-    `penalidad de ${formatearSoles(PENALIDAD_POR_DIA)} por día de retraso`
+    Number.isFinite(producto.penalizacion)
+      ? `penalidad de ${formatearSoles(producto.penalizacion)} por día de retraso`
+      : 'penalidad diaria sin informar'
   ]
 
   return (
@@ -148,18 +152,18 @@ function DetalleEquipo() {
       <main className="detalle-main">
         <nav className="detalle-ruta" aria-label="Ruta">
           <Link to="/catalogo">Catálogo</Link> / {categoria?.nombre} /{' '}
-          {producto.titulo}
+          {producto.nombre}
         </nav>
 
         <div className="detalle-layout">
           {/* ----- Galería ----- */}
           <div className="detalle-galeria">
             <div className="detalle-foto-principal">
-              <img src={producto.fotos?.[miniatura] || imagenEquipo(producto)} alt={producto.nombre} />
+              <img src={galeria[miniatura] || galeria[0]} alt={producto.nombre} />
             </div>
 
             <div className="detalle-miniaturas">
-              {MINIATURAS.map((i) => (
+              {galeria.map((foto, i) => (
                 <button
                   key={i}
                   type="button"
@@ -167,14 +171,14 @@ function DetalleEquipo() {
                   onClick={() => setMiniatura(i)}
                   aria-label={`Ver foto ${i + 1}`}
                   aria-pressed={i === miniatura}
-                ><img src={producto.fotos?.[i] || imagenEquipo(producto)} alt="" /></button>
+                ><img src={foto} alt="" /></button>
               ))}
             </div>
           </div>
 
           {/* ----- Información ----- */}
           <section className="detalle-card detalle-info">
-            <h1>{producto.titulo}</h1>
+            <h1>{producto.nombre}</h1>
 
             <p className="detalle-meta">
               {producto.marca} · {producto.modelo} · <strong>{categoria?.nombre}</strong>
@@ -208,7 +212,7 @@ function DetalleEquipo() {
 
             <h2 className="detalle-subtitulo">Unidades de este equipo</h2>
             <div className="detalle-unidades">
-              {producto.unidades.map((unidad) => (
+              {activas.map((unidad) => (
                 <UnidadEquipo key={unidad.codigo} unidad={unidad} />
               ))}
             </div>
@@ -225,7 +229,7 @@ function DetalleEquipo() {
                   : 'detalle-contador'
               }
             >
-              {producto.libres} de {producto.total}
+              {libres} de {activas.length}
             </p>
             <p className="detalle-contador-nota">
               unidades libres hoy, {fechaDeHoy()}
@@ -235,11 +239,12 @@ function DetalleEquipo() {
               <AvisoDeuda monto={deuda} cantidad={pendientes.length} />
             )}
 
-            {sinLibres && (
+            {!activas.length && <p role="status">Este equipo no tiene unidades activas para préstamo o reserva.</p>}
+            {sinLibres && activas.length > 0 && (
               <AvisoSinUnidades
-                libres={producto.libres}
-                total={producto.total}
-                proximaLiberacion={producto.proximaLiberacion}
+                libres={libres}
+                total={activas.length}
+                proximaLiberacion={proximaDevolucionEquipo(producto)}
               />
             )}
 
@@ -251,7 +256,7 @@ function DetalleEquipo() {
               >
                 Ver mi deuda
               </button>
-            ) : sinLibres ? (
+            ) : !activas.length ? null : sinLibres ? (
               <button
                 type="button"
                 className="detalle-btn-primario"
@@ -272,6 +277,7 @@ function DetalleEquipo() {
             <button
               type="button"
               className="detalle-btn-secundario"
+              disabled={!activas.length}
               onClick={() => navigate(`/estudiante/calendario?equipo=${producto.id}`)}
             >
               Ver calendario de ocupación

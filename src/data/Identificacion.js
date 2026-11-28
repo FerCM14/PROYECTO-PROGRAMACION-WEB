@@ -1,4 +1,5 @@
-import { cambiarEstadoUnidad } from './Producto'
+import { cambiarEstadoUnidad, obtenerProducto } from './Producto'
+import { diferenciaDias, formatearFecha, hoyISO } from './fechas.js'
 // src/data/Prestamos.js
 // Préstamos guardados en localStorage. Se crean al aprobar una solicitud
 // (modal "Aprobar solicitud") y se completan al registrar la entrega.
@@ -114,6 +115,25 @@ export function registrarEntrega(codigo, { fechaEntrega, accesorios, observacion
   return { ok: true, prestamo }
 }
 
+export function limiteRenovacion(prestamo) {
+  const producto = obtenerProducto(prestamo?.productoId)
+  if (producto?.renovable !== true) return null
+  return Math.min(10, producto.duracionMax ?? 10)
+}
+
+export function errorRenovacionPrestamo(prestamo, nuevaFecha, hoy = hoyISO()) {
+  if (prestamo?.estado !== 'Entregado') return 'Solo se puede renovar un préstamo que está en curso.'
+  const limite = limiteRenovacion(prestamo)
+  if (limite === null) return 'Las condiciones de este equipo no permiten renovar el préstamo.'
+  if (prestamo.hasta < hoy) return 'El préstamo ya venció. Registra la devolución.'
+  if (formatearFecha(nuevaFecha) === '—' || nuevaFecha <= prestamo.hasta) {
+    return 'La nueva fecha debe ser válida y posterior al vencimiento actual.'
+  }
+  const total = diferenciaDias(prestamo.desde, nuevaFecha)
+  if (!Number.isFinite(total) || total > limite) return `La duración total no puede superar ${limite} días.`
+  return ''
+}
+
 // Renovar: extiende la devolución pactada
 export function renovarPrestamo(codigo, nuevaFecha) {
   const todos = leer()
@@ -122,6 +142,9 @@ export function renovarPrestamo(codigo, nuevaFecha) {
   if (indice === -1) {
     return { ok: false, motivo: 'no-encontrado' }
   }
+
+  const mensaje = errorRenovacionPrestamo(todos[indice], nuevaFecha)
+  if (mensaje) return { ok: false, motivo: 'renovacion-no-permitida', mensaje }
 
   const prestamo = {
     ...todos[indice],

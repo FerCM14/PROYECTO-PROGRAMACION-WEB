@@ -175,6 +175,13 @@ export default function AprobacionEntrega() {
   const confirmarAprobacion = () => {
     if (!unidadElegida) return
     const { s, cuenta, producto } = modal.fila
+    const actual = obtenerProducto(producto?.id)
+    const libres = unidadesLibres(actual, desdeDe(s), hastaDe(s), obtenerTodasLasSolicitudes(), s.codigo)
+    if (!libres.some((u) => u.codigo === unidadElegida)) {
+      setUnidadElegida(libres[0]?.codigo || '')
+      setModal({ ...modal, tipo: libres.length ? 'aprobar' : 'bloqueo', libres, unidadCambio: true, fila: { ...modal.fila, producto: actual } })
+      return
+    }
     const { prestamo } = crearPrestamo({
       solicitud: s.codigo,
       correo: cuenta.correo,
@@ -434,6 +441,7 @@ export default function AprobacionEntrega() {
       {modal && (
         <div className="ae-overlay" onClick={cerrar}>
           <div className="ae-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            {modal.unidadCambio && <p className="ae-aviso amarillo" role="status">La unidad seleccionada ya no está disponible. Revisa las opciones antes de continuar.</p>}
             {/* 4.2 Aprobar: asignar unidad */}
             {modal.tipo === 'aprobar' && (
               <>
@@ -442,6 +450,9 @@ export default function AprobacionEntrega() {
                   {modal.fila.cuenta.nombres} {modal.fila.cuenta.apellidos} · {equipoDe(modal.fila.s)} ·{' '}
                   {fmt(desdeDe(modal.fila.s), false)} → {fmt(hastaDe(modal.fila.s))}
                 </p>
+                {modal.fila.producto?.autorizacion && (
+                  <p className="ae-aviso amarillo">Este equipo requiere autorización del docente. Verifícala antes de aprobar la solicitud.</p>
+                )}
                 <p className="ae-etiqueta">Unidad a asignar</p>
                 <div className="ae-unidades">
                   {modal.libres.map((u) => (

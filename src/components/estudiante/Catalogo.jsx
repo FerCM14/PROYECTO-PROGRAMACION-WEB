@@ -1,4 +1,5 @@
 import { imagenEquipo } from '../../data/imagenes'
+import { disponibilidadEquipo } from '../../data/CupoEquipo'
 import './Catalogo.css'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -49,11 +50,11 @@ function normalizarTexto(texto) {
 function cargarEquipos() {
   return PRODUCTOS.map((p) => obtenerProducto(p.id))
     .map((p) => {
-      const activas = p.unidades.filter((u) => u.estado !== 'De baja')
+      const { activas, libres } = disponibilidadEquipo(p)
       return {
         ...p,
         total: activas.length,
-        libres: activas.filter((u) => u.estado === 'Disponible').length
+        libres
       }
     })
     .filter((p) => p.total > 0)

@@ -6,14 +6,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
-import { obtenerPrestamo, registrarDevolucion, renovarPrestamo } from '../../data/Identificacion'
+import { errorRenovacionPrestamo, limiteRenovacion, obtenerPrestamo, registrarDevolucion, renovarPrestamo } from '../../data/Identificacion'
 import { obtenerCuenta, asignarDeuda } from '../../data/cuentas'
 import { cambiarEstadoUnidad } from '../../data/Producto'
 import './Devoluciones.css'
 
 const MS_DIA = 1000 * 60 * 60 * 24
 const TARIFA_DIA = 15
-const MAX_DIAS = 10
 const MAX_FOTOS = 3
 const MAX_BYTES = 1.5 * 1024 * 1024
 
@@ -236,17 +235,16 @@ function Devoluciones() {
   /* ---------- modal de renovación ---------- */
   const abrirModal = () => {
     if (!prestamo) return
-    const tope = sumarDias(prestamo.desde, MAX_DIAS)
+    const tope = sumarDias(prestamo.desde, limiteRenovacion(prestamo) ?? 0)
     const sugerida = sumarDias(prestamo.hasta, 5)
     setNuevaFecha(sugerida > tope ? tope : sugerida)
     setModalAbierto(true)
   }
 
-  const vencido = prestamo ? diferenciaDias(prestamo.hasta, hoyISO()) > 0 : false
+  const limite = limiteRenovacion(prestamo)
   const totalDias = prestamo && nuevaFecha ? diferenciaDias(prestamo.desde, nuevaFecha) : 0
-  const fechaPosterior = prestamo && nuevaFecha ? nuevaFecha > prestamo.hasta : false
-  const dentroDelLimite = totalDias <= MAX_DIAS
-  const renovacionValida = !vencido && fechaPosterior && dentroDelLimite
+  const errorRenovacion = errorRenovacionPrestamo(prestamo, nuevaFecha)
+  const renovacionValida = !errorRenovacion
 
   const renovar = () => {
     if (!renovacionValida) return
@@ -573,27 +571,20 @@ function Devoluciones() {
                   className="dv-input dv-input--mono"
                   value={nuevaFecha}
                   min={sumarDias(prestamo.hasta, 1)}
-                  max={sumarDias(prestamo.desde, MAX_DIAS)}
+                  max={limite === null ? undefined : sumarDias(prestamo.desde, limite)}
+                  disabled={limite === null}
                   onChange={(e) => setNuevaFecha(e.target.value)}
                 />
               </div>
             </div>
 
-            {vencido ? (
+            {errorRenovacion ? (
               <div className="dv-mensaje dv-mensaje--ambar">
-                El préstamo ya venció, así que no admite renovación. Registra la devolución.
-              </div>
-            ) : !fechaPosterior ? (
-              <div className="dv-mensaje dv-mensaje--ambar">
-                La nueva fecha debe ser posterior al vencimiento actual.
-              </div>
-            ) : !dentroDelLimite ? (
-              <div className="dv-mensaje dv-mensaje--ambar">
-                Duración total {totalDias} días: supera los {MAX_DIAS} permitidos.
+                {errorRenovacion}
               </div>
             ) : (
               <div className="dv-mensaje dv-mensaje--verde">
-                Duración total {totalDias} de {MAX_DIAS} días permitidos.
+                Duración total {totalDias} de {limite} días permitidos.
               </div>
             )}
 
