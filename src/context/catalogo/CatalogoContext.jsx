@@ -41,6 +41,12 @@ export function CatalogoProvider({ children }) {
     return resultado
   }
 
+  function eliminarProducto(id) {
+    const resultado = datos.eliminarProducto(id)
+    if (resultado.ok) setCambios((actual) => actual + 1)
+    return resultado
+  }
+
   function cambiarEstadoUnidad(...argumentos) {
     const resultado = datos.cambiarEstadoUnidad(...argumentos)
     setCambios((actual) => actual + 1)
@@ -53,7 +59,7 @@ export function CatalogoProvider({ children }) {
     return resultado
   }
 
-  return <CatalogoContext.Provider value={{ version: version + cambios, obtenerCategoria, contarPorCategoria, obtenerProducto, existeEquipo, agregarProducto, actualizarProducto, cambiarEstadoUnidad, registrarUnidadProducto, CATEGORIAS: datos.CATEGORIAS, PRODUCTOS: datos.PRODUCTOS, RECOJO: datos.RECOJO }}>
+  return <CatalogoContext.Provider value={{ version: version + cambios, obtenerCategoria, contarPorCategoria, obtenerProducto, existeEquipo, agregarProducto, actualizarProducto, eliminarProducto, cambiarEstadoUnidad, registrarUnidadProducto, CATEGORIAS: datos.CATEGORIAS, PRODUCTOS: datos.PRODUCTOS, RECOJO: datos.RECOJO }}>
     {children}
   </CatalogoContext.Provider>
 }

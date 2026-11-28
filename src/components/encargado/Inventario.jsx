@@ -1,38 +1,16 @@
 import { imagenEquipo } from '../../data/imagenes'
-import { obtenerInventario } from '../../data/Inventario'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
-import { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto } from '../../data/Producto'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import './Inventario.css'
 
 const ESTADOS = ['Disponible', 'Prestada', 'Mantenimiento', 'De baja']
-const CLAVE_CAMBIOS = 'inventario-estados'
 const POR_PAGINA = 8
 const RUTA_EDITAR = '/encargado/editar-equipo'
 const RUTA_CONDICION = '/encargado/condicion-prestamo'
-
-function leerCambios() {
-  try {
-    const datos = JSON.parse(localStorage.getItem(CLAVE_CAMBIOS))
-    return datos && typeof datos === 'object' ? datos : {}
-  } catch {
-    return {}
-  }
-}
-
-// Unidades del producto con los cambios de estado ya aplicados
-function unidadesDe(productoId, cambios) {
-  const producto = obtenerProducto(productoId)
-  if (!producto) return []
-  return producto.unidades.map((u) => ({
-    ...u,
-    estado: cambios[u.codigo]?.estado || u.estado,
-    nota: cambios[u.codigo]?.nota || ''
-  }))
-}
 
 function contar(unidades) {
   const c = { Disponible: 0, Prestada: 0, Mantenimiento: 0, 'De baja': 0 }
@@ -148,7 +126,7 @@ function ModalEstado({ producto, unidades, onCerrar, onGuardar }) {
 }
 
 export default function Inventario() {
-  const [cambios, setCambios] = useState(leerCambios)
+  const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, cambiarEstadoUnidad } = useCatalogo()
   const [seleccionado, setSeleccionado] = useState(null)
   const [pagina, setPagina] = useState(1)
   const [categoria, setCategoria] = useState('')
@@ -156,23 +134,13 @@ export default function Inventario() {
   const [busqueda, setBusqueda] = useState('')
   const [reinicioCabecera, setReinicioCabecera] = useState(0)
 
-  const filas = useMemo(
-    () =>
-      obtenerInventario().map((p) => {
-        const unidades = unidadesDe(p.id, cambios)
-        return { producto: p, unidades, conteo: contar(unidades) }
-      }),
-    [cambios]
-  )
+  const filas = PRODUCTOS.map((p) => {
+    const producto = obtenerProducto(p.id)
+    return { producto, unidades: producto.unidades, conteo: contar(producto.unidades) }
+  })
 
   function guardar(codigo, estado, nota) {
-    const siguiente = { ...cambios, [codigo]: { estado, nota } }
-    setCambios(siguiente)
-    try {
-      localStorage.setItem(CLAVE_CAMBIOS, JSON.stringify(siguiente))
-    } catch {
-      /* sin almacenamiento: el cambio vive solo en pantalla */
-    }
+    cambiarEstadoUnidad(codigo, estado, nota)
     setSeleccionado(null)
   }
 
