@@ -462,6 +462,21 @@
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
 }
 
+.cp-modal-alta {
+  box-sizing: border-box;
+  max-width: calc(100% - 32px);
+  border: 0;
+  color: inherit;
+}
+
+.cp-modal-alta::backdrop {
+  background: rgba(18, 33, 31, 0.48);
+}
+
+.cp-modal-equipo {
+  margin: 0 0 16px;
+}
+
 .cp-modal h2 {
   margin: 0 0 16px;
   font-size: 16px;

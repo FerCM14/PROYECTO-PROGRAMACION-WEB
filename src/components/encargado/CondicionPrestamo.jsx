@@ -300,6 +300,7 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
       {baja && <div className="cp-overlay"><form className="cp-modal" role="dialog" aria-modal="true" aria-labelledby="cp-baja-titulo" onSubmit={confirmarBaja}><h2 id="cp-baja-titulo">Dar de baja unidad</h2><p>{producto.nombre} · Modelo {producto.modelo} · {baja.codigo}</p><label className="cp-modal-campo">Motivo de baja<textarea autoFocus required className="cp-input" value={motivoBaja} onChange={(e) => setMotivoBaja(e.target.value)} /></label><div className="cp-modal-acciones"><button type="button" className="cp-btn cp-btn-secundario" onClick={() => setBaja(null)}>Cancelar</button><button type="submit" className="cp-btn cp-btn-peligro" disabled={!motivoBaja.trim()}>Dar de baja</button></div></form></div>}
       {modalAbierto && (
         <ModalAltaUnidad
+          nombreEquipo={producto.nombre}
           existentes={unidades.map((u) => u.codigo)}
           onCancelar={() => setModalAbierto(false)}
           onRegistrar={registrarUnidad}
@@ -414,20 +415,19 @@ function EstadoVacio({ onNueva }) {
   )
 }
 
-function ModalAltaUnidad({ existentes, onCancelar, onRegistrar }) {
+function ModalAltaUnidad({ nombreEquipo, existentes, onCancelar, onRegistrar }) {
   const [codigo, setCodigo] = useState('')
   const [ubicacion, setUbicacion] = useState(UBICACIONES[0])
   const [error, setError] = useState('')
   const campoCodigo = useRef(null)
+  const dialogo = useRef(null)
 
   useEffect(() => {
+    const modal = dialogo.current
+    modal.showModal()
     campoCodigo.current?.focus()
-    function alTeclear(e) {
-      if (e.key === 'Escape') onCancelar()
-    }
-    document.addEventListener('keydown', alTeclear)
-    return () => document.removeEventListener('keydown', alTeclear)
-  }, [onCancelar])
+    return () => modal.close()
+  }, [])
 
   function enviar(e) {
     e.preventDefault()
@@ -445,9 +445,16 @@ function ModalAltaUnidad({ existentes, onCancelar, onRegistrar }) {
   }
 
   return (
-    <div className="cp-overlay" onMouseDown={(e) => e.target === e.currentTarget && onCancelar()}>
-      <form className="cp-modal" role="dialog" aria-modal="true" aria-labelledby="cp-modal-titulo" onSubmit={enviar} noValidate>
+    <dialog
+      ref={dialogo}
+      className="cp-modal cp-modal-alta"
+      aria-labelledby="cp-modal-titulo"
+      aria-describedby="cp-modal-equipo"
+      onCancel={onCancelar}
+    >
+      <form onSubmit={enviar} noValidate>
         <h2 id="cp-modal-titulo">Nueva unidad</h2>
+        <p id="cp-modal-equipo" className="cp-modal-equipo">{nombreEquipo}</p>
 
         <div className="cp-modal-fila">
           <div className="cp-modal-campo">
@@ -498,6 +505,6 @@ function ModalAltaUnidad({ existentes, onCancelar, onRegistrar }) {
           </button>
         </div>
       </form>
-    </div>
+    </dialog>
   )
 }
