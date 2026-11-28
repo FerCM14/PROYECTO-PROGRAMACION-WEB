@@ -163,8 +163,14 @@
   text-align: right;
 }
 
-.eq-contador {
-  float: right;
+.eq-ayuda--descripcion {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.eq-contador--exceso {
+  color: #b3261e;
 }
 
 /* ---------- Accesorios ---------- */

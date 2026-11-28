@@ -181,6 +181,9 @@ function FormularioEquipo({ existente }) {
     if (!CATEGORIAS.some((c) => c.id === datos.categoria)) e.categoria = 'Elige una categoría de la lista.'
     if (!datos.marca) e.marca = 'La marca es obligatoria.'
     if (!datos.modelo) e.modelo = 'El modelo es obligatorio.'
+    if (datos.descripcion.length > MAX_DESCRIPCION) {
+      e.descripcion = `La descripción debe tener como máximo ${MAX_DESCRIPCION} caracteres.`
+    }
     if (datos.marca && datos.modelo && existeEquipo(datos.marca, datos.modelo, idEditar)) {
       e.modelo = 'Ya existe un equipo con esta marca y modelo.'
     }
@@ -318,19 +321,22 @@ function FormularioEquipo({ existente }) {
                 </div>
 
                 {/* ---------- Descripción ---------- */}
-                <h2 className="eq-seccion eq-seccion--sep">Descripción</h2>
+                <h2 className="eq-seccion eq-seccion--sep"><label htmlFor="eq-descripcion">Descripción</label></h2>
                 <textarea
-                  className="eq-input eq-textarea"
+                  id="eq-descripcion"
+                  className={`${campoClase('descripcion')} eq-textarea`}
                   rows={4}
                   maxLength={MAX_DESCRIPCION}
                   value={form.descripcion}
                   onChange={(e) => cambiar('descripcion', e.target.value)}
-                  aria-label="Descripción"
+                  aria-invalid={Boolean(errores.descripcion)}
+                  aria-describedby={errores.descripcion ? 'eq-ayuda-descripcion eq-error-descripcion' : 'eq-ayuda-descripcion'}
                 />
-                <p className="eq-ayuda">
+                <p className="eq-ayuda eq-ayuda--descripcion" id="eq-ayuda-descripcion">
                   Máximo {MAX_DESCRIPCION} caracteres. Se muestra en la ficha pública del catálogo.
-                  <span className="eq-contador"> {form.descripcion.length}/{MAX_DESCRIPCION}</span>
+                  <span className={`eq-contador ${form.descripcion.length > MAX_DESCRIPCION ? 'eq-contador--exceso' : ''}`}>{form.descripcion.length}/{MAX_DESCRIPCION}</span>
                 </p>
+                {errores.descripcion && <p id="eq-error-descripcion" className="eq-error">{errores.descripcion}</p>}
 
                 {/* ---------- Accesorios ---------- */}
                 <h2 className="eq-seccion eq-seccion--sep">Accesorios incluidos</h2>
