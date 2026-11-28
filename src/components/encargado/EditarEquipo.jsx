@@ -108,6 +108,7 @@ function FormularioEquipo({ existente }) {
   const [mensajeFotos, setMensajeFotos] = useState('')
   const [avisoBorrador, setAvisoBorrador] = useState('')
   const [nuevoAccesorio, setNuevoAccesorio] = useState('')
+  const [errorAccesorio, setErrorAccesorio] = useState('')
   const [arrastrando, setArrastrando] = useState(false)
   const inputFotos = useRef(null)
 
@@ -123,14 +124,23 @@ function FormularioEquipo({ existente }) {
   /* ---------- Accesorios ---------- */
 
   function agregarAccesorio() {
-    const texto = nuevoAccesorio.trim()
-    if (!texto) return
+    const texto = nuevoAccesorio.trim().replace(/\s+/g, ' ')
+    if (!texto) {
+      setErrorAccesorio('Escribe el nombre del accesorio.')
+      return
+    }
+    if (form.accesorios.some((a) => a.trim().replace(/\s+/g, ' ').toLowerCase() === texto.toLowerCase())) {
+      setErrorAccesorio('Ese accesorio ya está en la lista.')
+      return
+    }
     setForm((f) => ({ ...f, accesorios: [...f.accesorios, texto] }))
     setNuevoAccesorio('')
+    setErrorAccesorio('')
   }
 
   function quitarAccesorio(indice) {
     setForm((f) => ({ ...f, accesorios: f.accesorios.filter((_, i) => i !== indice) }))
+    setErrorAccesorio('')
   }
 
   /* ---------- Fotografías desde el equipo del usuario ---------- */
@@ -340,11 +350,12 @@ function FormularioEquipo({ existente }) {
 
                 {/* ---------- Accesorios ---------- */}
                 <h2 className="eq-seccion eq-seccion--sep">Accesorios incluidos</h2>
+                {!form.accesorios.length && <p className="eq-ayuda">Sin accesorios registrados.</p>}
                 <ul className="eq-accesorios">
                   {form.accesorios.map((a, i) => (
                     <li key={`${a}-${i}`} className="eq-accesorio">
                       <span>{a}</span>
-                      <button type="button" className="eq-quitar" onClick={() => quitarAccesorio(i)}>
+                      <button type="button" className="eq-quitar" aria-label={`Quitar ${a}`} onClick={() => quitarAccesorio(i)}>
                         Quitar
                       </button>
                     </li>
@@ -355,7 +366,10 @@ function FormularioEquipo({ existente }) {
                     className="eq-input"
                     placeholder="Nombre del accesorio"
                     value={nuevoAccesorio}
-                    onChange={(e) => setNuevoAccesorio(e.target.value)}
+                    onChange={(e) => {
+                      setNuevoAccesorio(e.target.value)
+                      setErrorAccesorio('')
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault()
@@ -363,11 +377,14 @@ function FormularioEquipo({ existente }) {
                       }
                     }}
                     aria-label="Nombre del accesorio"
+                    aria-invalid={Boolean(errorAccesorio)}
+                    aria-describedby={errorAccesorio ? 'eq-error-accesorio' : undefined}
                   />
                   <button type="button" className="eq-btn eq-btn--sec" onClick={agregarAccesorio}>
                     Agregar
                   </button>
                 </div>
+                {errorAccesorio && <p id="eq-error-accesorio" className="eq-error">{errorAccesorio}</p>}
               </section>
             </div>
 
