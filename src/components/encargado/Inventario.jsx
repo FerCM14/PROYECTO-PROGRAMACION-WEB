@@ -200,10 +200,14 @@ export default function Inventario() {
     ))
   )
 
-  const totalPaginas = Math.max(1, Math.ceil(filasFiltradas.length / POR_PAGINA))
-  const inicio = (pagina - 1) * POR_PAGINA
+  const totalResultados = filasFiltradas.length
+  const totalPaginas = Math.max(1, Math.ceil(totalResultados / POR_PAGINA))
+  const paginaActual = Math.min(pagina, totalPaginas)
+  if (pagina !== paginaActual) setPagina(paginaActual)
+
+  const inicio = (paginaActual - 1) * POR_PAGINA
   const filasPagina = filasFiltradas.slice(inicio, inicio + POR_PAGINA)
-  const desde = filasFiltradas.length ? inicio + 1 : 0
+  const desde = totalResultados ? inicio + 1 : 0
   const hasta = inicio + filasPagina.length
 
   return (
@@ -315,10 +319,10 @@ export default function Inventario() {
                   </td>
                 </tr>
               ))}
-              {!filasFiltradas.length && (
+              {!totalResultados && (
                 <tr>
                   <td colSpan={6} className="inv-vacio">
-                    {categoria || estadoFiltro || codigoBuscado ? 'No hay equipos que coincidan con los filtros.' : 'No hay equipos registrados.'}
+                    {filas.length ? 'Ningún equipo coincide con estos filtros.' : 'No hay equipos registrados.'}
                   </td>
                 </tr>
               )}
@@ -327,14 +331,14 @@ export default function Inventario() {
 
           <div className="inv-pie">
             <span className="inv-pie__texto">
-              Mostrando {desde} a {hasta} de {filasFiltradas.length} equipos
+              Mostrando {desde} a {hasta} de {totalResultados} equipos
             </span>
             <div className="inv-paginacion" role="navigation" aria-label="Paginación">
               <button
                 type="button"
                 className="inv-pag"
-                disabled={pagina === 1}
-                onClick={() => setPagina(pagina - 1)}
+                disabled={paginaActual === 1}
+                onClick={() => setPagina(paginaActual - 1)}
                 aria-label="Página anterior"
               >
                 ‹
@@ -343,8 +347,8 @@ export default function Inventario() {
                 <button
                   key={n}
                   type="button"
-                  className={`inv-pag ${n === pagina ? 'is-activo' : ''}`}
-                  aria-current={n === pagina ? 'page' : undefined}
+                  className={`inv-pag ${n === paginaActual ? 'is-activo' : ''}`}
+                  aria-current={n === paginaActual ? 'page' : undefined}
                   onClick={() => setPagina(n)}
                 >
                   {n}
@@ -353,8 +357,8 @@ export default function Inventario() {
               <button
                 type="button"
                 className="inv-pag"
-                disabled={pagina === totalPaginas}
-                onClick={() => setPagina(pagina + 1)}
+                disabled={paginaActual === totalPaginas}
+                onClick={() => setPagina(paginaActual + 1)}
                 aria-label="Página siguiente"
               >
                 ›
