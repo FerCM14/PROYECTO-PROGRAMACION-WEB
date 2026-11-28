@@ -301,6 +301,8 @@
 
 /* Tarjeta de condiciones */
 .cp-condiciones {
+  min-width: 0;
+  container-type: inline-size;
   background: #fff;
   border: 1px solid var(--cp-borde);
   border-radius: 6px;
@@ -340,6 +342,7 @@
 
 .cp-dias {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   font-size: 12px;
@@ -477,9 +480,16 @@
 
 .cp-condiciones-acciones {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 18px;
+}
+
+@container (max-width: 360px) {
+  .cp-condiciones-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Estado vacío */

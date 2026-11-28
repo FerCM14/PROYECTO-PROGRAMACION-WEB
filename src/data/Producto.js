@@ -124,10 +124,10 @@ export function normalizarDiasPrestamo(valor) {
 export function normalizarPenalidadPrestamo(valor) {
   if (typeof valor !== 'string' && typeof valor !== 'number') return undefined
   const texto = String(valor).trim().replace(',', '.')
-  if (!/^\d+(?:\.\d{1,2})?$/.test(texto)) return undefined
+  if (!/^(?:\d+(?:\.\d{1,2})?|\.\d{1,2})$/.test(texto)) return undefined
 
   const [soles, centimos = ''] = texto.split('.')
-  const esperado = `${soles.replace(/^0+(?=\d)/, '')}.${centimos.padEnd(2, '0')}`
+  const esperado = `${(soles || '0').replace(/^0+(?=\d)/, '')}.${centimos.padEnd(2, '0')}`
   const importe = Number(texto)
   return Number.isFinite(importe) && importe.toFixed(2) === esperado ? importe : undefined
 }

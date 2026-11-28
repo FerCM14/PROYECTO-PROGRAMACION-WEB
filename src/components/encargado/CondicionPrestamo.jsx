@@ -26,6 +26,18 @@ const PESTANAS = [
   ['historial', 'Historial']
 ]
 
+function moverFocoPestana(evento) {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return
+  const pestañas = Array.from(evento.currentTarget.querySelectorAll('[role="tab"]'))
+  const actual = pestañas.indexOf(evento.target)
+  if (actual === -1) return
+  evento.preventDefault()
+  const desplazamiento = evento.key === 'ArrowLeft' ? -1 : 1
+  const siguiente = (actual + desplazamiento + pestañas.length) % pestañas.length
+  const indice = evento.key === 'Home' ? 0 : evento.key === 'End' ? pestañas.length - 1 : siguiente
+  pestañas[indice].focus()
+}
+
 export default function CondicionPrestamo() {
   const { obtenerProducto, obtenerCategoria } = useCatalogo()
   const [params, setParams] = useSearchParams()
@@ -74,7 +86,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   const [avisoCondiciones, setAvisoCondiciones] = useState(null)
 
   useEffect(() => {
-    if (pestana === 'condiciones') tituloCondiciones.current?.focus({ preventScroll: true })
+    if (pestana === 'condiciones') tituloCondiciones.current?.focus()
   }, [pestana])
 
   useEffect(() => {
@@ -129,7 +141,8 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
     setAvisoCondiciones(null)
   }
 
-  function guardarCondiciones() {
+  function guardarCondiciones(evento) {
+    evento.preventDefault()
     if (!hayCambios || errorDias || errorPenalidad) return
     const resultado = guardarCondicionesProducto(producto.id, { ...condiciones, dias, penalizacion })
     if (!resultado.ok) {
@@ -202,7 +215,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
             </div>
           </header>
 
-          <div className="cp-tabs" role="tablist" aria-label="Información del equipo">
+          <div className="cp-tabs" role="tablist" aria-label="Información del equipo" onKeyDown={moverFocoPestana}>
             {PESTANAS.map(([id, texto]) => (
               <button
                 key={id}
@@ -211,6 +224,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
                 id={`cp-tab-${id}`}
                 aria-controls="cp-panel-equipo"
                 aria-selected={pestana === id}
+                tabIndex={pestana === id ? 0 : -1}
                 className={`cp-tab ${pestana === id ? 'cp-tab-activa' : ''}`}
                 onClick={() => cambiarPestana(id)}
               >
@@ -226,125 +240,124 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
           )}
 
           <div id="cp-panel-equipo" role="tabpanel" aria-labelledby={`cp-tab-${pestana}`}>
-          {unidades.length === 0 && pestana === 'unidades' ? (
-            <EstadoVacio onNueva={() => setModalAbierto(true)} />
-          ) : (
-            <div className="cp-contenido">
-              {pestana === 'historial' ? (
-                <TablaHistorial historial={historial} />
-              ) : unidades.length > 0 ? (
-                <TablaUnidades unidades={unidades} prestamos={prestamoPorUnidad} onCambiarEstado={setUnidadSeleccionada} />
-              ) : (
-                <EstadoVacio onNueva={() => setModalAbierto(true)} />
-              )}
+            {unidades.length === 0 && pestana === 'unidades' ? (
+              <EstadoVacio onNueva={() => setModalAbierto(true)} />
+            ) : (
+              <div className="cp-contenido">
+                {pestana === 'historial' ? (
+                  <TablaHistorial historial={historial} />
+                ) : unidades.length > 0 ? (
+                  <TablaUnidades unidades={unidades} prestamos={prestamoPorUnidad} onCambiarEstado={setUnidadSeleccionada} />
+                ) : (
+                  <EstadoVacio onNueva={() => setModalAbierto(true)} />
+                )}
 
-              {pestana !== 'historial' && (
-                <aside className="cp-condiciones">
-                  <h2 ref={tituloCondiciones} tabIndex={-1}>2.5 Condiciones del préstamo</h2>
-                  <p className="cp-condiciones-sub">Pestaña del mismo equipo</p>
+                {pestana !== 'historial' && (
+                  <form className="cp-condiciones" aria-labelledby="cp-condiciones-titulo" onSubmit={guardarCondiciones}>
+                    <h2 id="cp-condiciones-titulo" ref={tituloCondiciones} tabIndex={-1}>2.5 Condiciones del préstamo</h2>
+                    <p className="cp-condiciones-sub">Pestaña del mismo equipo</p>
 
-                  <div className="cp-condiciones-grid">
-                    <div className="cp-campos">
-                      <label className="cp-etiqueta" htmlFor="cp-dias">
-                        Duración máxima
-                      </label>
-                      <div className="cp-dias">
-                        <input
-                          id="cp-dias"
-                          type="text"
-                          inputMode="numeric"
-                          className={`cp-input cp-input-corto ${errorDias ? 'cp-input-error' : ''}`}
-                          value={condiciones.dias ?? ''} placeholder="Sin límite"
-                          aria-invalid={Boolean(errorDias)}
-                          aria-describedby={errorDias ? 'cp-dias-ayuda cp-dias-error' : 'cp-dias-ayuda'}
-                          onChange={(e) => cambiarCondicion('dias', e.target.value)}
+                    <div className="cp-condiciones-grid">
+                      <div className="cp-campos">
+                        <label className="cp-etiqueta" htmlFor="cp-dias">
+                          Duración máxima
+                        </label>
+                        <div className="cp-dias">
+                          <input
+                            id="cp-dias"
+                            type="text"
+                            inputMode="numeric"
+                            className={`cp-input cp-input-corto ${errorDias ? 'cp-input-error' : ''}`}
+                            value={condiciones.dias ?? ''} placeholder="Sin límite"
+                            aria-invalid={Boolean(errorDias)}
+                            aria-describedby={errorDias ? 'cp-dias-ayuda cp-dias-error' : 'cp-dias-ayuda'}
+                            onChange={(e) => cambiarCondicion('dias', e.target.value)}
+                          />
+                          <span>días calendario</span>
+                        </div>
+                        <small id="cp-dias-ayuda" className="cp-ayuda">Deja el campo vacío para prestar sin límite.</small>
+                        {errorDias && <small id="cp-dias-error" className="cp-ayuda cp-ayuda-error">{errorDias}</small>}
+
+                        <Interruptor
+                          id="cp-autorizacion"
+                          marcado={condiciones.requiereAutorizacion}
+                          onCambio={(v) => cambiarCondicion('requiereAutorizacion', v)}
+                          texto="Requiere autorización del docente"
                         />
-                        <span>días calendario</span>
+                        <Interruptor
+                          id="cp-renovacion"
+                          marcado={condiciones.admiteRenovacion}
+                          onCambio={(v) => cambiarCondicion('admiteRenovacion', v)}
+                          texto="Admite renovación"
+                        />
+
+                        <label className="cp-etiqueta" htmlFor="cp-penalizacion">
+                          Penalidad por día
+                        </label>
+                        <div className="cp-penalidad">
+                          <span aria-hidden="true">S/</span>
+                          <input
+                            id="cp-penalizacion"
+                            type="text"
+                            inputMode="decimal"
+                            className={`cp-input ${errorPenalidad ? 'cp-input-error' : ''}`}
+                            value={condiciones.penalizacion}
+                            aria-invalid={Boolean(errorPenalidad)}
+                            aria-describedby={errorPenalidad ? 'cp-penalizacion-ayuda cp-penalizacion-error' : 'cp-penalizacion-ayuda'}
+                            onChange={(e) => cambiarCondicion('penalizacion', e.target.value)}
+                          />
+                        </div>
+                        <small id="cp-penalizacion-ayuda" className="cp-ayuda">Importe en soles. Usa 0 si no hay penalidad.</small>
+                        {errorPenalidad && <small id="cp-penalizacion-error" className="cp-ayuda cp-ayuda-error">{errorPenalidad}</small>}
                       </div>
-                      <small id="cp-dias-ayuda" className="cp-ayuda">Deja el campo vacío para prestar sin límite.</small>
-                      {errorDias && <small id="cp-dias-error" className="cp-ayuda cp-ayuda-error">{errorDias}</small>}
 
-                      <Interruptor
-                        id="cp-autorizacion"
-                        marcado={condiciones.requiereAutorizacion}
-                        onCambio={(v) => cambiarCondicion('requiereAutorizacion', v)}
-                        texto="Requiere autorización del docente"
-                      />
-                      <Interruptor
-                        id="cp-renovacion"
-                        marcado={condiciones.admiteRenovacion}
-                        onCambio={(v) => cambiarCondicion('admiteRenovacion', v)}
-                        texto="Admite renovación"
-                      />
-
-                      <label className="cp-etiqueta" htmlFor="cp-penalizacion">
-                        Penalidad por día
-                      </label>
-                      <div className="cp-penalidad">
-                      <span aria-hidden="true">S/</span>
-                      <input
-                        id="cp-penalizacion"
-                        type="text"
-                        inputMode="decimal"
-                        className={`cp-input ${errorPenalidad ? 'cp-input-error' : ''}`}
-                        value={condiciones.penalizacion}
-                        aria-invalid={Boolean(errorPenalidad)}
-                        aria-describedby={errorPenalidad ? 'cp-penalizacion-ayuda cp-penalizacion-error' : 'cp-penalizacion-ayuda'}
-                        onChange={(e) => cambiarCondicion('penalizacion', e.target.value)}
-                      />
-                      </div>
-                      <small id="cp-penalizacion-ayuda" className="cp-ayuda">Importe en soles. Usa 0 si no hay penalidad.</small>
-                      {errorPenalidad && <small id="cp-penalizacion-error" className="cp-ayuda cp-ayuda-error">{errorPenalidad}</small>}
-                    </div>
-
-                    <div className="cp-vista">
-                      <span className="cp-etiqueta">Vista previa para el estudiante</span>
-                      <div className="cp-vista-caja" aria-live="polite">
-                        <strong>Condiciones de este equipo</strong>
-                        {hayCambios && <small className="cp-vista-borrador">Cambios sin guardar</small>}
-                        {errorDias || errorPenalidad ? (
-                          <p>Corrige los campos marcados para ver la vista previa.</p>
-                        ) : (
-                          <p>
-                            Préstamo <b>{dias === null ? 'sin límite de días' : `de hasta ${dias} ${dias === 1 ? 'día calendario' : 'días calendario'}`}</b>.{' '}
-                            {textoAutorizacion} <b>{textoRenovacion}</b> El retraso genera una penalidad
-                            de S/ {penalizacion.toFixed(2)} por día.
-                          </p>
-                        )}
+                      <div className="cp-vista">
+                        <span className="cp-etiqueta">Vista previa para el estudiante</span>
+                        <div className="cp-vista-caja" aria-live="polite">
+                          <strong>Condiciones de este equipo</strong>
+                          {hayCambios && <small className="cp-vista-borrador">Cambios sin guardar</small>}
+                          {errorDias || errorPenalidad ? (
+                            <p>Corrige los campos marcados para ver la vista previa.</p>
+                          ) : (
+                            <p>
+                              Préstamo <b>{dias === null ? 'sin límite de días' : `de hasta ${dias} ${dias === 1 ? 'día calendario' : 'días calendario'}`}</b>.{' '}
+                              {textoAutorizacion} <b>{textoRenovacion}</b> El retraso genera una penalidad
+                              de S/ {penalizacion.toFixed(2)} por día.
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {avisoCondiciones && (
-                    <p
-                      className={`cp-aviso cp-aviso--condiciones ${avisoCondiciones.error ? 'cp-aviso--error' : ''}`}
-                      role={avisoCondiciones.error ? 'alert' : 'status'}
-                    >
-                      {avisoCondiciones.texto}
-                    </p>
-                  )}
-                  <div className="cp-condiciones-acciones">
-                    <button
-                      type="button"
-                      className="cp-btn cp-btn-secundario"
-                      onClick={descartar}
-                      disabled={!hayCambios}
-                    >
-                      Descartar
-                    </button>
-                    <button
-                      type="button"
-                      className="cp-btn cp-btn-primario"
-                      onClick={guardarCondiciones}
-                      disabled={!hayCambios || Boolean(errorDias || errorPenalidad)}
-                    >
-                      Guardar condiciones
-                    </button>
-                  </div>
-                </aside>
-              )}
-            </div>
-          )}
+                    {avisoCondiciones && (
+                      <p
+                        className={`cp-aviso cp-aviso--condiciones ${avisoCondiciones.error ? 'cp-aviso--error' : ''}`}
+                        role={avisoCondiciones.error ? 'alert' : 'status'}
+                      >
+                        {avisoCondiciones.texto}
+                      </p>
+                    )}
+                    <div className="cp-condiciones-acciones">
+                      <button
+                        type="button"
+                        className="cp-btn cp-btn-secundario"
+                        onClick={descartar}
+                        disabled={!hayCambios}
+                      >
+                        Descartar
+                      </button>
+                      <button
+                        type="submit"
+                        className="cp-btn cp-btn-primario"
+                        disabled={!hayCambios || Boolean(errorDias || errorPenalidad)}
+                      >
+                        Guardar condiciones
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
           </div>
         </main>
       </div>
