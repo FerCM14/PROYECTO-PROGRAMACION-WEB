@@ -420,9 +420,10 @@ function EstadoVacio({ onNueva }) {
 
 function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
   const [codigo, setCodigo] = useState('')
-  const [ubicacion, setUbicacion] = useState(UBICACIONES[0])
+  const [ubicacion, setUbicacion] = useState('')
   const [observaciones, setObservaciones] = useState('')
   const [error, setError] = useState('')
+  const [errorUbicacion, setErrorUbicacion] = useState('')
   const campoCodigo = useRef(null)
   const dialogo = useRef(null)
 
@@ -436,6 +437,8 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
   function enviar(e) {
     e.preventDefault()
     const limpio = codigo.replace(/\s+/g, '').toUpperCase()
+    const ubicacionValida = UBICACIONES.includes(ubicacion)
+    setErrorUbicacion(ubicacionValida ? '' : 'Selecciona una ubicación de la lista.')
 
     if (!limpio) {
       setError('Ingresa el código de inventario.')
@@ -445,6 +448,8 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
       setError('Usa INV-, tres letras y cuatro dígitos. Ejemplo: INV-OSC-0042.')
       return
     }
+    if (!ubicacionValida) return
+
     const resultado = onRegistrar({ codigo: limpio, ubicacion, observaciones: observaciones.trim() })
     if (resultado.motivo === 'codigo-duplicado') {
       setError('Ya existe una unidad con ese código en el almacén.')
@@ -495,16 +500,24 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
             </label>
             <select
               id="cp-ubicacion"
-              className="cp-input"
+              className={`cp-input ${errorUbicacion ? 'cp-input-error' : ''}`}
               value={ubicacion}
-              onChange={(e) => setUbicacion(e.target.value)}
+              required
+              aria-invalid={Boolean(errorUbicacion)}
+              aria-describedby={errorUbicacion ? 'cp-ubicacion-error' : undefined}
+              onChange={(e) => {
+                setUbicacion(e.target.value)
+                setErrorUbicacion('')
+              }}
             >
+              <option value="" disabled>Selecciona una ubicación</option>
               {UBICACIONES.map((u) => (
                 <option key={u} value={u}>
                   {u}
                 </option>
               ))}
             </select>
+            {errorUbicacion && <small id="cp-ubicacion-error" className="cp-ayuda cp-ayuda-error">{errorUbicacion}</small>}
           </div>
         </div>
 
