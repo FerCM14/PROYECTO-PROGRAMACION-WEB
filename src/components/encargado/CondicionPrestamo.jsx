@@ -68,7 +68,7 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
   const CLAVE_CONDICIONES = `condiciones-${producto.id}`
   const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
   const [condiciones, setCondiciones] = useState(guardadas)
-  const unidades = obtenerProducto(producto.id).unidades.map((u) => ({...u, ubicacion:u.ubicacion || 'Almacén H-102', observaciones:u.observaciones || u.nota || ''}))
+  const unidades = obtenerProducto(producto.id).unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || 'Almacén H-102' }))
   const solicitudes = obtenerTodasLasSolicitudes()
   const [pestana, setPestana] = useState(pestanaInicial)
   const tituloCondiciones = useRef(null)
@@ -112,8 +112,8 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
     setMensaje('Condiciones guardadas')
   }
 
-  function registrarUnidad({ codigo, ubicacion }) {
-    const resultado = registrarUnidadProducto(producto.id, { codigo, ubicacion })
+  function registrarUnidad({ codigo, ubicacion, observaciones }) {
+    const resultado = registrarUnidadProducto(producto.id, { codigo, ubicacion, observaciones })
     if (!resultado.ok) { setMensaje('No se pudo registrar: el código ya existe.'); return }
     setModalAbierto(false)
     setMensaje(`Unidad ${codigo} registrada`)
@@ -355,7 +355,10 @@ function TablaUnidades({ unidades, prestamos, onBaja }) {
               <td>
                 <Estado estado={u.estado} />
               </td>
-              <td className="cp-suave cp-observaciones">{String(u.observaciones).trim() || '—'}</td>
+              <td className="cp-suave cp-observaciones">
+                {String(u.observaciones ?? '').trim() || '—'}
+                {u.nota && <small className="cp-nota-estado">Nota de estado: {u.nota}</small>}
+              </td>
               <td className="cp-codigo">{prestamos[u.codigo] || '—'}</td>
               <td><button type="button" className="cp-btn cp-btn-secundario" disabled={u.estado === 'De baja'} onClick={() => onBaja(u)}>Dar de baja</button></td>
             </tr>
@@ -418,6 +421,7 @@ function EstadoVacio({ onNueva }) {
 function ModalAltaUnidad({ nombreEquipo, existentes, onCancelar, onRegistrar }) {
   const [codigo, setCodigo] = useState('')
   const [ubicacion, setUbicacion] = useState(UBICACIONES[0])
+  const [observaciones, setObservaciones] = useState('')
   const [error, setError] = useState('')
   const campoCodigo = useRef(null)
   const dialogo = useRef(null)
@@ -441,7 +445,7 @@ function ModalAltaUnidad({ nombreEquipo, existentes, onCancelar, onRegistrar }) 
       setError('Ya existe una unidad con ese código en el almacén.')
       return
     }
-    onRegistrar({ codigo: limpio, ubicacion })
+    onRegistrar({ codigo: limpio, ubicacion, observaciones: observaciones.trim() })
   }
 
   return (
@@ -494,6 +498,17 @@ function ModalAltaUnidad({ nombreEquipo, existentes, onCancelar, onRegistrar }) 
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="cp-modal-campo cp-modal-observaciones">
+          <label className="cp-etiqueta" htmlFor="cp-observaciones">Observaciones (opcional)</label>
+          <textarea
+            id="cp-observaciones"
+            className="cp-input"
+            rows={3}
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+          />
         </div>
 
         <div className="cp-modal-acciones">

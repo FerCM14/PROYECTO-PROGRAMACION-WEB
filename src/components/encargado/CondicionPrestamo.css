@@ -40,6 +40,19 @@
   overflow-wrap: anywhere;
 }
 
+.cp-nota-estado {
+  display: block;
+  margin-top: 4px;
+}
+
+.cp-modal-observaciones {
+  margin-top: 12px;
+}
+
+.cp-modal-observaciones textarea {
+  resize: vertical;
+}
+
 .cp-migas a {
   color: inherit;
 }
