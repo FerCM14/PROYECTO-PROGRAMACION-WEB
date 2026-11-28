@@ -6,7 +6,7 @@ import FooterEstudiante from '../Footer/Footer-Estudiante'
 import Error403 from '../comun/403'
 import { obtenerSesion, obtenerCuenta } from '../../data/cuentas'
 import { obtenerProducto, RECOJO } from '../../data/Producto'
-import { totalDeuda, PENALIDAD_POR_DIA } from '../../data/deudas'
+import { totalDeuda } from '../../data/deudas'
 import { registrarSolicitud } from '../../data/Solicitudes'
 import { imagenEquipo } from '../../data/imagenes'
 import {
@@ -385,8 +385,9 @@ function FormularioSolicitud() {
                 </strong>{' '}
                 antes de las {HORA_DEVOLUCION} en el {RECOJO.lugar} ·
                 verificación de accesorios en la entrega y el retorno ·
-                penalidad de {formatearSoles(PENALIDAD_POR_DIA)} por día de
-                retraso · {producto.renovable ? 'admite renovación' : 'sin renovación'}.
+                {Number.isFinite(producto.penalizacion)
+                  ? `penalidad de ${formatearSoles(producto.penalizacion)} por día de retraso`
+                  : 'penalidad diaria sin informar'} · {producto.renovable ? 'admite renovación' : 'sin renovación'}.
               </p>
 
               <label className="solicitud-check">
