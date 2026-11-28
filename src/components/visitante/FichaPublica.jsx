@@ -1,5 +1,7 @@
 import { useActualizacion } from '../../context/DatosContext'
 import { imagenEquipo } from '../../data/imagenes'
+import { formatearFecha, hoyISO } from '../../data/fechas'
+import { obtenerPrestamos } from '../../data/Identificacion'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
@@ -18,10 +20,13 @@ function presentarEstado(estado) {
   return Object.hasOwn(ESTADOS, estado) ? ESTADOS[estado] : ESTADO_DESCONOCIDO
 }
 
-function formatearFecha(fecha) {
-  // fecha en formato AAAA-MM-DD
-  const [anio, mes, dia] = String(fecha).split('-')
-  return anio && mes && dia ? `${dia}/${mes}/${anio}` : fecha
+function proximaDevolucion(unidades, hoy) {
+  const codigosPrestados = unidades.filter((u) => u.estado === 'Prestada').map((u) => u.codigo)
+  return obtenerPrestamos()
+    .filter((p) => p.estado === 'Entregado' && codigosPrestados.includes(p.unidad))
+    .map((p) => p.hasta)
+    .filter((fecha) => typeof fecha === 'string' && fecha >= hoy && formatearFecha(fecha) !== '—')
+    .sort()[0]
 }
 
 export default function FichaPublica() {
@@ -62,11 +67,7 @@ function DetallePublico({ producto, categoria, recojo }) {
     ? producto.accesorios.filter((accesorio) => typeof accesorio === 'string' && accesorio.trim())
     : []
 
-  const hoy = new Date().toLocaleDateString('es-PE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  const hoy = hoyISO()
 
   function solicitarPrestamo() {
     // El visitante debe iniciar sesión; se guarda a dónde volver
@@ -88,6 +89,7 @@ function DetallePublico({ producto, categoria, recojo }) {
   )
   const libres = producto.libres
   const todasDeBaja = producto.unidades.length > 0 && unidades.length === 0
+  const devolucionPactada = libres === 0 && unidades.length > 0 ? proximaDevolucion(unidades, hoy) : null
 
   const textoDuracion =
     producto.duracionMax == null
@@ -175,11 +177,13 @@ function DetallePublico({ producto, categoria, recojo }) {
                 <p className="fp-contador">
                   {libres} de {unidades.length}
                 </p>
-                <p className="fp-contador-sub">unidades libres hoy, {hoy}</p>
+                <p className="fp-contador-sub">unidades libres hoy, {formatearFecha(hoy)}</p>
 
-                {libres === 0 && producto.proximaLiberacion && (
+                {libres === 0 && (
                   <p className="fp-liberacion">
-                    Próxima unidad disponible el {formatearFecha(producto.proximaLiberacion)}.
+                    {devolucionPactada ? (
+                      <>Devolución pactada más próxima: <time dateTime={devolucionPactada}>{formatearFecha(devolucionPactada)}</time>. La disponibilidad se confirma al registrar la devolución.</>
+                    ) : 'Aún no hay una fecha confirmada de próxima disponibilidad.'}
                   </p>
                 )}
 
