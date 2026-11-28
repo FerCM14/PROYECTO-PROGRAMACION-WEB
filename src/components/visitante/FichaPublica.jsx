@@ -83,7 +83,7 @@ function DetallePublico({ producto, categoria, recojo }) {
       (ORDEN_ESTADOS[a.estado] ?? 9) - (ORDEN_ESTADOS[b.estado] ?? 9) ||
       a.codigo.localeCompare(b.codigo)
   )
-  const libres = unidades.filter((u) => u.estado === 'Disponible').length
+  const libres = producto.libres
 
   const textoDuracion =
     producto.duracionMax == null
