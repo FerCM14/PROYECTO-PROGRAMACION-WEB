@@ -113,6 +113,7 @@ export function obtenerProducto(id) {
 
 const CLAVE_NUEVOS = 'productos-nuevos'
 const CLAVE_EDICIONES = 'productos-ediciones'
+const CLAVE_ELIMINADOS = 'productos-eliminados'
 
 function leerJSON(clave, defecto) {
   try {
@@ -163,6 +164,12 @@ Object.entries(edicionesGuardadas || {}).forEach(([id, { producto, detalle }]) =
   DETALLES[id] = { ...(DETALLES[id] || { prefijo: 'EQP', inicio: 1 }), ...detalle }
 })
 
+const eliminadosGuardados = leerJSON(CLAVE_ELIMINADOS, [])
+const eliminados = new Set(Array.isArray(eliminadosGuardados) ? eliminadosGuardados : [])
+for (let i = PRODUCTOS.length - 1; i >= 0; i -= 1) {
+  if (eliminados.has(PRODUCTOS[i].id)) PRODUCTOS.splice(i, 1)
+}
+
 // ¿Ya existe un equipo con esa marca y modelo?
 export function existeEquipo(marca, modelo, ignorarId = null) {
   return PRODUCTOS.some(
@@ -180,7 +187,7 @@ export function agregarProducto(datos) {
     return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
   }
 
-  const id = Math.max(0, ...PRODUCTOS.map((p) => p.id)) + 1
+  const id = Math.max(0, ...PRODUCTOS.map((p) => p.id), ...eliminados) + 1
   const producto = {
     id,
     codigo: `INV-${String(id).padStart(4, '0')}`,
@@ -256,11 +263,66 @@ export function actualizarProducto(id, datos) {
   return { ok: true, producto }
 }
 
-export function cambiarEstadoUnidad(codigoUnidad, estado, motivo = '') {
+export function eliminarProducto(id) {
+  const indice = PRODUCTOS.findIndex((p) => p.id === Number(id))
+  if (indice === -1) return { ok: false, motivo: 'El equipo no existe.' }
+
+  const producto = PRODUCTOS[indice]
+  const leerRegistro = (clave) => JSON.parse(localStorage.getItem(clave))
+
+  let idsEliminados
+  try {
+    const unidadesGuardadas = leerRegistro('producto-unidades')?.[producto.id] || []
+    const estados = leerRegistro('inventario-estados') || {}
+    const unidades = [...generarUnidades(producto, DETALLES[producto.id]), ...unidadesGuardadas]
+    if (unidades.some((u) => (estados[u.codigo]?.estado || u.estado) === 'Prestada')) {
+      return { ok: false, motivo: 'El equipo tiene unidades prestadas.' }
+    }
+
+    const haceReferencia = (registro) => {
+      const idRegistro = registro.productoId ?? registro.equipoId
+      return Number(idRegistro) === producto.id ||
+        unidades.some((u) => u.codigo === registro.unidad) ||
+        (idRegistro == null && normalizar(registro.equipo) === normalizar(producto.nombre))
+    }
+
+    const solicitudes = leerRegistro('solicitudes') ?? []
+    if (solicitudes.some(haceReferencia)) {
+      return { ok: false, motivo: 'El equipo tiene solicitudes asociadas.' }
+    }
+
+    const prestamos = leerRegistro('prestamos') ?? []
+    const prestamosPorCuenta = leerRegistro('bdPrestamos') ?? {}
+    if (prestamos.some(haceReferencia) || Object.values(prestamosPorCuenta).flat().some(haceReferencia)) {
+      return { ok: false, motivo: 'El equipo figura en el historial de préstamos.' }
+    }
+
+    const reservas = leerRegistro('reservas') ?? []
+    const reservasAnteriores = leerRegistro('calendario-reservas') ?? []
+    if (reservas.some(haceReferencia) || reservasAnteriores.some(haceReferencia)) {
+      return { ok: false, motivo: 'El equipo tiene reservas asociadas.' }
+    }
+
+    idsEliminados = new Set([...eliminados, ...(leerRegistro(CLAVE_ELIMINADOS) ?? []), producto.id])
+  } catch {
+    return { ok: false, motivo: 'No se pudieron verificar los datos del equipo.' }
+  }
+
+  if (!guardarJSON(CLAVE_ELIMINADOS, [...idsEliminados])) {
+    return { ok: false, motivo: 'No se pudo guardar la eliminación.' }
+  }
+
+  idsEliminados.forEach((idEliminado) => eliminados.add(idEliminado))
+  PRODUCTOS.splice(indice, 1)
+  return { ok: true }
+}
+
+export function cambiarEstadoUnidad(codigoUnidad, estado, motivo) {
   const encontrada = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === codigoUnidad))
   if (!encontrada) return { ok: false }
   const cambios = leerJSON('inventario-estados', {})
   cambios[codigoUnidad] = { ...cambios[codigoUnidad], estado, ...(motivo ? { nota: motivo, motivoBaja: motivo } : {}) }
+  if (motivo === '') cambios[codigoUnidad].nota = ''
   return { ok: guardarJSON('inventario-estados', cambios) }
 }
 

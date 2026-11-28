@@ -1,38 +1,16 @@
 import { imagenEquipo } from '../../data/imagenes'
-import { obtenerInventario } from '../../data/Inventario'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
-import { PRODUCTOS, obtenerCategoria, obtenerProducto } from '../../data/Producto'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import './Inventario.css'
 
 const ESTADOS = ['Disponible', 'Prestada', 'Mantenimiento', 'De baja']
-const CLAVE_CAMBIOS = 'inventario-estados'
 const POR_PAGINA = 8
 const RUTA_EDITAR = '/encargado/editar-equipo'
 const RUTA_CONDICION = '/encargado/condicion-prestamo'
-
-function leerCambios() {
-  try {
-    const datos = JSON.parse(localStorage.getItem(CLAVE_CAMBIOS))
-    return datos && typeof datos === 'object' ? datos : {}
-  } catch {
-    return {}
-  }
-}
-
-// Unidades del producto con los cambios de estado ya aplicados
-function unidadesDe(productoId, cambios) {
-  const producto = obtenerProducto(productoId)
-  if (!producto) return []
-  return producto.unidades.map((u) => ({
-    ...u,
-    estado: cambios[u.codigo]?.estado || u.estado,
-    nota: cambios[u.codigo]?.nota || ''
-  }))
-}
 
 function contar(unidades) {
   const c = { Disponible: 0, Prestada: 0, Mantenimiento: 0, 'De baja': 0 }
@@ -147,47 +125,108 @@ function ModalEstado({ producto, unidades, onCerrar, onGuardar }) {
   )
 }
 
+function ModalEliminar({ producto, onCerrar, onConfirmar }) {
+  const modal = useRef(null)
+
+  useEffect(() => {
+    const dialogo = modal.current
+    dialogo.showModal()
+    return () => dialogo.close()
+  }, [])
+
+  return (
+    <dialog
+      ref={modal}
+      className="inv-modal inv-modal--eliminar"
+      aria-labelledby="inv-eliminar-titulo"
+      aria-describedby="inv-eliminar-detalle"
+      onCancel={onCerrar}
+    >
+      <h2 id="inv-eliminar-titulo" className="inv-modal__titulo">Eliminar equipo</h2>
+      <p id="inv-eliminar-detalle">¿Deseas eliminar «{producto.nombre}» del inventario?</p>
+      <div className="inv-modal__acciones">
+        <button type="button" className="inv-btn inv-btn--sec" onClick={onCerrar}>Cancelar</button>
+        <button type="button" className="inv-btn inv-btn--eliminar" onClick={onConfirmar}>Eliminar</button>
+      </div>
+    </dialog>
+  )
+}
+
 export default function Inventario() {
-  const [cambios, setCambios] = useState(leerCambios)
+  const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, cambiarEstadoUnidad, eliminarProducto } = useCatalogo()
   const [seleccionado, setSeleccionado] = useState(null)
   const [pagina, setPagina] = useState(1)
+  const [categoria, setCategoria] = useState('')
+  const [estadoFiltro, setEstadoFiltro] = useState('')
+  const [busqueda, setBusqueda] = useState('')
+  const [reinicioCabecera, setReinicioCabecera] = useState(0)
+  const [equipoPorEliminar, setEquipoPorEliminar] = useState(null)
+  const [aviso, setAviso] = useState(null)
 
-  const filas = useMemo(
-    () =>
-      obtenerInventario().map((p) => {
-        const unidades = unidadesDe(p.id, cambios)
-        return { producto: p, unidades, conteo: contar(unidades) }
-      }),
-    [cambios]
-  )
+  const filas = PRODUCTOS.map((p) => {
+    const producto = obtenerProducto(p.id)
+    return { producto, unidades: producto.unidades, conteo: contar(producto.unidades) }
+  })
 
   function guardar(codigo, estado, nota) {
-    const siguiente = { ...cambios, [codigo]: { estado, nota } }
-    setCambios(siguiente)
-    try {
-      localStorage.setItem(CLAVE_CAMBIOS, JSON.stringify(siguiente))
-    } catch {
-      /* sin almacenamiento: el cambio vive solo en pantalla */
-    }
+    const resultado = cambiarEstadoUnidad(codigo, estado, nota)
+    setAviso({
+      error: !resultado.ok,
+      texto: resultado.ok ? `Se actualizó el estado de ${codigo}.` : `No se pudo guardar el estado de ${codigo}.`
+    })
     setSeleccionado(null)
+  }
+
+  function buscar(codigo) {
+    setBusqueda(codigo)
+    setPagina(1)
+  }
+
+  function confirmarEliminacion() {
+    const resultado = eliminarProducto(equipoPorEliminar.id)
+    setAviso({
+      error: !resultado.ok,
+      texto: resultado.ok ? `Se eliminó «${equipoPorEliminar.nombre}» del inventario.` : resultado.motivo
+    })
+    setEquipoPorEliminar(null)
+  }
+
+  function limpiarFiltros() {
+    setCategoria('')
+    setEstadoFiltro('')
+    buscar('')
+    setReinicioCabecera((actual) => actual + 1)
   }
 
   const filaModal = seleccionado && filas.find((f) => f.producto.id === seleccionado)
   const totalUnidades = filas.reduce((a, f) => a + f.unidades.length, 0)
 
-  const totalPaginas = Math.max(1, Math.ceil(filas.length / POR_PAGINA))
-  const inicio = (pagina - 1) * POR_PAGINA
-  const filasPagina = filas.slice(inicio, inicio + POR_PAGINA)
-  const desde = filas.length ? inicio + 1 : 0
+  const codigoBuscado = busqueda.replace(/\s+/g, '').toUpperCase()
+  const filasFiltradas = filas.filter((f) =>
+    (!categoria || f.producto.categoria === categoria) &&
+    ((!estadoFiltro && !codigoBuscado) || f.unidades.some((u) =>
+      (!estadoFiltro || u.estado === estadoFiltro) &&
+      (!codigoBuscado || u.codigo.toUpperCase().includes(codigoBuscado))
+    ))
+  )
+
+  const totalResultados = filasFiltradas.length
+  const totalPaginas = Math.max(1, Math.ceil(totalResultados / POR_PAGINA))
+  const paginaActual = Math.min(pagina, totalPaginas)
+  if (pagina !== paginaActual) setPagina(paginaActual)
+
+  const inicio = (paginaActual - 1) * POR_PAGINA
+  const filasPagina = filasFiltradas.slice(inicio, inicio + POR_PAGINA)
+  const desde = totalResultados ? inicio + 1 : 0
   const hasta = inicio + filasPagina.length
 
   return (
     <div className="inv-pagina">
-      <HeaderEncargado />
+      <HeaderEncargado key={reinicioCabecera} onBuscar={buscar} />
 
       <div className="inv-cuerpo">
         <aside className="inv-lateral">
-          <Operacion activo="inventario" totalInventario={totalUnidades} />
+          <Operacion activo="inventario" />
         </aside>
 
         <main className="inv-contenido">
@@ -195,13 +234,61 @@ export default function Inventario() {
           <div>
             <h1 className="inv-titulo">Inventario de equipos</h1>
             <p className="inv-subtitulo">
-              {PRODUCTOS.length} modelos · {totalUnidades} unidades registradas en el Almacén H-102
+              {filas.length} {filas.length === 1 ? 'modelo' : 'modelos'} · {totalUnidades}{' '}
+              {totalUnidades === 1 ? 'unidad registrada' : 'unidades registradas'} en el Almacén H-102
             </p>
           </div>
           <Link to={RUTA_EDITAR} className="inv-btn inv-btn--pri inv-btn--link">
             Nuevo equipo
           </Link>
         </div>
+
+        <div className="inv-filtros">
+          <label htmlFor="inv-categoria">Categoría </label>
+          <select
+            id="inv-categoria"
+            value={categoria}
+            onChange={(e) => {
+              setCategoria(e.target.value)
+              setPagina(1)
+            }}
+          >
+            <option value="">Todas</option>
+            {CATEGORIAS.map((c) => (
+              <option key={c.id} value={c.id}>{c.nombre}</option>
+            ))}
+          </select>
+          <label htmlFor="inv-estado">Estado </label>
+          <select
+            id="inv-estado"
+            value={estadoFiltro}
+            onChange={(e) => {
+              setEstadoFiltro(e.target.value)
+              setPagina(1)
+            }}
+          >
+            <option value="">Todos</option>
+            {ESTADOS.map((estado) => (
+              <option key={estado} value={estado}>{estado}</option>
+            ))}
+          </select>
+          <label htmlFor="inv-codigo">Código de inventario </label>
+          <input
+            id="inv-codigo"
+            type="search"
+            value={busqueda}
+            onChange={(e) => buscar(e.target.value)}
+          />
+          <button type="button" className="inv-btn inv-btn--sec inv-limpiar" onClick={limpiarFiltros}>
+            Limpiar filtros
+          </button>
+        </div>
+
+        {aviso && (
+          <p className={`inv-aviso ${aviso.error ? 'inv-aviso--error' : ''}`} role={aviso.error ? 'alert' : 'status'}>
+            {aviso.texto}
+          </p>
+        )}
 
         <div className="inv-tabla__marco">
           <table className="inv-tabla">
@@ -240,19 +327,31 @@ export default function Inventario() {
                   </td>
                   <td>
                     <span className="inv-acciones">
-                      <Link to={`${RUTA_CONDICION}?id=${p.id}`}>Unidades</Link>
+                      <Link to={`${RUTA_CONDICION}?id=${p.id}&pestana=unidades`}>Unidades</Link>
                       <span className="inv-acciones__sep"> · </span>
-                      <Link to={`${RUTA_CONDICION}?id=${p.id}`}>Condiciones</Link>
+                      <Link to={`${RUTA_CONDICION}?id=${p.id}&pestana=condiciones`}>Condiciones</Link>
                       <span className="inv-acciones__sep"> · </span>
                       <Link to={`${RUTA_EDITAR}?id=${p.id}`}>Editar</Link>
+                      <span className="inv-acciones__sep"> · </span>
+                      <button
+                        type="button"
+                        className="inv-accion-eliminar"
+                        aria-label={`Eliminar ${p.nombre}`}
+                        onClick={() => {
+                          setAviso(null)
+                          setEquipoPorEliminar(p)
+                        }}
+                      >
+                        Eliminar
+                      </button>
                     </span>
                   </td>
                 </tr>
               ))}
-              {!filas.length && (
+              {!totalResultados && (
                 <tr>
                   <td colSpan={6} className="inv-vacio">
-                    No hay equipos registrados.
+                    {filas.length ? 'Ningún equipo coincide con estos filtros.' : 'No hay equipos registrados.'}
                   </td>
                 </tr>
               )}
@@ -260,15 +359,15 @@ export default function Inventario() {
           </table>
 
           <div className="inv-pie">
-            <span className="inv-pie__texto">
-              Mostrando {desde} a {hasta} de {filas.length} equipos
+            <span className="inv-pie__texto" role="status">
+              Mostrando {desde} a {hasta} de {totalResultados} {totalResultados === 1 ? 'equipo' : 'equipos'}
             </span>
             <div className="inv-paginacion" role="navigation" aria-label="Paginación">
               <button
                 type="button"
                 className="inv-pag"
-                disabled={pagina === 1}
-                onClick={() => setPagina(pagina - 1)}
+                disabled={paginaActual === 1}
+                onClick={() => setPagina(paginaActual - 1)}
                 aria-label="Página anterior"
               >
                 ‹
@@ -277,8 +376,8 @@ export default function Inventario() {
                 <button
                   key={n}
                   type="button"
-                  className={`inv-pag ${n === pagina ? 'is-activo' : ''}`}
-                  aria-current={n === pagina ? 'page' : undefined}
+                  className={`inv-pag ${n === paginaActual ? 'is-activo' : ''}`}
+                  aria-current={n === paginaActual ? 'page' : undefined}
                   onClick={() => setPagina(n)}
                 >
                   {n}
@@ -287,8 +386,8 @@ export default function Inventario() {
               <button
                 type="button"
                 className="inv-pag"
-                disabled={pagina === totalPaginas}
-                onClick={() => setPagina(pagina + 1)}
+                disabled={paginaActual === totalPaginas}
+                onClick={() => setPagina(paginaActual + 1)}
                 aria-label="Página siguiente"
               >
                 ›
@@ -300,6 +399,14 @@ export default function Inventario() {
       </div>
 
       <FooterEncargado />
+
+      {equipoPorEliminar && (
+        <ModalEliminar
+          producto={equipoPorEliminar}
+          onCerrar={() => setEquipoPorEliminar(null)}
+          onConfirmar={confirmarEliminacion}
+        />
+      )}
 
       {filaModal && (
         <ModalEstado

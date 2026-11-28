@@ -41,12 +41,13 @@ function formatearSoles(valor) {
 export default function CondicionPrestamo() {
   const [params] = useSearchParams()
   const id = params.get('id') || PRODUCTOS[0]?.id
+  const pestanaInicial = params.get('pestana') === 'condiciones' ? 'condiciones' : 'unidades'
   const producto = obtenerProducto(id)
   if (!producto) return <div className="cp-pagina"><HeaderEncargado /><main className="cp-main"><h1>Equipo no encontrado</h1></main><FooterEncargado /></div>
-  return <CondicionEquipo key={producto.id} producto={producto} />
+  return <CondicionEquipo key={`${producto.id}-${pestanaInicial}`} producto={producto} pestanaInicial={pestanaInicial} />
 }
 
-function CondicionEquipo({ producto }) {
+function CondicionEquipo({ producto, pestanaInicial }) {
   useActualizacion()
   const navigate = useNavigate()
   const EQUIPO = { ...producto, categoria: obtenerCategoria(producto.categoria)?.nombre || producto.categoria }
@@ -55,11 +56,16 @@ function CondicionEquipo({ producto }) {
   const [condiciones, setCondiciones] = useState(guardadas)
   const unidades = obtenerProducto(producto.id).unidades.map((u) => ({...u, ubicacion:u.ubicacion || 'Almacén H-102', observaciones:u.observaciones || u.nota || ''}))
   const solicitudes = obtenerTodasLasSolicitudes()
-  const [pestana, setPestana] = useState('unidades')
+  const [pestana, setPestana] = useState(pestanaInicial)
+  const tituloCondiciones = useRef(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const [baja, setBaja] = useState(null)
   const [motivoBaja, setMotivoBaja] = useState('')
   const [mensaje, setMensaje] = useState('')
+
+  useEffect(() => {
+    if (pestanaInicial === 'condiciones') tituloCondiciones.current?.focus()
+  }, [pestanaInicial])
 
   useEffect(() => {
     if (!mensaje) return undefined
@@ -177,19 +183,19 @@ function CondicionEquipo({ producto }) {
             </p>
           )}
 
-          {unidades.length === 0 ? (
+          {unidades.length === 0 && pestana !== 'condiciones' ? (
             <EstadoVacio onNueva={() => setModalAbierto(true)} />
           ) : (
             <div className="cp-contenido">
               {pestana === 'historial' ? (
                 <TablaHistorial historial={historial} />
-              ) : (
+              ) : unidades.length > 0 && (
                 <TablaUnidades unidades={unidades} prestamos={prestamoPorUnidad} onBaja={(u) => { setBaja(u); setMotivoBaja('') }} />
               )}
 
               {pestana !== 'historial' && (
                 <aside className="cp-condiciones">
-                  <h2>2.5 Condiciones del préstamo</h2>
+                  <h2 ref={tituloCondiciones} tabIndex={-1}>2.5 Condiciones del préstamo</h2>
                   <p className="cp-condiciones-sub">Pestaña del mismo equipo</p>
 
                   <div className="cp-condiciones-grid">
