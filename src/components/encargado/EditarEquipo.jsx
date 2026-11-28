@@ -197,6 +197,13 @@ function FormularioEquipo({ existente }) {
     setMensajeFotos('')
   }
 
+  function elegirPrincipal(indice) {
+    setForm((f) => ({
+      ...f,
+      fotos: [f.fotos[indice], ...f.fotos.filter((_, i) => i !== indice)]
+    }))
+  }
+
   /* ---------- Guardar ---------- */
 
   function validar(datos) {
@@ -416,7 +423,18 @@ function FormularioEquipo({ existente }) {
                       return foto ? (
                         <div key={i} className="eq-slot eq-slot--llena">
                           <img src={foto} alt={`Fotografía ${i + 1} del equipo`} />
-                          {i === 0 && <span className="eq-slot__principal">principal</span>}
+                          {i === 0 ? (
+                            <span className="eq-slot__principal">Principal</span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="eq-slot__principal eq-slot__elegir"
+                              onClick={() => elegirPrincipal(i)}
+                              aria-label={`Usar fotografía ${i + 1} como principal`}
+                            >
+                              Hacer principal
+                            </button>
+                          )}
                           <button
                             type="button"
                             className="eq-slot__quitar"
@@ -435,7 +453,7 @@ function FormularioEquipo({ existente }) {
                           aria-label="Agregar fotografía"
                           disabled={procesandoFotos}
                         >
-                          {i === 0 && <span className="eq-slot__principal">principal</span>}
+                          <span aria-hidden="true">+</span>
                         </button>
                       )
                     })}
@@ -462,6 +480,17 @@ function FormularioEquipo({ existente }) {
                     </button>
                   </div>
                 </div>
+
+                {!form.fotos.length && (
+                  existente?.imagen ? (
+                    <div className="eq-foto-catalogo">
+                      <img src={existente.imagen} alt="" />
+                      <span>Imagen actual del catálogo. Agrega una foto para reemplazarla.</span>
+                    </div>
+                  ) : (
+                    <p className="eq-ayuda">Sin fotografías. La primera será la principal.</p>
+                  )
+                )}
 
                 <input
                   ref={inputFotos}

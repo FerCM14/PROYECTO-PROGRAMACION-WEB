@@ -238,6 +238,8 @@
 
 .eq-slot--vacia {
   cursor: pointer;
+  color: #1f4e5a;
+  font-size: 20px;
 }
 
 .eq-slot--vacia:hover {
@@ -277,6 +279,33 @@
   line-height: 18px;
   text-align: center;
   cursor: pointer;
+}
+
+.eq-slot__elegir {
+  max-width: calc(100% - 8px);
+  border: 1px solid #cdd6da;
+  cursor: pointer;
+}
+
+.eq-slot__elegir:focus-visible,
+.eq-slot__quitar:focus-visible {
+  outline: 2px solid #17505c;
+}
+
+.eq-foto-catalogo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: #6b7a80;
+}
+
+.eq-foto-catalogo img {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
 }
 
 .eq-soltar {
