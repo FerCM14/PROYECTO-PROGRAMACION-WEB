@@ -8,6 +8,13 @@ const ESTADOS = [
   { valor: 'De baja', etiqueta: 'Dada de baja', clase: 'baja' }
 ]
 
+function fechasReservas(reservas) {
+  return [...new Set(reservas.map((r) => {
+    const fecha = (dia) => dia.split('-').reverse().join('/')
+    return r.desde === r.hasta ? fecha(r.desde) : `${fecha(r.desde)} al ${fecha(r.hasta)}`
+  }))].join(', ')
+}
+
 export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, onCerrar, onGuardar }) {
   const [codigo, setCodigo] = useState(codigoInicial || unidades[0]?.codigo || '')
   const unidad = unidades.find((u) => u.codigo === codigo)
@@ -103,9 +110,21 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           ))}
         </div>
         {bloqueada && <p className="inv-modal__label">{errorTransicionManual(unidad.estado, 'Disponible')}</p>}
-        {prestamos.length > 0 && <p>Préstamos comprometidos: {prestamos.map((p) => p.codigo).join(', ')}.</p>}
+        {(prestamos.length > 0 || reservaComprometida) && (
+          <aside className="inv-modal__advertencia" aria-label="Compromisos de la unidad">
+            {prestamos.length > 0 && (
+              <p>Préstamos comprometidos: <strong>{prestamos.map((p) => p.codigo).join(', ')}</strong>. Resuélvelos antes de cambiar el estado.</p>
+            )}
+            {reservas.directas.length > 0 && (
+              <p>Reservas asignadas a esta unidad: <strong>{reservas.directas.length}</strong> ({fechasReservas(reservas.directas)}).</p>
+            )}
+            {reservas.porModelo.length > 0 && (
+              <p>Reservas del modelo que perderían cupo al retirar esta unidad: <strong>{reservas.porModelo.length}</strong> ({fechasReservas(reservas.porModelo)}).</p>
+            )}
+            {reservaComprometida && <p>Los compromisos de reserva bloquean el cambio a mantenimiento o baja.</p>}
+          </aside>
+        )}
         {errorConsulta && <p role="alert">No se pudieron verificar los préstamos de esta unidad.</p>}
-        {retiraUnidad && reservaComprometida && <p>El cambio dejaría una reserva sin unidad o cupo.</p>}
         {retiraUnidad && errorReservas && <p role="alert">No se pudieron verificar las reservas de este equipo.</p>}
 
         <label className="inv-modal__label" htmlFor="inv-nota">

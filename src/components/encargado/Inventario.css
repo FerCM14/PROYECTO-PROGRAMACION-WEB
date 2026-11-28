@@ -387,6 +387,20 @@
   font-weight: 600;
 }
 
+.inv-modal__advertencia {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e0a526;
+  border-radius: 4px;
+  background: #fff4dc;
+  color: #704317;
+  font-size: 12px;
+}
+
+.inv-modal__advertencia p + p {
+  margin-top: 6px;
+}
+
 .inv-modal__acciones {
   display: flex;
   justify-content: flex-end;
