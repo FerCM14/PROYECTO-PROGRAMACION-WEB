@@ -91,10 +91,13 @@ export function obtenerProducto(id) {
 
   const condiciones = leerJSON(`condiciones-${producto.id}`, {})
   const duracion = numeroGuardado(condiciones.dias)
-  const unidades = [...generarUnidades(producto, detalle), ...(leerJSON('producto-unidades', {})[producto.id] || [])].map((u) => ({ ...u, ...(leerJSON('inventario-estados', {})[u.codigo] || {}) }))
+  const estados = leerJSON('inventario-estados', {})
+  const unidades = [...generarUnidades(producto, detalle), ...(leerJSON('producto-unidades', {})[producto.id] || [])]
+    .map((u) => ({ ...u, ...estados[u.codigo] }))
   return {
     ...producto,
     total: unidades.length,
+    libres: unidades.filter((u) => u.estado === 'Disponible').length,
     duracionMax: condiciones.dias === null ? null : duracion ?? producto.duracionMax,
     penalizacion: numeroGuardado(condiciones.penalizacion) ?? 15,
     titulo: detalle.titulo || producto.nombre,
