@@ -25,11 +25,6 @@ export function CatalogoProvider({ children }) {
     return resultado
   }
 
-  function existeEquipo(...argumentos) {
-    const resultado = datos.existeEquipo(...argumentos)
-    return resultado
-  }
-
   function agregarProducto(...argumentos) {
     const resultado = datos.agregarProducto(...argumentos)
     if (resultado.ok) setCambios((actual) => actual + 1)
@@ -66,7 +61,7 @@ export function CatalogoProvider({ children }) {
     return resultado
   }
 
-  return <CatalogoContext.Provider value={{ version: version + cambios, obtenerCategoria, contarPorCategoria, obtenerProducto, existeEquipo, agregarProducto, actualizarProducto, eliminarProducto, cambiarEstadoUnidad, cambiarEstadoUnidadManual, registrarUnidadProducto, CATEGORIAS: datos.CATEGORIAS, PRODUCTOS: datos.PRODUCTOS, RECOJO: datos.RECOJO }}>
+  return <CatalogoContext.Provider value={{ version: version + cambios, obtenerCategoria, contarPorCategoria, obtenerProducto, existeEquipo: datos.existeEquipo, agregarProducto, actualizarProducto, eliminarProducto, cambiarEstadoUnidad, cambiarEstadoUnidadManual, registrarUnidadProducto, CATEGORIAS: datos.CATEGORIAS, PRODUCTOS: datos.PRODUCTOS, RECOJO: datos.RECOJO }}>
     {children}
   </CatalogoContext.Provider>
 }

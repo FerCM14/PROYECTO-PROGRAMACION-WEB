@@ -171,13 +171,19 @@ for (let i = PRODUCTOS.length - 1; i >= 0; i -= 1) {
 }
 
 // ¿Ya existe un equipo con esa marca y modelo?
+export const MENSAJE_EQUIPO_DUPLICADO = 'Ya existe un equipo con esta marca y modelo.'
+
 export function existeEquipo(marca, modelo, ignorarId = null) {
   const normalizarIdentificacion = (texto) => normalizar(texto).replace(/\s+/g, ' ')
+  const marcaBuscada = normalizarIdentificacion(marca)
+  const modeloBuscado = normalizarIdentificacion(modelo)
+  if (!marcaBuscada || !modeloBuscado) return false
+
   return PRODUCTOS.some(
     (p) =>
       p.id !== Number(ignorarId) &&
-      normalizarIdentificacion(p.marca) === normalizarIdentificacion(marca) &&
-      normalizarIdentificacion(p.modelo) === normalizarIdentificacion(modelo)
+      normalizarIdentificacion(p.marca) === marcaBuscada &&
+      normalizarIdentificacion(p.modelo) === modeloBuscado
   )
 }
 
@@ -185,7 +191,7 @@ export function existeEquipo(marca, modelo, ignorarId = null) {
 // Devuelve { ok: true, producto } o { ok: false, errores: { campo: mensaje } }
 export function agregarProducto(datos) {
   if (existeEquipo(datos.marca, datos.modelo)) {
-    return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
+    return { ok: false, errores: { modelo: MENSAJE_EQUIPO_DUPLICADO } }
   }
 
   let nuevos
@@ -234,7 +240,7 @@ export function actualizarProducto(id, datos) {
   if (!producto) return { ok: false, errores: { general: 'No se encontró el equipo.' } }
 
   if (existeEquipo(datos.marca, datos.modelo, id)) {
-    return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
+    return { ok: false, errores: { modelo: MENSAJE_EQUIPO_DUPLICADO } }
   }
 
   const cambiosProducto = {

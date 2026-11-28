@@ -5,6 +5,7 @@ import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
 
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
+import { MENSAJE_EQUIPO_DUPLICADO } from '../../data/Producto'
 import './EditarEquipo.css'
 
 const RUTA_INVENTARIO = '/encargado/inventario'
@@ -258,7 +259,7 @@ function FormularioEquipo({ existente }) {
       e.descripcion = `La descripción debe tener como máximo ${MAX_DESCRIPCION} caracteres.`
     }
     if (datos.marca && datos.modelo && existeEquipo(datos.marca, datos.modelo, idEditar)) {
-      e.modelo = 'Ya existe un equipo con esta marca y modelo.'
+      e.modelo = MENSAJE_EQUIPO_DUPLICADO
     }
     return e
   }
