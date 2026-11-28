@@ -26,10 +26,6 @@ const PESTANAS = [
   ['historial', 'Historial']
 ]
 
-function guardar(clave, valor) {
-  localStorage.setItem(clave, JSON.stringify(valor))
-}
-
 export default function CondicionPrestamo() {
   const { obtenerProducto, obtenerCategoria } = useCatalogo()
   const [params, setParams] = useSearchParams()
@@ -61,8 +57,7 @@ export default function CondicionPrestamo() {
 }
 
 function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
-  const { registrarUnidadProducto, cambiarEstadoUnidadManual, RECOJO } = useCatalogo()
-  const CLAVE_CONDICIONES = `condiciones-${producto.id}`
+  const { registrarUnidadProducto, cambiarEstadoUnidadManual, guardarCondicionesProducto, RECOJO } = useCatalogo()
   const [guardadas, setGuardadas] = useState(() => ({
     dias: producto.duracionMax,
     requiereAutorizacion: producto.autorizacion,
@@ -76,6 +71,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [unidadSeleccionada, setUnidadSeleccionada] = useState(null)
   const [mensaje, setMensaje] = useState('')
+  const [errorGuardado, setErrorGuardado] = useState('')
 
   useEffect(() => {
     if (pestana === 'condiciones') tituloCondiciones.current?.focus({ preventScroll: true })
@@ -133,10 +129,14 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
 
   function guardarCondiciones() {
     if (!hayCambios || errorDias || errorPenalidad) return
-    const nuevas = { ...condiciones, dias, penalizacion }
-    guardar(CLAVE_CONDICIONES, nuevas)
-    setGuardadas(nuevas)
-    setCondiciones(nuevas)
+    const resultado = guardarCondicionesProducto(producto.id, { ...condiciones, dias, penalizacion })
+    if (!resultado.ok) {
+      setErrorGuardado(resultado.mensaje)
+      return
+    }
+    setErrorGuardado('')
+    setGuardadas(resultado.condiciones)
+    setCondiciones(resultado.condiciones)
     setMensaje('Condiciones guardadas')
   }
 
@@ -314,6 +314,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
                     </div>
                   </div>
 
+                  {errorGuardado && <p role="alert">{errorGuardado}</p>}
                   <div className="cp-condiciones-acciones">
                     <button
                       type="button"
