@@ -5,7 +5,7 @@ import { obtenerPrestamos } from '../../data/Identificacion'
 import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
-import FooterEstudiante from '../Footer/Footer-Estudiante'
+import FooterVisitante from '../Footer/Footer-Visitante'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import { useAuth } from '../../context/cuentas/AuthContext'
 import './FichaPublica.css'
@@ -47,7 +47,7 @@ export default function FichaPublica() {
             <Link to="/catalogo" className="fp-btn fp-btn-primario">Volver al catálogo</Link>
           </section>
         </main>
-        <FooterEstudiante />
+        <FooterVisitante />
       </div>
     )
   }
@@ -225,7 +225,7 @@ function DetallePublico({ producto, categoria, recojo }) {
         </div>
       </main>
 
-      <FooterEstudiante />
+      <FooterVisitante />
     </div>
   )
 }

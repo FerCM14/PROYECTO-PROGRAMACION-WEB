@@ -22,7 +22,7 @@
 .fp-main {
   flex: 1;
   width: 100%;
-  max-width: 1120px;
+  max-width: calc(var(--max-content-width, 1606px) + 48px);
   box-sizing: border-box;
   margin: 0 auto;
   padding: 24px 24px 48px;
@@ -45,8 +45,8 @@
 
 .fp-grid {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr) 260px;
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 2.25fr) minmax(230px, 1fr);
+  gap: 24px;
   align-items: start;
 }
 
@@ -86,7 +86,7 @@
 
 .fp-miniaturas {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 80px));
   gap: 10px;
   margin-top: 10px;
 }
@@ -123,13 +123,13 @@
 .fp-disponibilidad {
   background: #fff;
   border: 1px solid var(--fp-borde);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 20px;
 }
 
 .fp-detalle h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: clamp(22px, 2vw, 30px);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -190,7 +190,8 @@
   margin: 8px 0 0;
   font-size: 28px;
   font-weight: 700;
-  color: var(--fp-primario);
+  color: var(--fp-verde);
+  font-family: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
 }
 
 .fp-contador-sub {
@@ -246,6 +247,7 @@
   text-align: center;
   text-decoration: none;
   padding: 10px 16px;
+  min-height: 40px;
   border-radius: 4px;
   border: 1px solid var(--fp-primario);
   cursor: pointer;
@@ -334,7 +336,7 @@
 /* Responsive */
 @media (max-width: 1000px) {
   .fp-grid {
-    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
   }
 
   .fp-disponibilidad {
@@ -348,6 +350,7 @@
   }
 
   .fp-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
 }
