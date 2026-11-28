@@ -85,7 +85,7 @@ export function cancelarReserva(id) {
 /* ---------- Cálculo de estados y prioridad ---------- */
 
 // Devuelve { [idReserva]: { estado, puesto?, totalEspera? } }
-export function calcularEstados(reservas = obtenerTodasLasReservas(), hoy = hoyISO()) {
+export function calcularEstados(reservas = obtenerTodasLasReservas(), hoy = hoyISO(), unidadExcluida) {
   const resultado = {}
   const porProducto = {}
 
@@ -107,7 +107,7 @@ export function calcularEstados(reservas = obtenerTodasLasReservas(), hoy = hoyI
         resultado[r.id] = { estado: 'Cumplida' }
         return
       }
-      if (producto && hayCupoEquipo(producto, prestamos, confirmadas, r.desde, r.hasta, hoy)) {
+      if (producto && hayCupoEquipo(producto, prestamos, confirmadas, r.desde, r.hasta, hoy, unidadExcluida)) {
         confirmadas.push(r)
         resultado[r.id] = { estado: 'Confirmada' }
       } else {
