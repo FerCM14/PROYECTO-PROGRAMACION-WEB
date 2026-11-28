@@ -37,7 +37,7 @@ export function CatalogoProvider({ children }) {
 
   function actualizarProducto(...argumentos) {
     const resultado = datos.actualizarProducto(...argumentos)
-    setCambios((actual) => actual + 1)
+    if (resultado.ok) setCambios((actual) => actual + 1)
     return resultado
   }
 

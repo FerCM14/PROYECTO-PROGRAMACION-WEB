@@ -245,30 +245,45 @@ export function actualizarProducto(id, datos) {
     fotos: datos.fotos || []
   }
   const cambiosDetalle = {
-    titulo: cambiosProducto.nombre,
     descripcion: datos.descripcion || '',
     accesorios: datos.accesorios || []
   }
 
+  const fallo = { ok: false, errores: { general: 'No se pudieron guardar los cambios en este navegador.' } }
+
+  try {
+    const bajas = JSON.parse(localStorage.getItem(CLAVE_ELIMINADOS)) ?? []
+    const nuevos = JSON.parse(localStorage.getItem(CLAVE_NUEVOS)) ?? []
+    if (!Array.isArray(bajas) || !Array.isArray(nuevos)) return fallo
+    if (bajas.includes(producto.id)) return { ok: false, errores: { general: 'El equipo ya no está en el inventario.' } }
+
+    const detalle = DETALLES[producto.id]
+    if (detalle?.titulo === producto.nombre) cambiosDetalle.titulo = cambiosProducto.nombre
+
+    const idx = nuevos.findIndex((n) => n.producto.id === producto.id)
+    if (idx >= 0) {
+      const registro = nuevos[idx]
+      nuevos[idx] = {
+        producto: { ...registro.producto, ...cambiosProducto },
+        detalle: { ...registro.detalle, ...cambiosDetalle }
+      }
+      if (!guardarJSON(CLAVE_NUEVOS, nuevos)) return fallo
+    } else {
+      const ediciones = JSON.parse(localStorage.getItem(CLAVE_EDICIONES)) ?? {}
+      if (typeof ediciones !== 'object' || Array.isArray(ediciones)) return fallo
+      const registro = ediciones[producto.id]
+      ediciones[producto.id] = {
+        producto: { ...registro?.producto, ...cambiosProducto },
+        detalle: { ...registro?.detalle, ...cambiosDetalle }
+      }
+      if (!guardarJSON(CLAVE_EDICIONES, ediciones)) return fallo
+    }
+  } catch {
+    return fallo
+  }
+
   Object.assign(producto, cambiosProducto)
-  DETALLES[producto.id] = {
-    ...(DETALLES[producto.id] || { prefijo: 'EQP', inicio: 1 }),
-    ...cambiosDetalle
-  }
-
-  // Si es un equipo creado desde la app, se actualiza su registro de alta;
-  // si es de ejemplo, se guarda como edición.
-  const nuevos = leerJSON(CLAVE_NUEVOS, []) || []
-  const idx = nuevos.findIndex((n) => n.producto.id === producto.id)
-  if (idx >= 0) {
-    nuevos[idx] = { producto: { ...nuevos[idx].producto, ...cambiosProducto }, detalle: { ...nuevos[idx].detalle, ...cambiosDetalle } }
-    guardarJSON(CLAVE_NUEVOS, nuevos)
-  } else {
-    const ediciones = leerJSON(CLAVE_EDICIONES, {}) || {}
-    ediciones[producto.id] = { producto: cambiosProducto, detalle: cambiosDetalle }
-    guardarJSON(CLAVE_EDICIONES, ediciones)
-  }
-
+  DETALLES[producto.id] = { ...DETALLES[producto.id], ...cambiosDetalle }
   return { ok: true, producto }
 }
 
