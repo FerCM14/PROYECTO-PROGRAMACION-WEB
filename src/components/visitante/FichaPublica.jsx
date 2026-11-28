@@ -55,6 +55,9 @@ function DetallePublico({ producto, categoria, recojo }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [fotoActiva, setFotoActiva] = useState(0)
+  const nombre = producto.nombre?.trim() || 'Equipo'
+  const identificacion = [producto.marca, producto.modelo].filter((dato) => typeof dato === 'string' && dato.trim()).join(' · ')
+  const nombreCategoria = categoria?.nombre || 'Sin categoría'
 
   const hoy = new Date().toLocaleDateString('es-PE', {
     day: '2-digit',
@@ -90,7 +93,7 @@ function DetallePublico({ producto, categoria, recojo }) {
 
       <main className="fp-main">
         <nav className="fp-migas" aria-label="Ruta de navegación">
-          <Link to="/catalogo">Catálogo</Link> / {categoria?.nombre || 'Sin categoría'} / <span aria-current="page">{producto.nombre}</span>
+          <Link to="/catalogo">Catálogo</Link> / {nombreCategoria} / <span aria-current="page">{nombre}</span>
         </nav>
 
         <div className="fp-grid">
@@ -98,7 +101,7 @@ function DetallePublico({ producto, categoria, recojo }) {
           <section className="fp-galeria" aria-label="Fotografías del equipo">
             <div className="fp-foto-principal">
               {fotos[fotoActiva] ? (
-                <img src={fotos[fotoActiva]} alt={`${producto.nombre}, foto ${fotoActiva + 1}`} />
+                <img src={fotos[fotoActiva]} alt={`${nombre}, foto ${fotoActiva + 1}`} />
               ) : (
                 <span>fotografía principal 1:1</span>
               )}
@@ -126,10 +129,10 @@ function DetallePublico({ producto, categoria, recojo }) {
 
           {/* Detalle */}
           <section className="fp-detalle">
-            <h1>{producto.titulo}</h1>
+            <h1>{nombre}</h1>
             <p className="fp-meta">
-              {[producto.marca, producto.modelo].filter(Boolean).join(' · ')} ·{' '}
-              <strong>{categoria?.nombre}</strong>
+              {identificacion && <>{identificacion} · </>}
+              <strong>{nombreCategoria}</strong>
             </p>
 
             {producto.descripcion && <p className="fp-descripcion">{producto.descripcion}</p>}
