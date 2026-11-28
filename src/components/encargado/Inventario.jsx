@@ -169,7 +169,11 @@ export default function Inventario() {
   })
 
   function guardar(codigo, estado, nota) {
-    cambiarEstadoUnidad(codigo, estado, nota)
+    const resultado = cambiarEstadoUnidad(codigo, estado, nota)
+    setAviso({
+      error: !resultado.ok,
+      texto: resultado.ok ? `Se actualizó el estado de ${codigo}.` : `No se pudo guardar el estado de ${codigo}.`
+    })
     setSeleccionado(null)
   }
 
@@ -222,7 +226,7 @@ export default function Inventario() {
 
       <div className="inv-cuerpo">
         <aside className="inv-lateral">
-          <Operacion activo="inventario" totalInventario={totalUnidades} />
+          <Operacion activo="inventario" />
         </aside>
 
         <main className="inv-contenido">
@@ -230,7 +234,8 @@ export default function Inventario() {
           <div>
             <h1 className="inv-titulo">Inventario de equipos</h1>
             <p className="inv-subtitulo">
-              {PRODUCTOS.length} modelos · {totalUnidades} unidades registradas en el Almacén H-102
+              {filas.length} {filas.length === 1 ? 'modelo' : 'modelos'} · {totalUnidades}{' '}
+              {totalUnidades === 1 ? 'unidad registrada' : 'unidades registradas'} en el Almacén H-102
             </p>
           </div>
           <Link to={RUTA_EDITAR} className="inv-btn inv-btn--pri inv-btn--link">
@@ -354,8 +359,8 @@ export default function Inventario() {
           </table>
 
           <div className="inv-pie">
-            <span className="inv-pie__texto">
-              Mostrando {desde} a {hasta} de {totalResultados} equipos
+            <span className="inv-pie__texto" role="status">
+              Mostrando {desde} a {hasta} de {totalResultados} {totalResultados === 1 ? 'equipo' : 'equipos'}
             </span>
             <div className="inv-paginacion" role="navigation" aria-label="Paginación">
               <button

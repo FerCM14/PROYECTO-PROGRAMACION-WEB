@@ -317,11 +317,12 @@ export function eliminarProducto(id) {
   return { ok: true }
 }
 
-export function cambiarEstadoUnidad(codigoUnidad, estado, motivo = '') {
+export function cambiarEstadoUnidad(codigoUnidad, estado, motivo) {
   const encontrada = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === codigoUnidad))
   if (!encontrada) return { ok: false }
   const cambios = leerJSON('inventario-estados', {})
   cambios[codigoUnidad] = { ...cambios[codigoUnidad], estado, ...(motivo ? { nota: motivo, motivoBaja: motivo } : {}) }
+  if (motivo === '') cambios[codigoUnidad].nota = ''
   return { ok: guardarJSON('inventario-estados', cambios) }
 }
 
