@@ -442,6 +442,9 @@ export default function AprobacionEntrega() {
                   {modal.fila.cuenta.nombres} {modal.fila.cuenta.apellidos} · {equipoDe(modal.fila.s)} ·{' '}
                   {fmt(desdeDe(modal.fila.s), false)} → {fmt(hastaDe(modal.fila.s))}
                 </p>
+                {modal.fila.producto?.autorizacion && (
+                  <p className="ae-aviso amarillo">Este equipo requiere autorización del docente. Verifícala antes de aprobar la solicitud.</p>
+                )}
                 <p className="ae-etiqueta">Unidad a asignar</p>
                 <div className="ae-unidades">
                   {modal.libres.map((u) => (

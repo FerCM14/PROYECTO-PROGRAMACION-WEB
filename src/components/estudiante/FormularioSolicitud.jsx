@@ -387,7 +387,8 @@ function FormularioSolicitud() {
                 verificación de accesorios en la entrega y el retorno ·
                 {Number.isFinite(producto.penalizacion)
                   ? `penalidad de ${formatearSoles(producto.penalizacion)} por día de retraso`
-                  : 'penalidad diaria sin informar'} · {producto.renovable ? 'admite renovación' : 'sin renovación'}.
+                  : 'penalidad diaria sin informar'} · {producto.renovable ? 'admite renovación' : 'sin renovación'} ·{' '}
+                {producto.autorizacion ? 'requiere autorización del docente' : 'no requiere autorización del docente'}.
               </p>
 
               <label className="solicitud-check">
