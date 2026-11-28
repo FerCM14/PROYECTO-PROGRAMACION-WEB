@@ -424,6 +424,7 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
   const [observaciones, setObservaciones] = useState('')
   const [error, setError] = useState('')
   const [errorUbicacion, setErrorUbicacion] = useState('')
+  const [errorRegistro, setErrorRegistro] = useState('')
   const campoCodigo = useRef(null)
   const dialogo = useRef(null)
 
@@ -436,6 +437,7 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
 
   function enviar(e) {
     e.preventDefault()
+    setErrorRegistro('')
     const limpio = codigo.replace(/\s+/g, '').toUpperCase()
     const ubicacionValida = UBICACIONES.includes(ubicacion)
     setErrorUbicacion(ubicacionValida ? '' : 'Selecciona una ubicación de la lista.')
@@ -453,8 +455,10 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
     const resultado = onRegistrar({ codigo: limpio, ubicacion, observaciones: observaciones.trim() })
     if (resultado.motivo === 'codigo-duplicado') {
       setError('Ya existe una unidad con ese código en el almacén.')
+    } else if (resultado.motivo === 'equipo-inexistente') {
+      setErrorRegistro('El equipo ya no está en el inventario.')
     } else if (!resultado.ok) {
-      setError('No se pudo registrar la unidad. Inténtalo de nuevo.')
+      setErrorRegistro('No se pudo guardar la unidad en este navegador. Inténtalo de nuevo.')
     }
   }
 
@@ -532,6 +536,7 @@ function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
           />
         </div>
 
+        {errorRegistro && <p className="cp-ayuda cp-ayuda-error" role="alert">{errorRegistro}</p>}
         <div className="cp-modal-acciones">
           <button type="button" className="cp-btn cp-btn-secundario" onClick={onCancelar}>
             Cancelar

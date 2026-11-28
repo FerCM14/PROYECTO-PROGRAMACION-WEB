@@ -351,16 +351,34 @@ export function cambiarEstadoUnidad(codigoUnidad, estado, motivo) {
 }
 
 export function registrarUnidadProducto(id, unidad) {
-  if (!obtenerProducto(id)) return { ok: false }
+  const producto = PRODUCTOS.find((p) => p.id === Number(id))
+  if (!producto) return { ok: false, motivo: 'equipo-inexistente' }
 
   const normalizarCodigo = (codigo) => String(codigo ?? '').replace(/\s+/g, '').toUpperCase()
-  const codigo = normalizarCodigo(unidad.codigo)
-  const todas = leerJSON('producto-unidades', {})
-  const coincide = (u) => normalizarCodigo(u.codigo) === codigo
-  const enCatalogo = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some(coincide))
-  const enAlmacenamiento = Object.values(todas).some((lista) => Array.isArray(lista) && lista.some(coincide))
-  if (enCatalogo || enAlmacenamiento) return { ok: false, motivo: 'codigo-duplicado' }
+  const codigo = normalizarCodigo(unidad?.codigo)
+  const ubicacion = String(unidad?.ubicacion ?? '').trim()
+  const observaciones = String(unidad?.observaciones ?? '').trim()
+  if (!/^INV-[A-Z]{3}-\d{4}$/.test(codigo) || !ubicacion) return { ok: false, motivo: 'datos-invalidos' }
 
-  todas[id] = [...(todas[id] || []), { ...unidad, codigo, estado: 'Disponible' }]
-  return { ok: guardarJSON('producto-unidades', todas) }
+  const fallo = { ok: false, motivo: 'almacenamiento' }
+  const clave = 'producto-unidades'
+  try {
+    const todas = JSON.parse(localStorage.getItem(clave)) ?? {}
+    const estados = JSON.parse(localStorage.getItem('inventario-estados')) ?? {}
+    const bajas = JSON.parse(localStorage.getItem(CLAVE_ELIMINADOS)) ?? []
+    if (typeof todas !== 'object' || Array.isArray(todas) || !Object.values(todas).every(Array.isArray) ||
+        typeof estados !== 'object' || Array.isArray(estados) || !Array.isArray(bajas)) return fallo
+    if (bajas.includes(producto.id)) return { ok: false, motivo: 'equipo-inexistente' }
+
+    const coincide = (u) => normalizarCodigo(u?.codigo) === codigo
+    const enCatalogo = PRODUCTOS.some((p) => generarUnidades(p, DETALLES[p.id] || { prefijo: 'EQP', inicio: 1 }).some(coincide))
+    const enAlmacenamiento = Object.values(todas).some((lista) => lista.some(coincide))
+    const conEstadoGuardado = Object.keys(estados).some((claveEstado) => normalizarCodigo(claveEstado) === codigo)
+    if (enCatalogo || enAlmacenamiento || conEstadoGuardado) return { ok: false, motivo: 'codigo-duplicado' }
+
+    todas[producto.id] = [...(todas[producto.id] || []), { codigo, ubicacion, observaciones, estado: 'Disponible' }]
+    return guardarJSON(clave, todas) ? { ok: true } : fallo
+  } catch {
+    return fallo
+  }
 }
