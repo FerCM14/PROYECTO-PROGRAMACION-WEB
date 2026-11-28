@@ -7,7 +7,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   const [codigo, setCodigo] = useState(codigoInicial || unidades[0]?.codigo || '')
   const unidad = unidades.find((u) => u.codigo === codigo)
   const [estado, setEstado] = useState(unidad?.estado || 'Disponible')
-  const [nota, setNota] = useState(unidad?.nota || '')
+  const [nota, setNota] = useState('')
 
   useEffect(() => {
     const alTeclear = (e) => e.key === 'Escape' && onCerrar()
@@ -19,7 +19,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
     const u = unidades.find((x) => x.codigo === nuevoCodigo)
     setCodigo(nuevoCodigo)
     setEstado(u?.estado || 'Disponible')
-    setNota(u?.nota || '')
+    setNota('')
   }
 
   return (
@@ -31,9 +31,11 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
         aria-labelledby="inv-modal-titulo"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="inv-modal-titulo" className="inv-modal__titulo">Cambiar el estado de la unidad</h2>
-        <p className="inv-modal__sub">{producto.nombre}</p>
+        <h2 id="inv-modal-titulo" className="inv-modal__titulo">Cambiar estado de la unidad</h2>
+        <p className="inv-modal__sub">{producto.nombre} · <strong>{unidad?.codigo || codigo}</strong></p>
 
+        {!codigoInicial && (
+          <>
         <label className="inv-modal__label" htmlFor="inv-unidad">Unidad</label>
         <select
           id="inv-unidad"
@@ -47,7 +49,12 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
             </option>
           ))}
         </select>
+          </>
+        )}
 
+        <p className="inv-modal__label">
+          {unidad ? `Estado actual: ${unidad.estado}` : 'La unidad seleccionada ya no está disponible en el inventario.'}
+        </p>
         <div className="inv-modal__estados" role="radiogroup" aria-label="Nuevo estado">
           {ESTADOS.map((e) => (
             <button
@@ -80,7 +87,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           <button
             type="button"
             className="inv-btn inv-btn--pri"
-            disabled={!codigo}
+            disabled={!unidad}
             onClick={() => onGuardar(codigo, estado, nota)}
           >
             Guardar estado
