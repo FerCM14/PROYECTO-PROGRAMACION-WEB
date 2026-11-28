@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { errorTransicionManual } from '../../data/EstadoUnidad'
 import './Inventario.css'
 
 const ESTADOS = [
@@ -12,6 +13,8 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   const unidad = unidades.find((u) => u.codigo === codigo)
   const [estado, setEstado] = useState(unidad?.estado || 'Disponible')
   const [nota, setNota] = useState('')
+  const [error, setError] = useState('')
+  const bloqueada = unidad?.estado === 'Prestada' || unidad?.estado === 'De baja'
 
   useEffect(() => {
     const alTeclear = (e) => e.key === 'Escape' && onCerrar()
@@ -24,6 +27,12 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
     setCodigo(nuevoCodigo)
     setEstado(u?.estado || 'Disponible')
     setNota('')
+    setError('')
+  }
+
+  function guardar() {
+    const resultado = onGuardar(codigo, estado, nota)
+    if (!resultado.ok) setError(resultado.mensaje)
   }
 
   return (
@@ -62,11 +71,18 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
         <div className="inv-modal__estados" role="radiogroup" aria-label="Nuevo estado">
           {ESTADOS.map(({ valor, etiqueta, clase }) => (
             <label key={valor} className={`inv-modal__estado inv-modal__estado--${clase} ${estado === valor ? 'is-activo' : ''}`}>
-              <input type="radio" name="inv-nuevo-estado" checked={estado === valor} onChange={() => setEstado(valor)} />
+              <input
+                type="radio"
+                name="inv-nuevo-estado"
+                checked={estado === valor}
+                disabled={!unidad || Boolean(errorTransicionManual(unidad.estado, valor))}
+                onChange={() => { setEstado(valor); setError('') }}
+              />
               {etiqueta}
             </label>
           ))}
         </div>
+        {bloqueada && <p className="inv-modal__label">{errorTransicionManual(unidad.estado, 'Disponible')}</p>}
 
         <label className="inv-modal__label" htmlFor="inv-nota">Motivo (opcional)</label>
         <textarea
@@ -78,6 +94,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           placeholder="Ej.: lente con hongos; enviada al servicio técnico."
         />
 
+        {error && <p role="alert">{error}</p>}
         <div className="inv-modal__acciones">
           <button type="button" className="inv-btn inv-btn--sec" onClick={onCerrar}>
             Cancelar
@@ -85,8 +102,8 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           <button
             type="button"
             className="inv-btn inv-btn--pri"
-            disabled={!unidad}
-            onClick={() => onGuardar(codigo, estado, nota)}
+            disabled={!unidad || Boolean(errorTransicionManual(unidad.estado, estado))}
+            onClick={guardar}
           >
             Guardar estado
           </button>

@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
-import { cambiarEstadoUnidad } from '../../data/Producto'
+import { cambiarEstadoUnidadManual } from '../../data/EstadoUnidad'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import ModalEstadoUnidad from './ModalEstadoUnidad'
 import { obtenerPrestamos } from '../../data/Identificacion'
@@ -121,12 +121,14 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
 
   function guardarEstado(codigo, estado, motivo) {
     if (estado === 'De baja' && obtenerPrestamos().some((p) => p.unidad === codigo && p.estado !== 'Devuelto')) {
-      setMensaje('No se puede dar de baja una unidad con un préstamo pendiente.')
-      return
+      return { ok: false, mensaje: 'No se puede dar de baja una unidad con un préstamo pendiente.' }
     }
-    const resultado = cambiarEstadoUnidad(codigo, estado, motivo)
-    setMensaje(resultado.ok ? `Se actualizó el estado de ${codigo}.` : 'No se pudo guardar el estado.')
-    if (resultado.ok) setUnidadSeleccionada(null)
+    const resultado = cambiarEstadoUnidadManual(codigo, estado, motivo)
+    if (resultado.ok) {
+      setMensaje(`Se actualizó el estado de ${codigo}.`)
+      setUnidadSeleccionada(null)
+    }
+    return resultado
   }
 
   const textoRenovacion = condiciones.admiteRenovacion ? 'Admite renovación.' : 'No admite renovación.'
