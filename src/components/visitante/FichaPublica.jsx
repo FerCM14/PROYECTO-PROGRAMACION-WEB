@@ -1,7 +1,7 @@
 import { useActualizacion } from '../../context/DatosContext'
 import { imagenEquipo } from '../../data/imagenes'
 import { formatearFecha, hoyISO } from '../../data/fechas'
-import { obtenerPrestamos } from '../../data/Identificacion'
+import { disponibilidadEquipo, proximaDevolucionEquipo } from '../../data/CupoEquipo'
 import { useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
@@ -19,15 +19,6 @@ const ESTADO_DESCONOCIDO = { orden: 4, clase: 'sin-dato', etiqueta: 'Estado sin 
 
 function presentarEstado(estado) {
   return Object.hasOwn(ESTADOS, estado) ? ESTADOS[estado] : ESTADO_DESCONOCIDO
-}
-
-function proximaDevolucion(unidades, hoy) {
-  const codigosPrestados = unidades.filter((u) => u.estado === 'Prestada').map((u) => u.codigo)
-  return obtenerPrestamos()
-    .filter((p) => p?.estado === 'Entregado' && codigosPrestados.includes(p.unidad))
-    .map((p) => p.hasta)
-    .filter((fecha) => typeof fecha === 'string' && fecha >= hoy && formatearFecha(fecha) !== '—')
-    .sort()[0]
 }
 
 export default function FichaPublica() {
@@ -79,14 +70,14 @@ function DetallePublico({ producto, categoria, recojo }) {
   const indiceFoto = fotoActiva < fotos.length ? fotoActiva : 0
   const penalidad = producto.penalizacion
 
-  const unidades = producto.unidades.filter((unidad) => unidad.estado !== 'De baja').sort(
+  const { activas, libres } = disponibilidadEquipo(producto, hoy)
+  const unidades = activas.sort(
     (a, b) =>
       presentarEstado(a.estado).orden - presentarEstado(b.estado).orden ||
       a.codigo.localeCompare(b.codigo)
   )
-  const libres = producto.libres
   const todasDeBaja = producto.unidades.length > 0 && unidades.length === 0
-  const devolucionPactada = libres === 0 && unidades.length > 0 ? proximaDevolucion(unidades, hoy) : null
+  const devolucionPactada = libres === 0 && unidades.length > 0 ? proximaDevolucionEquipo(producto, hoy) : null
   const puedeSolicitar = unidades.length > 0 && (!usuario || usuario.rol === 'estudiante')
   const accion = libres > 0 || !unidades.length ? 'Solicitar préstamo' : 'Consultar opciones de reserva'
   const destino = !usuario ? '/login' : libres > 0 ? `/catalogo/${producto.id}/solicitar` : `/catalogo/${producto.id}`

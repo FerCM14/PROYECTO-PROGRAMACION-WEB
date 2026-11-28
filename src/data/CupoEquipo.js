@@ -41,6 +41,15 @@ export function disponibilidadEquipo(producto, hoy = hoyISO()) {
   return { activas, libres: capacidadEquipoEnFecha(producto, prestamos, hoy, hoy) }
 }
 
+export function proximaDevolucionEquipo(producto, hoy = hoyISO()) {
+  const codigos = unidadesActivas(producto).filter((u) => u.estado === 'Prestada').map((u) => u.codigo)
+  return prestamosComprometidos(producto)
+    .filter((p) => p.estado === 'Entregado' && codigos.includes(p.unidad))
+    .map((p) => p.hasta)
+    .filter((fecha) => fechaValida(fecha) && fecha >= hoy)
+    .sort()[0]
+}
+
 export function hayCupoEquipo(producto, prestamos, confirmadas, desde, hasta, hoy, unidadExcluida) {
   if (!fechaValida(desde) || !fechaValida(hasta) || desde > hasta || hasta < hoy) return false
   const inicio = desde < hoy ? hoy : desde
