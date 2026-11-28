@@ -59,16 +59,35 @@ function procesarImagen(archivo) {
 }
 
 export default function EditarEquipo() {
+  const { obtenerProducto } = useCatalogo()
+  const [params] = useSearchParams()
+  const idEditar = params.get('id')
+  const existente = idEditar === null ? null : obtenerProducto(idEditar)
+
+  if (idEditar !== null && !existente) {
+    return (
+      <div className="eq-pagina">
+        <HeaderEncargado />
+        <main className="eq-contenido">
+          <h1 className="eq-titulo">Equipo no encontrado</h1>
+          <Link to={RUTA_INVENTARIO}>Volver al inventario</Link>
+        </main>
+        <FooterEncargado />
+      </div>
+    )
+  }
+
+  return <FormularioEquipo key={existente?.id ?? 'nuevo'} existente={existente} />
+}
+
+function FormularioEquipo({ existente }) {
   const { CATEGORIAS,
   PRODUCTOS,
   obtenerProducto,
   agregarProducto,
   actualizarProducto } = useCatalogo()
   const navigate = useNavigate()
-  const [params] = useSearchParams()
-  const idEditar = params.get('id')
-
-  const existente = (idEditar ? obtenerProducto(idEditar) : null)
+  const idEditar = existente?.id
   const editando = Boolean(existente)
 
   const [form, setForm] = useState(() =>
