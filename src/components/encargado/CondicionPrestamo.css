@@ -35,6 +35,11 @@
 }
 
 /* Migas y encabezado del equipo */
+.cp-tabla-unidades .cp-observaciones {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .cp-migas a {
   color: inherit;
 }

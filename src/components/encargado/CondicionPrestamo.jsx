@@ -88,7 +88,8 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
   }, [mensaje])
 
   const pendientes = solicitudes.filter((s) => s.estado === 'Enviada').length
-  const prestamoPorUnidad = Object.fromEntries(obtenerPrestamos().filter((p) => p.estado === 'Entregado').map((p) => [p.unidad,p.codigo]))
+  const prestamosVigentes = obtenerPrestamos().filter((p) => p.estado === 'Entregado')
+  const prestamoPorUnidad = Object.fromEntries(prestamosVigentes.map((p) => [p.unidad, p.codigo]))
   const historial = solicitudes.filter((s) => unidades.some((u) => u.codigo === s.unidad))
 
   const hayCambios = JSON.stringify(condiciones) !== JSON.stringify(guardadas)
@@ -334,14 +335,15 @@ function Estado({ estado }) {
 function TablaUnidades({ unidades, prestamos, onBaja }) {
   return (
     <div className="cp-tabla-caja">
-      <table className="cp-tabla">
+      <table className="cp-tabla cp-tabla-unidades" aria-label="Unidades del equipo">
         <thead>
           <tr>
             <th>Código</th>
             <th>Ubicación</th>
             <th>Estado</th>
             <th>Observaciones</th>
-            <th>Préstamo vigente</th><th>Acción</th>
+            <th>Préstamo vigente</th>
+            <th>Acción</th>
           </tr>
         </thead>
         <tbody>
@@ -352,8 +354,9 @@ function TablaUnidades({ unidades, prestamos, onBaja }) {
               <td>
                 <Estado estado={u.estado} />
               </td>
-              <td className="cp-suave">{u.observaciones || '—'}</td>
-              <td className="cp-codigo">{prestamos[u.codigo] || '—'}</td><td><button type="button" className="cp-btn cp-btn-secundario" disabled={u.estado === 'De baja'} onClick={() => onBaja(u)}>Dar de baja</button></td>
+              <td className="cp-suave cp-observaciones">{String(u.observaciones).trim() || '—'}</td>
+              <td className="cp-codigo">{prestamos[u.codigo] || '—'}</td>
+              <td><button type="button" className="cp-btn cp-btn-secundario" disabled={u.estado === 'De baja'} onClick={() => onBaja(u)}>Dar de baja</button></td>
             </tr>
           ))}
         </tbody>
