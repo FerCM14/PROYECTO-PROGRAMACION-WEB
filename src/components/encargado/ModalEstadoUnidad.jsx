@@ -14,7 +14,9 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   const [estado, setEstado] = useState(unidad?.estado || 'Disponible')
   const [nota, setNota] = useState('')
   const [error, setError] = useState('')
+  const [errorMotivo, setErrorMotivo] = useState('')
   const bloqueada = unidad?.estado === 'Prestada' || unidad?.estado === 'De baja'
+  const motivoObligatorio = estado === 'Mantenimiento' || estado === 'De baja'
 
   useEffect(() => {
     const alTeclear = (e) => e.key === 'Escape' && onCerrar()
@@ -28,11 +30,13 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
     setEstado(u?.estado || 'Disponible')
     setNota('')
     setError('')
+    setErrorMotivo('')
   }
 
   function guardar() {
     const resultado = onGuardar(codigo, estado, nota)
-    if (!resultado.ok) setError(resultado.mensaje)
+    if (resultado.campo === 'motivo') setErrorMotivo(resultado.mensaje)
+    else if (!resultado.ok) setError(resultado.mensaje)
   }
 
   return (
@@ -76,7 +80,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
                 name="inv-nuevo-estado"
                 checked={estado === valor}
                 disabled={!unidad || Boolean(errorTransicionManual(unidad.estado, valor))}
-                onChange={() => { setEstado(valor); setError('') }}
+                onChange={() => { setEstado(valor); setError(''); setErrorMotivo('') }}
               />
               {etiqueta}
             </label>
@@ -84,15 +88,22 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
         </div>
         {bloqueada && <p className="inv-modal__label">{errorTransicionManual(unidad.estado, 'Disponible')}</p>}
 
-        <label className="inv-modal__label" htmlFor="inv-nota">Motivo (opcional)</label>
+        <label className="inv-modal__label" htmlFor="inv-nota">
+          Motivo del cambio{motivoObligatorio ? ' (obligatorio)' : ' (opcional)'}
+        </label>
         <textarea
           id="inv-nota"
           className="inv-modal__nota"
           rows={2}
           value={nota}
-          onChange={(e) => setNota(e.target.value)}
+          aria-invalid={Boolean(errorMotivo)}
+          aria-required={motivoObligatorio && !bloqueada}
+          aria-describedby={errorMotivo ? 'inv-error-motivo' : undefined}
+          disabled={!unidad || bloqueada}
+          onChange={(e) => { setNota(e.target.value); setErrorMotivo('') }}
           placeholder="Ej.: lente con hongos; enviada al servicio técnico."
         />
+        {errorMotivo && <p id="inv-error-motivo" role="alert">{errorMotivo}</p>}
 
         {error && <p role="alert">{error}</p>}
         <div className="inv-modal__acciones">

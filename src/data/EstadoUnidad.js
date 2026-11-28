@@ -16,6 +16,11 @@ export function cambiarEstadoUnidadManual(codigo, estado, motivo) {
   const mensaje = errorTransicionManual(unidad.estado, estado)
   if (mensaje) return { ok: false, mensaje }
 
-  const resultado = cambiarEstadoUnidad(codigo, estado, motivo)
+  const nota = (motivo ?? '').trim()
+  if (!nota && (estado === 'Mantenimiento' || estado === 'De baja' || motivo)) {
+    return { ok: false, campo: 'motivo', mensaje: 'Ingresa un motivo para el cambio de estado.' }
+  }
+
+  const resultado = cambiarEstadoUnidad(codigo, estado, nota)
   return resultado.ok ? resultado : { ok: false, mensaje: 'No se pudo guardar el estado en este navegador.' }
 }
