@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from 'react'
 import * as datos from '../../data/Producto'
+import { cambiarEstadoUnidadManual as guardarEstadoManual } from '../../data/EstadoUnidad'
 import { useActualizacion } from '../DatosContext'
 
 const CatalogoContext = createContext(null)
@@ -49,7 +50,13 @@ export function CatalogoProvider({ children }) {
 
   function cambiarEstadoUnidad(...argumentos) {
     const resultado = datos.cambiarEstadoUnidad(...argumentos)
-    setCambios((actual) => actual + 1)
+    if (resultado.ok) setCambios((actual) => actual + 1)
+    return resultado
+  }
+
+  function cambiarEstadoUnidadManual(...argumentos) {
+    const resultado = guardarEstadoManual(...argumentos)
+    if (resultado.ok) setCambios((actual) => actual + 1)
     return resultado
   }
 
@@ -59,7 +66,7 @@ export function CatalogoProvider({ children }) {
     return resultado
   }
 
-  return <CatalogoContext.Provider value={{ version: version + cambios, obtenerCategoria, contarPorCategoria, obtenerProducto, existeEquipo, agregarProducto, actualizarProducto, eliminarProducto, cambiarEstadoUnidad, registrarUnidadProducto, CATEGORIAS: datos.CATEGORIAS, PRODUCTOS: datos.PRODUCTOS, RECOJO: datos.RECOJO }}>
+  return <CatalogoContext.Provider value={{ version: version + cambios, obtenerCategoria, contarPorCategoria, obtenerProducto, existeEquipo, agregarProducto, actualizarProducto, eliminarProducto, cambiarEstadoUnidad, cambiarEstadoUnidadManual, registrarUnidadProducto, CATEGORIAS: datos.CATEGORIAS, PRODUCTOS: datos.PRODUCTOS, RECOJO: datos.RECOJO }}>
     {children}
   </CatalogoContext.Provider>
 }

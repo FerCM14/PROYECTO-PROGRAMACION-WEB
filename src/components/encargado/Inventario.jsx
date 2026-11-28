@@ -1,5 +1,4 @@
 import { imagenEquipo } from '../../data/imagenes'
-import { cambiarEstadoUnidadManual } from '../../data/EstadoUnidad'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
@@ -69,7 +68,7 @@ function ModalEliminar({ producto, onCerrar, onConfirmar }) {
 export default function Inventario() {
   const { pathname, search, hash, state } = useLocation()
   const navigate = useNavigate()
-  const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, eliminarProducto } = useCatalogo()
+  const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, eliminarProducto, cambiarEstadoUnidadManual } = useCatalogo()
   const [seleccionado, setSeleccionado] = useState(null)
   const [pagina, setPagina] = useState(1)
   const [categoria, setCategoria] = useState('')
@@ -96,8 +95,7 @@ export default function Inventario() {
     const resultado = cambiarEstadoUnidadManual(codigo, estado, nota)
     if (!resultado.ok) return resultado
     setAviso({
-      error: !resultado.ok,
-      texto: resultado.ok ? `Se actualizó el estado de ${codigo}.` : `No se pudo guardar el estado de ${codigo}.`
+      texto: `Se actualizó el estado de ${codigo}.`
     })
     setSeleccionado(null)
     return resultado

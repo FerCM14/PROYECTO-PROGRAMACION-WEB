@@ -4,7 +4,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
-import { cambiarEstadoUnidadManual } from '../../data/EstadoUnidad'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import ModalEstadoUnidad from './ModalEstadoUnidad'
 import { obtenerPrestamos } from '../../data/Identificacion'
@@ -63,7 +62,7 @@ export default function CondicionPrestamo() {
 }
 
 function CondicionEquipo({ producto, categoria, pestanaInicial }) {
-  const { registrarUnidadProducto, RECOJO } = useCatalogo()
+  const { registrarUnidadProducto, cambiarEstadoUnidadManual, RECOJO } = useCatalogo()
   const CLAVE_CONDICIONES = `condiciones-${producto.id}`
   const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
   const [condiciones, setCondiciones] = useState(guardadas)
