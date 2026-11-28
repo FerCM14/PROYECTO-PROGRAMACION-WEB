@@ -322,9 +322,9 @@ export default function Inventario() {
                   </td>
                   <td>
                     <span className="inv-acciones">
-                      <Link to={`${RUTA_CONDICION}?id=${p.id}`}>Unidades</Link>
+                      <Link to={`${RUTA_CONDICION}?id=${p.id}&pestana=unidades`}>Unidades</Link>
                       <span className="inv-acciones__sep"> · </span>
-                      <Link to={`${RUTA_CONDICION}?id=${p.id}`}>Condiciones</Link>
+                      <Link to={`${RUTA_CONDICION}?id=${p.id}&pestana=condiciones`}>Condiciones</Link>
                       <span className="inv-acciones__sep"> · </span>
                       <Link to={`${RUTA_EDITAR}?id=${p.id}`}>Editar</Link>
                       <span className="inv-acciones__sep"> · </span>
