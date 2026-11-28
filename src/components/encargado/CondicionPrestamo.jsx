@@ -25,15 +25,6 @@ const PESTANAS = [
   ['historial', 'Historial']
 ]
 
-function leer(clave, porDefecto) {
-  try {
-    const dato = JSON.parse(localStorage.getItem(clave))
-    return dato ?? porDefecto
-  } catch {
-    return porDefecto
-  }
-}
-
 function guardar(clave, valor) {
   localStorage.setItem(clave, JSON.stringify(valor))
 }
@@ -76,7 +67,12 @@ export default function CondicionPrestamo() {
 function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   const { registrarUnidadProducto, cambiarEstadoUnidadManual, RECOJO } = useCatalogo()
   const CLAVE_CONDICIONES = `condiciones-${producto.id}`
-  const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
+  const [guardadas, setGuardadas] = useState(() => ({
+    dias: producto.duracionMax,
+    requiereAutorizacion: producto.autorizacion,
+    admiteRenovacion: producto.renovable,
+    penalizacion: producto.penalizacion
+  }))
   const [condiciones, setCondiciones] = useState(guardadas)
   const unidades = producto.unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || RECOJO.lugar }))
   const solicitudes = obtenerTodasLasSolicitudes()

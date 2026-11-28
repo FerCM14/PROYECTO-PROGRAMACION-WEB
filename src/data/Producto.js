@@ -90,20 +90,26 @@ export function obtenerProducto(id) {
   const detalle = DETALLES[producto.id] || { prefijo: 'EQP', inicio: 1 }
 
   const condiciones = leerJSON(`condiciones-${producto.id}`, {})
+  const duracion = numeroGuardado(condiciones.dias)
   const unidades = [...generarUnidades(producto, detalle), ...(leerJSON('producto-unidades', {})[producto.id] || [])].map((u) => ({ ...u, ...(leerJSON('inventario-estados', {})[u.codigo] || {}) }))
   return {
     ...producto,
     total: unidades.length,
-    duracionMax: condiciones.dias !== undefined ? condiciones.dias : producto.duracionMax,
-    penalizacion: condiciones.penalizacion ?? 15,
+    duracionMax: condiciones.dias === null ? null : duracion ?? producto.duracionMax,
+    penalizacion: numeroGuardado(condiciones.penalizacion) ?? 15,
     titulo: detalle.titulo || producto.nombre,
     descripcion: detalle.descripcion || '',
     accesorios: detalle.accesorios || [],
-    autorizacion: condiciones.requiereAutorizacion ?? Boolean(detalle.autorizacion),
-    renovable: condiciones.admiteRenovacion ?? Boolean(detalle.renovable),
+    autorizacion: typeof condiciones.requiereAutorizacion === 'boolean' ? condiciones.requiereAutorizacion : Boolean(detalle.autorizacion),
+    renovable: typeof condiciones.admiteRenovacion === 'boolean' ? condiciones.admiteRenovacion : Boolean(detalle.renovable),
     proximaLiberacion: detalle.proximaLiberacion || null,
     unidades
   }
+}
+
+function numeroGuardado(valor) {
+  if (typeof valor === 'string' && valor.trim()) valor = Number(valor)
+  return Number.isFinite(valor) ? valor : undefined
 }
 
 /* ---------- Altas y ediciones (se guardan en localStorage) ---------- */
