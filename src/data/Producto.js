@@ -188,7 +188,18 @@ export function agregarProducto(datos) {
     return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
   }
 
-  const id = Math.max(0, ...PRODUCTOS.map((p) => p.id), ...eliminados) + 1
+  let nuevos
+  let id
+  const fallo = { ok: false, persistido: false, errores: { general: 'No se pudo guardar el equipo en este navegador.' } }
+  try {
+    nuevos = JSON.parse(localStorage.getItem(CLAVE_NUEVOS)) ?? []
+    const bajas = JSON.parse(localStorage.getItem(CLAVE_ELIMINADOS)) ?? []
+    if (!Array.isArray(nuevos) || !Array.isArray(bajas)) return fallo
+    id = Math.max(0, ...PRODUCTOS.map((p) => p.id), ...nuevos.map((item) => item.producto.id), ...eliminados, ...bajas) + 1
+    if (!Number.isSafeInteger(id)) return fallo
+  } catch {
+    return fallo
+  }
   const producto = {
     id,
     codigo: `INV-${String(id).padStart(4, '0')}`,
@@ -210,14 +221,11 @@ export function agregarProducto(datos) {
     estados: []
   }
 
+  if (!guardarJSON(CLAVE_NUEVOS, [...nuevos, { producto, detalle }])) return fallo
+
   PRODUCTOS.push(producto)
   DETALLES[id] = detalle
-
-  const guardado = guardarJSON(CLAVE_NUEVOS, [
-    ...(leerJSON(CLAVE_NUEVOS, []) || []),
-    { producto, detalle }
-  ])
-  return { ok: true, producto, persistido: guardado }
+  return { ok: true, producto, persistido: true }
 }
 
 // Actualiza un equipo existente (de ejemplo o creado antes)

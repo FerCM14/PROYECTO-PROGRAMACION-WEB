@@ -31,7 +31,7 @@ export function CatalogoProvider({ children }) {
 
   function agregarProducto(...argumentos) {
     const resultado = datos.agregarProducto(...argumentos)
-    setCambios((actual) => actual + 1)
+    if (resultado.ok) setCambios((actual) => actual + 1)
     return resultado
   }
 

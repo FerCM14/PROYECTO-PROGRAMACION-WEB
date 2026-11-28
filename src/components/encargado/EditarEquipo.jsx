@@ -525,6 +525,7 @@ function FormularioEquipo({ existente }) {
                 </section>
               )}
 
+              {errores.general && <p className="eq-banner" role="alert">{errores.general}</p>}
               <div className="eq-acciones">
                 <Link to={RUTA_INVENTARIO} className="eq-cancelar">Cancelar</Link>
                 <button
