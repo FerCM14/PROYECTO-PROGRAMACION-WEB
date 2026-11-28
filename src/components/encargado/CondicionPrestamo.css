@@ -341,6 +341,18 @@
   max-width: 100%;
 }
 
+.cp-penalidad {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--cp-suave);
+}
+
+.cp-penalidad input {
+  min-width: 0;
+}
+
 .cp-input {
   font: inherit;
   font-size: 13px;

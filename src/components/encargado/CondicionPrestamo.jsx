@@ -8,7 +8,7 @@ import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import ModalEstadoUnidad from './ModalEstadoUnidad'
 import { obtenerPrestamos } from '../../data/Identificacion'
 import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
-import { normalizarDiasPrestamo } from '../../data/Producto'
+import { normalizarDiasPrestamo, normalizarPenalidadPrestamo } from '../../data/Producto'
 import './CondicionPrestamo.css'
 
 const UBICACIONES = [
@@ -100,6 +100,10 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   const hayCambios = JSON.stringify(condiciones) !== JSON.stringify(guardadas)
   const dias = normalizarDiasPrestamo(condiciones.dias)
   const errorDias = dias === undefined ? 'Ingresa un número entero de 1 a 30 días o deja el campo vacío.' : ''
+  const penalizacion = normalizarPenalidadPrestamo(condiciones.penalizacion)
+  const errorPenalidad = penalizacion === undefined
+    ? 'Ingresa un importe válido, mayor o igual a cero y con hasta dos decimales.'
+    : ''
 
   function cambiarCondicion(campo, valor) {
     setCondiciones((previo) => ({ ...previo, [campo]: valor }))
@@ -110,8 +114,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   }
 
   function guardarCondiciones() {
-    if (errorDias) return
-    const penalizacion = Math.max(0, Number(condiciones.penalizacion) || 0)
+    if (errorDias || errorPenalidad) return
     const nuevas = { ...condiciones, dias, penalizacion }
     guardar(CLAVE_CONDICIONES, nuevas)
     setGuardadas(nuevas)
@@ -258,15 +261,21 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
                       <label className="cp-etiqueta" htmlFor="cp-penalizacion">
                         Penalidad por día
                       </label>
+                      <div className="cp-penalidad">
+                      <span aria-hidden="true">S/</span>
                       <input
                         id="cp-penalizacion"
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        className="cp-input"
+                        type="text"
+                        inputMode="decimal"
+                        className={`cp-input ${errorPenalidad ? 'cp-input-error' : ''}`}
                         value={condiciones.penalizacion}
+                        aria-invalid={Boolean(errorPenalidad)}
+                        aria-describedby={errorPenalidad ? 'cp-penalizacion-ayuda cp-penalizacion-error' : 'cp-penalizacion-ayuda'}
                         onChange={(e) => cambiarCondicion('penalizacion', e.target.value)}
                       />
+                      </div>
+                      <small id="cp-penalizacion-ayuda" className="cp-ayuda">Importe en soles. Usa 0 si no hay penalidad.</small>
+                      {errorPenalidad && <small id="cp-penalizacion-error" className="cp-ayuda cp-ayuda-error">{errorPenalidad}</small>}
                     </div>
 
                     <div className="cp-vista">
@@ -295,7 +304,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
                       type="button"
                       className="cp-btn cp-btn-primario"
                       onClick={guardarCondiciones}
-                      disabled={!hayCambios || Boolean(errorDias)}
+                      disabled={!hayCambios || Boolean(errorDias || errorPenalidad)}
                     >
                       Guardar condiciones
                     </button>

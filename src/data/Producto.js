@@ -121,6 +121,17 @@ export function normalizarDiasPrestamo(valor) {
   return /^\d+$/.test(texto) && dias >= 1 && dias <= 30 ? dias : undefined
 }
 
+export function normalizarPenalidadPrestamo(valor) {
+  if (typeof valor !== 'string' && typeof valor !== 'number') return undefined
+  const texto = String(valor).trim().replace(',', '.')
+  if (!/^\d+(?:\.\d{1,2})?$/.test(texto)) return undefined
+
+  const [soles, centimos = ''] = texto.split('.')
+  const esperado = `${soles.replace(/^0+(?=\d)/, '')}.${centimos.padEnd(2, '0')}`
+  const importe = Number(texto)
+  return Number.isFinite(importe) && importe.toFixed(2) === esperado ? importe : undefined
+}
+
 /* ---------- Altas y ediciones (se guardan en localStorage) ---------- */
 // Los datos de ejemplo de arriba no cambian. Los equipos nuevos y las
 // ediciones se guardan aparte y se mezclan con ellos al cargar el módulo,
