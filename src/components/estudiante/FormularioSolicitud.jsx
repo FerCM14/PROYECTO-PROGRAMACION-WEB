@@ -15,9 +15,8 @@ import {
   diferenciaDias,
   formatearFecha,
   formatearCorto,
-  obtenerRangosOcupados,
-  hayConflicto,
-  proximoRangoLibre
+  consultarCupoSolicitud,
+  proximoRangoConCupo
 } from '../../data/Disponibilidad'
 
 const MIN_MOTIVO = 20
@@ -54,12 +53,14 @@ function AvisoSinDisponibilidad({ inicio, fin, sugerido, onUsar }) {
     <div className="solicitud-aviso solicitud-aviso-amarillo" role="alert">
       Fechas no disponibles: no hay unidades libres entre el{' '}
       <strong>{formatearCorto(inicio)}</strong> y el{' '}
-      <strong>{formatearCorto(fin)}</strong>. Próximo rango libre del{' '}
-      <strong>{formatearCorto(sugerido.inicio)}</strong> al{' '}
-      <strong>{formatearFecha(sugerido.fin)}</strong>.{' '}
-      <button type="button" className="solicitud-enlace" onClick={onUsar}>
-        Usar este rango
-      </button>
+      <strong>{formatearCorto(fin)}</strong>.{' '}
+      {sugerido ? (
+        <>
+          Rango con cupo estimado del <strong>{formatearCorto(sugerido.inicio)}</strong> al{' '}
+          <strong>{formatearFecha(sugerido.fin)}</strong>.{' '}
+          <button type="button" className="solicitud-enlace" onClick={onUsar}>Usar este rango</button>
+        </>
+      ) : 'No se pudo confirmar otro rango con los datos actuales.'}
     </div>
   )
 }
@@ -123,13 +124,13 @@ function FormularioSolicitud() {
   const duracionValida = dias !== null && !ordenInvalido
   const excedida = duracionValida && max !== null && dias > max
 
-  const rangosOcupados = obtenerRangosOcupados(producto.id)
+  const hayCupo = consultarCupoSolicitud(producto.id)
   const sinDisponibilidad =
-    duracionValida && hayConflicto(rangosOcupados, inicio, devolucion)
+    duracionValida && !hayCupo(inicio, devolucion)
 
   const sugerido = sinDisponibilidad
-    ? proximoRangoLibre(
-        rangosOcupados,
+    ? proximoRangoConCupo(
+        hayCupo,
         inicio,
         Math.min(DIAS_SUGERIDOS, max ?? DIAS_SUGERIDOS)
       )
@@ -187,6 +188,9 @@ function FormularioSolicitud() {
     }
 
     if (!acepto) nuevos.acepto = 'Debes aceptar las condiciones del préstamo.'
+    if (duracionValida && !sinDisponibilidad && !consultarCupoSolicitud(producto.id)(inicio, devolucion)) {
+      nuevos.fechas = 'El cupo cambió. Revisa las fechas antes de enviar la solicitud.'
+    }
 
     setErrores(nuevos)
 

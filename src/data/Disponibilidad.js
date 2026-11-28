@@ -1,15 +1,6 @@
-// Fechas y disponibilidad de equipos (datos de ejemplo).
-// Los rangos ocupados son los días en que NO quedan unidades libres.
-// Se definen en días contados desde hoy, para que el ejemplo siempre sea vigente.
-
-const OCUPACION = {
-  2: [{ desde: 5, hasta: 9 }],
-  4: [{ desde: 4, hasta: 10 }],
-  5: [{ desde: 6, hasta: 10 }],
-  6: [{ desde: 4, hasta: 7 }],
-  10: [{ desde: 0, hasta: 9 }], // 0 libres: vuelve a haber el 02/11/2026
-  15: [{ desde: 0, hasta: 13 }] // 0 libres: vuelve a haber el 06/11/2026
-}
+import { obtenerProducto } from './Producto.js'
+import { calcularEstados, obtenerTodasLasReservas } from './Reservas.js'
+import { hayCupoEquipo, prestamosComprometidos } from './CupoEquipo.js'
 
 const DIA_MS = 24 * 60 * 60 * 1000
 
@@ -50,33 +41,31 @@ export function formatearCorto(iso) {
   return `${dia}/${mes}`
 }
 
-export function obtenerRangosOcupados(idProducto) {
-  const hoy = hoyISO()
-
-  return (OCUPACION[idProducto] || []).map((rango) => ({
-    desde: sumarDias(hoy, rango.desde),
-    hasta: sumarDias(hoy, rango.hasta)
-  }))
+export function consultarCupoSolicitud(idProducto, hoy = hoyISO()) {
+  try {
+    for (const clave of ['prestamos', 'reservas', 'calendario-reservas']) {
+      if (!Array.isArray(JSON.parse(localStorage.getItem(clave)) ?? [])) return () => false
+    }
+    const producto = obtenerProducto(idProducto)
+    if (!producto) return () => false
+    const prestamos = prestamosComprometidos(producto)
+    const reservas = obtenerTodasLasReservas({ migrar: false }).filter((r) => Number(r.productoId) === producto.id)
+    const estados = calcularEstados(reservas, hoy)
+    const confirmadas = reservas.filter((r) => estados[r.id]?.estado === 'Confirmada')
+    return (desde, hasta) => hayCupoEquipo(producto, prestamos, confirmadas, desde, hasta, hoy)
+  } catch {
+    return () => false
+  }
 }
 
-// ¿El rango pedido toca algún día sin unidades libres?
-export function hayConflicto(rangos, inicio, fin) {
-  return rangos.some((rango) => inicio <= rango.hasta && fin >= rango.desde)
-}
-
-// Primer rango libre (de "dias" días) a partir de la fecha indicada
-export function proximoRangoLibre(rangos, desde, dias = 5) {
+export function proximoRangoConCupo(hayCupo, desde, dias = 5) {
   let candidato = desde
 
   for (let i = 0; i < 60; i += 1) {
     const fin = sumarDias(candidato, dias)
-    const choque = rangos.find(
-      (rango) => candidato <= rango.hasta && fin >= rango.desde
-    )
-
-    if (!choque) return { inicio: candidato, fin }
-    candidato = sumarDias(choque.hasta, 1)
+    if (hayCupo(candidato, fin)) return { inicio: candidato, fin }
+    candidato = sumarDias(candidato, 1)
   }
 
-  return { inicio: candidato, fin: sumarDias(candidato, dias) }
+  return null
 }

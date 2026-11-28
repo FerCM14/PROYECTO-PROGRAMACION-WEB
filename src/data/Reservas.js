@@ -25,7 +25,7 @@ export function hoyISO() {
 
 /* ---------- Lectura y escritura ---------- */
 
-function leer() {
+function leer(migrar = true) {
   try {
     const datos = JSON.parse(localStorage.getItem(CLAVE))
     const lista = Array.isArray(datos) ? datos : []
@@ -33,7 +33,7 @@ function leer() {
     const migradas = (Array.isArray(antiguas) ? antiguas : [])
       .filter((r) => r.tipo === 'Reservada' && !lista.some((actual) => actual.id === r.id))
       .map((r) => ({ id:r.id, correo:r.correo, productoId:r.equipoId, desde:r.inicio, hasta:r.fin, creadaEn:Number(r.id) || 0, cancelada:false }))
-    if (migradas.length) localStorage.setItem(CLAVE, JSON.stringify([...lista, ...migradas]))
+    if (migrar && migradas.length) localStorage.setItem(CLAVE, JSON.stringify([...lista, ...migradas]))
     return [...lista, ...migradas]
   } catch { return [] }
 }
@@ -47,8 +47,8 @@ function guardar(lista) {
   }
 }
 
-export function obtenerTodasLasReservas() {
-  return leer().filter((r) => !r.cancelada)
+export function obtenerTodasLasReservas({ migrar = true } = {}) {
+  return leer(migrar).filter((r) => r && !r.cancelada)
 }
 
 export function obtenerReservas(correo) {
