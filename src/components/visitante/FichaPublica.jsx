@@ -7,12 +7,16 @@ import FooterEstudiante from '../Footer/Footer-Estudiante'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import './FichaPublica.css'
 
-const ORDEN_ESTADOS = { Disponible: 0, Prestada: 1, Mantenimiento: 2 }
+const ESTADOS = {
+  Disponible: { orden: 0, clase: 'disponible', etiqueta: 'Disponible' },
+  Mantenimiento: { orden: 1, clase: 'mantenimiento', etiqueta: 'En mantenimiento' },
+  Prestada: { orden: 2, clase: 'prestada', etiqueta: 'Prestada' },
+  'De baja': { orden: 3, clase: 'sin-dato', etiqueta: 'Dada de baja' }
+}
+const ESTADO_DESCONOCIDO = { orden: 4, clase: 'sin-dato', etiqueta: 'Estado sin informar' }
 
-function claseEstado(estado) {
-  if (estado === 'Disponible') return 'fp-estado-disponible'
-  if (estado === 'Mantenimiento') return 'fp-estado-mantenimiento'
-  return 'fp-estado-prestada'
+function presentarEstado(estado) {
+  return Object.hasOwn(ESTADOS, estado) ? ESTADOS[estado] : ESTADO_DESCONOCIDO
 }
 
 function formatearFecha(fecha) {
@@ -80,7 +84,7 @@ function DetallePublico({ producto, categoria, recojo }) {
 
   const unidades = [...producto.unidades].sort(
     (a, b) =>
-      (ORDEN_ESTADOS[a.estado] ?? 9) - (ORDEN_ESTADOS[b.estado] ?? 9) ||
+      presentarEstado(a.estado).orden - presentarEstado(b.estado).orden ||
       a.codigo.localeCompare(b.codigo)
   )
   const libres = producto.libres
@@ -177,13 +181,16 @@ function DetallePublico({ producto, categoria, recojo }) {
                   </p>
                 )}
 
-                <ul className="fp-unidades">
-                  {unidades.map((u) => (
-                    <li key={u.codigo}>
-                      <span className="fp-mono">{u.codigo}</span>
-                      <span className={`fp-estado ${claseEstado(u.estado)}`}>{u.estado}</span>
-                    </li>
-                  ))}
+                <ul className="fp-unidades" aria-label="Códigos y estados de las unidades">
+                  {unidades.map((unidad) => {
+                    const estado = presentarEstado(unidad.estado)
+                    return (
+                      <li key={unidad.codigo}>
+                        <span className="fp-mono">{unidad.codigo}</span>
+                        <span className={`fp-estado fp-estado-${estado.clase}`}>{estado.etiqueta}</span>
+                      </li>
+                    )
+                  })}
                 </ul>
               </>
             )}

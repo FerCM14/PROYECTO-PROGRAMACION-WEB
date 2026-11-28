@@ -208,6 +208,8 @@
 
 .fp-unidades li {
   display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
@@ -229,6 +231,10 @@
 
 .fp-estado-prestada {
   color: var(--fp-azul);
+}
+
+.fp-estado-sin-dato {
+  color: var(--fp-suave);
 }
 
 .fp-btn {
