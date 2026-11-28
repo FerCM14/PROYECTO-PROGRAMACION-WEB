@@ -58,6 +58,10 @@ function DetallePublico({ producto, categoria, recojo }) {
   const nombre = producto.nombre?.trim() || 'Equipo'
   const identificacion = [producto.marca, producto.modelo].filter((dato) => typeof dato === 'string' && dato.trim()).join(' · ')
   const nombreCategoria = categoria?.nombre || 'Sin categoría'
+  const descripcion = typeof producto.descripcion === 'string' ? producto.descripcion.trim() : ''
+  const accesorios = Array.isArray(producto.accesorios)
+    ? producto.accesorios.filter((accesorio) => typeof accesorio === 'string' && accesorio.trim())
+    : []
 
   const hoy = new Date().toLocaleDateString('es-PE', {
     day: '2-digit',
@@ -132,14 +136,14 @@ function DetallePublico({ producto, categoria, recojo }) {
               <strong>{nombreCategoria}</strong>
             </p>
 
-            {producto.descripcion && <p className="fp-descripcion">{producto.descripcion}</p>}
+            {descripcion && <p className="fp-descripcion">{descripcion}</p>}
 
-            {producto.accesorios.length > 0 && (
+            {accesorios.length > 0 && (
               <>
                 <h2 className="fp-etiqueta">Accesorios incluidos</h2>
                 <ul className="fp-accesorios">
-                  {producto.accesorios.map((a) => (
-                    <li key={a}>{a}</li>
+                  {accesorios.map((accesorio, indice) => (
+                    <li key={`${accesorio}-${indice}`}>{accesorio}</li>
                   ))}
                 </ul>
               </>

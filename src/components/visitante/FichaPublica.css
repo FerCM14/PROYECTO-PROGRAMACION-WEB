@@ -149,6 +149,8 @@
   margin: 0 0 18px;
   font-size: 13px;
   line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .fp-accesorios {
@@ -166,6 +168,8 @@
   border-radius: 4px;
   font-size: 11px;
   background: #fff;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .fp-condiciones {
