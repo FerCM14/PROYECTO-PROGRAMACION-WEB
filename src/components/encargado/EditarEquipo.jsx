@@ -103,12 +103,7 @@ export default function EditarEquipo() {
 }
 
 function FormularioEquipo({ existente }) {
-  const { CATEGORIAS,
-  PRODUCTOS,
-  obtenerProducto,
-  existeEquipo,
-  agregarProducto,
-  actualizarProducto } = useCatalogo()
+  const { CATEGORIAS, existeEquipo, agregarProducto, actualizarProducto } = useCatalogo()
   const navigate = useNavigate()
   const idEditar = existente?.id
   const editando = Boolean(existente)
@@ -141,7 +136,6 @@ function FormularioEquipo({ existente }) {
   const inputFotos = useRef(null)
   const lecturaEnCurso = useRef(false)
 
-  const totalUnidades = PRODUCTOS.reduce((suma, p) => suma + (obtenerProducto(p.id)?.unidades.length || 0), 0)
   const cantErrores = Object.entries(errores).filter(([campo, mensaje]) => campo !== 'general' && mensaje).length
   const cambiosSinGuardar = JSON.stringify(form) !== JSON.stringify(formGuardado) || Boolean(nuevoAccesorio.trim()) || procesandoFotos
 
@@ -307,7 +301,7 @@ function FormularioEquipo({ existente }) {
 
       <div className="eq-cuerpo">
         <aside className="eq-lateral">
-          <Operacion activo="inventario" totalInventario={totalUnidades} />
+          <Operacion activo="inventario" />
         </aside>
 
         <main className="eq-contenido">
@@ -445,7 +439,7 @@ function FormularioEquipo({ existente }) {
               </section>
             </div>
 
-            <div className="eq-columna eq-columna--lateral">
+            <div className="eq-columna">
               {/* ---------- Fotografías ---------- */}
               <section className="eq-tarjeta">
                 <h2 className="eq-seccion">Fotografías</h2>
@@ -503,7 +497,7 @@ function FormularioEquipo({ existente }) {
                     onDrop={alSoltar}
                   >
                     <p>Arrastra las fotografías</p>
-                    <p className="eq-soltar__sub">JPG o PNG · encuadre cuadrado</p>
+                    <p className="eq-soltar__sub">JPG o PNG · encuadre cuadrado · hasta {MAX_FOTOS} fotos</p>
                     <button
                       type="button"
                       className="eq-btn eq-btn--sec eq-btn--chico"

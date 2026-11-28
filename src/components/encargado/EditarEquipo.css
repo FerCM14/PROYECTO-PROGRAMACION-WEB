@@ -43,7 +43,7 @@
 
 .eq-titulo {
   margin: 0 0 16px;
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
 }
 
@@ -66,7 +66,7 @@
 .eq-tarjeta {
   background: #fff;
   border: 1px solid #dde3e6;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 16px;
 }
 
@@ -209,22 +209,23 @@
 /* ---------- Fotografías ---------- */
 
 .eq-fotos {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  --eq-lado-foto: clamp(72px, 6vw, 120px);
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: stretch;
 }
 
 .eq-fotos__slots {
   display: grid;
-  grid-template-columns: repeat(2, 76px);
+  grid-template-columns: repeat(2, var(--eq-lado-foto));
   gap: 8px;
 }
 
 .eq-slot {
   position: relative;
-  width: 76px;
-  height: 76px;
+  width: var(--eq-lado-foto);
+  height: var(--eq-lado-foto);
   padding: 0;
   border: 1px solid #cdd6da;
   border-radius: 4px;
@@ -284,8 +285,10 @@
 }
 
 .eq-slot__elegir:focus-visible,
-.eq-slot__quitar:focus-visible {
+.eq-slot__quitar:focus-visible,
+.eq-slot--vacia:focus-visible {
   outline: 2px solid #17505c;
+  outline-offset: -2px;
 }
 
 .eq-foto-catalogo {
@@ -305,6 +308,7 @@
 }
 
 .eq-soltar {
+  flex: 1 1 132px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -356,9 +360,14 @@
 
 .eq-acciones {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.eq-acciones .eq-btn {
+  min-height: 40px;
 }
 
 .eq-cancelar {
@@ -418,8 +427,7 @@
     border-bottom: 1px solid #dde3e6;
   }
   .eq-fila,
-  .eq-fila--nombre,
-  .eq-fotos {
+  .eq-fila--nombre {
     grid-template-columns: 1fr;
   }
 }
