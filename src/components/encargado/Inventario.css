@@ -372,9 +372,18 @@
   cursor: pointer;
 }
 
+.inv-modal__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inv-modal__estado--disponible { color: #1e7f4d; }
+.inv-modal__estado--mantenimiento { color: #925717; }
+.inv-modal__estado--baja { color: #b4322b; }
+
 .inv-modal__estado.is-activo {
-  background: #fff4dc;
-  border-color: #e0a526;
+  border-color: currentColor;
   font-weight: 600;
 }
 

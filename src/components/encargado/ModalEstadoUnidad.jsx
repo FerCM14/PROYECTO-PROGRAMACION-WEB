@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import './Inventario.css'
 
-const ESTADOS = ['Disponible', 'Prestada', 'Mantenimiento', 'De baja']
+const ESTADOS = [
+  { valor: 'Disponible', etiqueta: 'Disponible', clase: 'disponible' },
+  { valor: 'Mantenimiento', etiqueta: 'En mantenimiento', clase: 'mantenimiento' },
+  { valor: 'De baja', etiqueta: 'Dada de baja', clase: 'baja' }
+]
 
 export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, onCerrar, onGuardar }) {
   const [codigo, setCodigo] = useState(codigoInicial || unidades[0]?.codigo || '')
@@ -53,20 +57,14 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
         )}
 
         <p className="inv-modal__label">
-          {unidad ? `Estado actual: ${unidad.estado}` : 'La unidad seleccionada ya no está disponible en el inventario.'}
+          {unidad ? `Estado actual: ${ESTADOS.find((opcion) => opcion.valor === unidad.estado)?.etiqueta || unidad.estado}` : 'La unidad seleccionada ya no está disponible en el inventario.'}
         </p>
         <div className="inv-modal__estados" role="radiogroup" aria-label="Nuevo estado">
-          {ESTADOS.map((e) => (
-            <button
-              key={e}
-              type="button"
-              role="radio"
-              aria-checked={estado === e}
-              className={`inv-modal__estado ${estado === e ? 'is-activo' : ''}`}
-              onClick={() => setEstado(e)}
-            >
-              {e}
-            </button>
+          {ESTADOS.map(({ valor, etiqueta, clase }) => (
+            <label key={valor} className={`inv-modal__estado inv-modal__estado--${clase} ${estado === valor ? 'is-activo' : ''}`}>
+              <input type="radio" name="inv-nuevo-estado" checked={estado === valor} onChange={() => setEstado(valor)} />
+              {etiqueta}
+            </label>
           ))}
         </div>
 
