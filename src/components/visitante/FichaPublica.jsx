@@ -7,10 +7,6 @@ import FooterEstudiante from '../Footer/Footer-Estudiante'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import './FichaPublica.css'
 
-// Productos.js todavía no guarda la penalidad por equipo; si algún día
-// agregas `penalidad` al producto, se usará ese valor.
-const PENALIDAD_POR_DEFECTO = 20
-
 const ORDEN_ESTADOS = { Disponible: 0, Prestada: 1, Mantenimiento: 2 }
 
 function claseEstado(estado) {
@@ -80,7 +76,7 @@ function DetallePublico({ producto, categoria, recojo }) {
     : []
   const fotos = fotosGuardadas.length ? fotosGuardadas : [alternativa]
   const indiceFoto = fotoActiva < fotos.length ? fotoActiva : 0
-  const penalidad = Number(producto.penalizacion ?? producto.penalidad ?? PENALIDAD_POR_DEFECTO)
+  const penalidad = producto.penalizacion
 
   const unidades = [...producto.unidades].sort(
     (a, b) =>
@@ -90,11 +86,13 @@ function DetallePublico({ producto, categoria, recojo }) {
   const libres = unidades.filter((u) => u.estado === 'Disponible').length
 
   const textoDuracion =
-    producto.duracionMax == null ? 'Sin límite de días' : `Hasta ${producto.duracionMax} días calendario`
+    producto.duracionMax == null
+      ? 'sin límite de días'
+      : `de hasta ${producto.duracionMax} ${producto.duracionMax === 1 ? 'día calendario' : 'días calendario'}`
   const textoAutorizacion = producto.autorizacion
-    ? 'requiere autorización del docente'
-    : 'no requiere autorización adicional'
-  const textoRenovacion = producto.renovable ? 'admite una renovación' : 'no admite renovación'
+    ? 'Requiere la autorización del docente del curso asociado.'
+    : 'No requiere autorización del docente.'
+  const textoRenovacion = producto.renovable ? 'Admite renovación.' : 'No admite renovación.'
 
   return (
     <div className="fp-pagina">
@@ -152,8 +150,10 @@ function DetallePublico({ producto, categoria, recojo }) {
             <div className="fp-condiciones">
               <strong>Condiciones del préstamo</strong>
               <p>
-                <b>{textoDuracion}</b> · {textoAutorizacion} · {textoRenovacion} · penalidad de{' '}
-                <span className="fp-mono">S/ {penalidad.toFixed(2)}</span> por día de retraso.
+                Préstamo <b>{textoDuracion}</b>. {textoAutorizacion} <b>{textoRenovacion}</b>{' '}
+                {Number.isFinite(penalidad) ? (
+                  <>El retraso genera una penalidad de <span className="fp-mono">S/ {penalidad.toFixed(2)}</span> por día.</>
+                ) : 'La penalidad diaria aún no está informada.'}
               </p>
             </div>
           </section>
