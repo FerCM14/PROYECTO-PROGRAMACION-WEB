@@ -172,11 +172,12 @@ for (let i = PRODUCTOS.length - 1; i >= 0; i -= 1) {
 
 // ¿Ya existe un equipo con esa marca y modelo?
 export function existeEquipo(marca, modelo, ignorarId = null) {
+  const normalizarIdentificacion = (texto) => normalizar(texto).replace(/\s+/g, ' ')
   return PRODUCTOS.some(
     (p) =>
       p.id !== Number(ignorarId) &&
-      normalizar(p.marca) === normalizar(marca) &&
-      normalizar(p.modelo) === normalizar(modelo)
+      normalizarIdentificacion(p.marca) === normalizarIdentificacion(marca) &&
+      normalizarIdentificacion(p.modelo) === normalizarIdentificacion(modelo)
   )
 }
 
@@ -187,7 +188,18 @@ export function agregarProducto(datos) {
     return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
   }
 
-  const id = Math.max(0, ...PRODUCTOS.map((p) => p.id), ...eliminados) + 1
+  let nuevos
+  let id
+  const fallo = { ok: false, persistido: false, errores: { general: 'No se pudo guardar el equipo en este navegador.' } }
+  try {
+    nuevos = JSON.parse(localStorage.getItem(CLAVE_NUEVOS)) ?? []
+    const bajas = JSON.parse(localStorage.getItem(CLAVE_ELIMINADOS)) ?? []
+    if (!Array.isArray(nuevos) || !Array.isArray(bajas)) return fallo
+    id = Math.max(0, ...PRODUCTOS.map((p) => p.id), ...nuevos.map((item) => item.producto.id), ...eliminados, ...bajas) + 1
+    if (!Number.isSafeInteger(id)) return fallo
+  } catch {
+    return fallo
+  }
   const producto = {
     id,
     codigo: `INV-${String(id).padStart(4, '0')}`,
@@ -209,14 +221,11 @@ export function agregarProducto(datos) {
     estados: []
   }
 
+  if (!guardarJSON(CLAVE_NUEVOS, [...nuevos, { producto, detalle }])) return fallo
+
   PRODUCTOS.push(producto)
   DETALLES[id] = detalle
-
-  const guardado = guardarJSON(CLAVE_NUEVOS, [
-    ...(leerJSON(CLAVE_NUEVOS, []) || []),
-    { producto, detalle }
-  ])
-  return { ok: true, producto, persistido: guardado }
+  return { ok: true, producto, persistido: true }
 }
 
 // Actualiza un equipo existente (de ejemplo o creado antes)
@@ -236,30 +245,45 @@ export function actualizarProducto(id, datos) {
     fotos: datos.fotos || []
   }
   const cambiosDetalle = {
-    titulo: cambiosProducto.nombre,
     descripcion: datos.descripcion || '',
     accesorios: datos.accesorios || []
   }
 
+  const fallo = { ok: false, errores: { general: 'No se pudieron guardar los cambios en este navegador.' } }
+
+  try {
+    const bajas = JSON.parse(localStorage.getItem(CLAVE_ELIMINADOS)) ?? []
+    const nuevos = JSON.parse(localStorage.getItem(CLAVE_NUEVOS)) ?? []
+    if (!Array.isArray(bajas) || !Array.isArray(nuevos)) return fallo
+    if (bajas.includes(producto.id)) return { ok: false, errores: { general: 'El equipo ya no está en el inventario.' } }
+
+    const detalle = DETALLES[producto.id]
+    if (detalle?.titulo === producto.nombre) cambiosDetalle.titulo = cambiosProducto.nombre
+
+    const idx = nuevos.findIndex((n) => n.producto.id === producto.id)
+    if (idx >= 0) {
+      const registro = nuevos[idx]
+      nuevos[idx] = {
+        producto: { ...registro.producto, ...cambiosProducto },
+        detalle: { ...registro.detalle, ...cambiosDetalle }
+      }
+      if (!guardarJSON(CLAVE_NUEVOS, nuevos)) return fallo
+    } else {
+      const ediciones = JSON.parse(localStorage.getItem(CLAVE_EDICIONES)) ?? {}
+      if (typeof ediciones !== 'object' || Array.isArray(ediciones)) return fallo
+      const registro = ediciones[producto.id]
+      ediciones[producto.id] = {
+        producto: { ...registro?.producto, ...cambiosProducto },
+        detalle: { ...registro?.detalle, ...cambiosDetalle }
+      }
+      if (!guardarJSON(CLAVE_EDICIONES, ediciones)) return fallo
+    }
+  } catch {
+    return fallo
+  }
+
   Object.assign(producto, cambiosProducto)
-  DETALLES[producto.id] = {
-    ...(DETALLES[producto.id] || { prefijo: 'EQP', inicio: 1 }),
-    ...cambiosDetalle
-  }
-
-  // Si es un equipo creado desde la app, se actualiza su registro de alta;
-  // si es de ejemplo, se guarda como edición.
-  const nuevos = leerJSON(CLAVE_NUEVOS, []) || []
-  const idx = nuevos.findIndex((n) => n.producto.id === producto.id)
-  if (idx >= 0) {
-    nuevos[idx] = { producto: { ...nuevos[idx].producto, ...cambiosProducto }, detalle: { ...nuevos[idx].detalle, ...cambiosDetalle } }
-    guardarJSON(CLAVE_NUEVOS, nuevos)
-  } else {
-    const ediciones = leerJSON(CLAVE_EDICIONES, {}) || {}
-    ediciones[producto.id] = { producto: cambiosProducto, detalle: cambiosDetalle }
-    guardarJSON(CLAVE_EDICIONES, ediciones)
-  }
-
+  DETALLES[producto.id] = { ...DETALLES[producto.id], ...cambiosDetalle }
   return { ok: true, producto }
 }
 
@@ -327,8 +351,34 @@ export function cambiarEstadoUnidad(codigoUnidad, estado, motivo) {
 }
 
 export function registrarUnidadProducto(id, unidad) {
-  if (!obtenerProducto(id) || PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === unidad.codigo))) return {ok:false}
-  const todas = leerJSON('producto-unidades', {})
-  todas[id] = [...(todas[id] || []), { ...unidad, estado:'Disponible' }]
-  return {ok:guardarJSON('producto-unidades', todas)}
+  const producto = PRODUCTOS.find((p) => p.id === Number(id))
+  if (!producto) return { ok: false, motivo: 'equipo-inexistente' }
+
+  const normalizarCodigo = (codigo) => String(codigo ?? '').replace(/\s+/g, '').toUpperCase()
+  const codigo = normalizarCodigo(unidad?.codigo)
+  const ubicacion = String(unidad?.ubicacion ?? '').trim()
+  const observaciones = String(unidad?.observaciones ?? '').trim()
+  if (!/^INV-[A-Z]{3}-\d{4}$/.test(codigo) || !ubicacion) return { ok: false, motivo: 'datos-invalidos' }
+
+  const fallo = { ok: false, motivo: 'almacenamiento' }
+  const clave = 'producto-unidades'
+  try {
+    const todas = JSON.parse(localStorage.getItem(clave)) ?? {}
+    const estados = JSON.parse(localStorage.getItem('inventario-estados')) ?? {}
+    const bajas = JSON.parse(localStorage.getItem(CLAVE_ELIMINADOS)) ?? []
+    if (typeof todas !== 'object' || Array.isArray(todas) || !Object.values(todas).every(Array.isArray) ||
+        typeof estados !== 'object' || Array.isArray(estados) || !Array.isArray(bajas)) return fallo
+    if (bajas.includes(producto.id)) return { ok: false, motivo: 'equipo-inexistente' }
+
+    const coincide = (u) => normalizarCodigo(u?.codigo) === codigo
+    const enCatalogo = PRODUCTOS.some((p) => generarUnidades(p, DETALLES[p.id] || { prefijo: 'EQP', inicio: 1 }).some(coincide))
+    const enAlmacenamiento = Object.values(todas).some((lista) => lista.some(coincide))
+    const conEstadoGuardado = Object.keys(estados).some((claveEstado) => normalizarCodigo(claveEstado) === codigo)
+    if (enCatalogo || enAlmacenamiento || conEstadoGuardado) return { ok: false, motivo: 'codigo-duplicado' }
+
+    todas[producto.id] = [...(todas[producto.id] || []), { codigo, ubicacion, observaciones, estado: 'Disponible' }]
+    return guardarJSON(clave, todas) ? { ok: true } : fallo
+  } catch {
+    return fallo
+  }
 }

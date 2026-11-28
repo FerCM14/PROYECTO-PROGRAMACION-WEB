@@ -35,6 +35,32 @@
 }
 
 /* Migas y encabezado del equipo */
+.cp-tabla-unidades .cp-observaciones {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cp-nota-estado {
+  display: block;
+  margin-top: 4px;
+}
+
+.cp-modal-observaciones {
+  margin-top: 12px;
+}
+
+.cp-modal-observaciones textarea {
+  resize: vertical;
+}
+
+.cp-migas a {
+  color: inherit;
+}
+
+.cp-equipo-acciones a {
+  text-decoration: none;
+}
+
 .cp-migas {
   font-size: 12px;
   color: var(--cp-suave);
@@ -156,6 +182,13 @@
   border: 1px solid #bfe0cd;
 }
 
+.cp-aviso--registro-error {
+  margin: 12px 0 0;
+  border-color: #dca5a5;
+  background: #faeaea;
+  color: #b3261e;
+}
+
 /* Contenido: tabla + condiciones */
 .cp-contenido {
   display: grid;
@@ -181,7 +214,7 @@
   font-size: 12px;
 }
 
-.cp-tabla th {
+.cp-tabla thead th {
   text-align: left;
   padding: 11px 14px;
   font-size: 10px;
@@ -192,7 +225,8 @@
   background: #fafbfb;
 }
 
-.cp-tabla td {
+.cp-tabla td,
+.cp-tabla tbody th {
   padding: 13px 14px;
   border-bottom: 1px solid #edf0f1;
   vertical-align: middle;
@@ -447,6 +481,27 @@
   border-radius: 6px;
   padding: 22px;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.cp-modal-alta {
+  box-sizing: border-box;
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  overflow: auto;
+  border: 0;
+  color: inherit;
+}
+
+.cp-modal-alta .cp-modal-acciones {
+  flex-wrap: wrap;
+}
+
+.cp-modal-alta::backdrop {
+  background: rgba(18, 33, 31, 0.48);
+}
+
+.cp-modal-equipo {
+  margin: 0 0 16px;
 }
 
 .cp-modal h2 {

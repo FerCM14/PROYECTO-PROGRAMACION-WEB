@@ -1,12 +1,12 @@
 import { imagenEquipo } from '../../data/imagenes'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
-import { PRODUCTOS, obtenerProducto, obtenerCategoria, registrarUnidadProducto, cambiarEstadoUnidad } from '../../data/Producto'
+import { cambiarEstadoUnidad } from '../../data/Producto'
+import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import { obtenerPrestamos } from '../../data/Identificacion'
-import { useActualizacion } from '../../context/DatosContext'
 import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
 import './CondicionPrestamo.css'
 
@@ -39,22 +39,35 @@ function formatearSoles(valor) {
 }
 
 export default function CondicionPrestamo() {
+  const { obtenerProducto, obtenerCategoria } = useCatalogo()
   const [params] = useSearchParams()
-  const id = params.get('id') || PRODUCTOS[0]?.id
+  const id = params.get('id')
   const pestanaInicial = params.get('pestana') === 'condiciones' ? 'condiciones' : 'unidades'
   const producto = obtenerProducto(id)
-  if (!producto) return <div className="cp-pagina"><HeaderEncargado /><main className="cp-main"><h1>Equipo no encontrado</h1></main><FooterEncargado /></div>
-  return <CondicionEquipo key={`${producto.id}-${pestanaInicial}`} producto={producto} pestanaInicial={pestanaInicial} />
+  if (!producto) {
+    return (
+      <div className="cp-pagina">
+        <HeaderEncargado />
+        <main className="cp-main">
+          <h1>Equipo no encontrado</h1>
+          <p>Selecciona un equipo del inventario para consultar sus unidades.</p>
+          <Link to="/encargado/inventario">Volver al inventario</Link>
+        </main>
+        <FooterEncargado />
+      </div>
+    )
+  }
+  const categoria = obtenerCategoria(producto.categoria)?.nombre || producto.categoria
+  return <CondicionEquipo key={`${producto.id}-${pestanaInicial}`} producto={producto} categoria={categoria} pestanaInicial={pestanaInicial} />
 }
 
-function CondicionEquipo({ producto, pestanaInicial }) {
-  useActualizacion()
-  const navigate = useNavigate()
-  const EQUIPO = { ...producto, categoria: obtenerCategoria(producto.categoria)?.nombre || producto.categoria }
+function CondicionEquipo({ producto, categoria, pestanaInicial }) {
+  const { registrarUnidadProducto, RECOJO } = useCatalogo()
   const CLAVE_CONDICIONES = `condiciones-${producto.id}`
   const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
   const [condiciones, setCondiciones] = useState(guardadas)
-  const unidades = obtenerProducto(producto.id).unidades.map((u) => ({...u, ubicacion:u.ubicacion || 'Almacén H-102', observaciones:u.observaciones || u.nota || ''}))
+  const unidades = producto.unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || RECOJO.lugar }))
+  const disponibles = unidades.filter((u) => u.estado === 'Disponible').length
   const solicitudes = obtenerTodasLasSolicitudes()
   const [pestana, setPestana] = useState(pestanaInicial)
   const tituloCondiciones = useRef(null)
@@ -74,7 +87,8 @@ function CondicionEquipo({ producto, pestanaInicial }) {
   }, [mensaje])
 
   const pendientes = solicitudes.filter((s) => s.estado === 'Enviada').length
-  const prestamoPorUnidad = Object.fromEntries(obtenerPrestamos().filter((p) => p.estado === 'Entregado').map((p) => [p.unidad,p.codigo]))
+  const prestamosVigentes = obtenerPrestamos().filter((p) => p.estado === 'Entregado')
+  const prestamoPorUnidad = Object.fromEntries(prestamosVigentes.map((p) => [p.unidad, p.codigo]))
   const historial = solicitudes.filter((s) => unidades.some((u) => u.codigo === s.unidad))
 
   const hayCambios = JSON.stringify(condiciones) !== JSON.stringify(guardadas)
@@ -97,11 +111,12 @@ function CondicionEquipo({ producto, pestanaInicial }) {
     setMensaje('Condiciones guardadas')
   }
 
-  function registrarUnidad({ codigo, ubicacion }) {
-    const resultado = registrarUnidadProducto(producto.id, { codigo, ubicacion })
-    if (!resultado.ok) { setMensaje('No se pudo registrar: el código ya existe.'); return }
+  function registrarUnidad({ codigo, ubicacion, observaciones }) {
+    const resultado = registrarUnidadProducto(producto.id, { codigo, ubicacion, observaciones })
+    if (!resultado.ok) return resultado
     setModalAbierto(false)
-    setMensaje(`Unidad ${codigo} registrada`)
+    setMensaje(`La unidad ${codigo} se registró como disponible.`)
+    return resultado
   }
 
   function confirmarBaja(e) {
@@ -126,28 +141,28 @@ function CondicionEquipo({ producto, pestanaInicial }) {
 
         <main className="cp-main">
           <nav className="cp-migas" aria-label="Ruta de navegación">
-            Inventario / {EQUIPO.categoria} / {EQUIPO.nombre}
+            <Link to="/encargado/inventario">Inventario</Link> / {categoria} / {producto.nombre}
           </nav>
 
           <header className="cp-equipo">
             <div className="cp-equipo-foto"><img src={imagenEquipo(producto)} alt={producto.nombre} /></div>
             <div className="cp-equipo-datos">
-              <h1>{EQUIPO.nombre}</h1>
+              <h1>{producto.nombre}</h1>
               <p>
-                {EQUIPO.marca} · {EQUIPO.modelo} · {unidades.length}{' '}
-                {unidades.length === 1 ? 'unidad registrada' : 'unidades registradas'} · Almacén H-102
+                {producto.marca} · {producto.modelo} · {unidades.length}{' '}
+                {unidades.length === 1 ? 'unidad registrada' : 'unidades registradas'}
+                {' · '}{disponibles} {disponibles === 1 ? 'disponible' : 'disponibles'}
               </p>
               <p>{producto.descripcion}</p>
               <p>Accesorios: {producto.accesorios.join(', ') || 'Sin accesorios registrados'}</p>
             </div>
             <div className="cp-equipo-acciones">
-              <button
-                type="button"
+              <Link
                 className="cp-btn cp-btn-secundario"
-                onClick={() => navigate(`/encargado/editar-equipo?id=${producto.id}`)}
+                to={`/encargado/editar-equipo?id=${producto.id}`}
               >
                 Editar equipo
-              </button>
+              </Link>
               <button
                 type="button"
                 className="cp-btn cp-btn-primario"
@@ -183,7 +198,7 @@ function CondicionEquipo({ producto, pestanaInicial }) {
             </p>
           )}
 
-          {unidades.length === 0 && pestana !== 'condiciones' ? (
+          {unidades.length === 0 && pestana === 'unidades' ? (
             <EstadoVacio onNueva={() => setModalAbierto(true)} />
           ) : (
             <div className="cp-contenido">
@@ -286,7 +301,7 @@ function CondicionEquipo({ producto, pestanaInicial }) {
       {baja && <div className="cp-overlay"><form className="cp-modal" role="dialog" aria-modal="true" aria-labelledby="cp-baja-titulo" onSubmit={confirmarBaja}><h2 id="cp-baja-titulo">Dar de baja unidad</h2><p>{producto.nombre} · Modelo {producto.modelo} · {baja.codigo}</p><label className="cp-modal-campo">Motivo de baja<textarea autoFocus required className="cp-input" value={motivoBaja} onChange={(e) => setMotivoBaja(e.target.value)} /></label><div className="cp-modal-acciones"><button type="button" className="cp-btn cp-btn-secundario" onClick={() => setBaja(null)}>Cancelar</button><button type="submit" className="cp-btn cp-btn-peligro" disabled={!motivoBaja.trim()}>Dar de baja</button></div></form></div>}
       {modalAbierto && (
         <ModalAltaUnidad
-          existentes={unidades.map((u) => u.codigo)}
+          nombreEquipo={producto.nombre}
           onCancelar={() => setModalAbierto(false)}
           onRegistrar={registrarUnidad}
         />
@@ -321,26 +336,31 @@ function Estado({ estado }) {
 function TablaUnidades({ unidades, prestamos, onBaja }) {
   return (
     <div className="cp-tabla-caja">
-      <table className="cp-tabla">
+      <table className="cp-tabla cp-tabla-unidades" aria-label="Unidades del equipo">
         <thead>
           <tr>
-            <th>Código</th>
-            <th>Ubicación</th>
-            <th>Estado</th>
-            <th>Observaciones</th>
-            <th>Préstamo vigente</th><th>Acción</th>
+            <th scope="col">Código</th>
+            <th scope="col">Ubicación</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Observaciones</th>
+            <th scope="col">Préstamo vigente</th>
+            <th scope="col">Acción</th>
           </tr>
         </thead>
         <tbody>
           {unidades.map((u) => (
             <tr key={u.codigo}>
-              <td className="cp-codigo">{u.codigo}</td>
+              <th scope="row" className="cp-codigo">{u.codigo}</th>
               <td className="cp-suave">{u.ubicacion}</td>
               <td>
                 <Estado estado={u.estado} />
               </td>
-              <td className="cp-suave">{u.observaciones || '—'}</td>
-              <td className="cp-codigo">{prestamos[u.codigo] || '—'}</td><td><button type="button" className="cp-btn cp-btn-secundario" disabled={u.estado === 'De baja'} onClick={() => onBaja(u)}>Dar de baja</button></td>
+              <td className="cp-suave cp-observaciones">
+                {String(u.observaciones ?? '').trim() || '—'}
+                {u.nota && <small className="cp-nota-estado">Nota de estado: {u.nota}</small>}
+              </td>
+              <td className="cp-codigo">{prestamos[u.codigo] || '—'}</td>
+              <td><button type="button" className="cp-btn cp-btn-secundario" disabled={u.estado === 'De baja'} onClick={() => onBaja(u)}>Dar de baja</button></td>
             </tr>
           ))}
         </tbody>
@@ -393,45 +413,66 @@ function EstadoVacio({ onNueva }) {
         +
       </button>
       <h2>Este equipo aún no tiene unidades</h2>
-      <p>Registra al menos una unidad con su código de inventario para que aparezca en el catálogo.</p>
+      <p>Registra al menos una unidad con su código de inventario para que el equipo pueda aparecer en el catálogo.</p>
     </section>
   )
 }
 
-function ModalAltaUnidad({ existentes, onCancelar, onRegistrar }) {
+function ModalAltaUnidad({ nombreEquipo, onCancelar, onRegistrar }) {
   const [codigo, setCodigo] = useState('')
-  const [ubicacion, setUbicacion] = useState(UBICACIONES[0])
+  const [ubicacion, setUbicacion] = useState('')
+  const [observaciones, setObservaciones] = useState('')
   const [error, setError] = useState('')
+  const [errorUbicacion, setErrorUbicacion] = useState('')
+  const [errorRegistro, setErrorRegistro] = useState('')
   const campoCodigo = useRef(null)
+  const dialogo = useRef(null)
 
   useEffect(() => {
+    const modal = dialogo.current
+    modal.showModal()
     campoCodigo.current?.focus()
-    function alTeclear(e) {
-      if (e.key === 'Escape') onCancelar()
-    }
-    document.addEventListener('keydown', alTeclear)
-    return () => document.removeEventListener('keydown', alTeclear)
-  }, [onCancelar])
+    return () => modal.close()
+  }, [])
 
   function enviar(e) {
     e.preventDefault()
-    const limpio = codigo.trim().toUpperCase()
+    setErrorRegistro('')
+    const limpio = codigo.replace(/\s+/g, '').toUpperCase()
+    const ubicacionValida = UBICACIONES.includes(ubicacion)
+    setErrorUbicacion(ubicacionValida ? '' : 'Selecciona una ubicación de la lista.')
 
+    if (!limpio) {
+      setError('Ingresa el código de inventario.')
+      return
+    }
     if (!FORMATO_CODIGO.test(limpio)) {
-      setError('El código debe tener el formato INV-XXX-0000.')
+      setError('Usa INV-, tres letras y cuatro dígitos. Ejemplo: INV-OSC-0042.')
       return
     }
-    if (existentes.includes(limpio)) {
+    if (!ubicacionValida) return
+
+    const resultado = onRegistrar({ codigo: limpio, ubicacion, observaciones: observaciones.trim() })
+    if (resultado.motivo === 'codigo-duplicado') {
       setError('Ya existe una unidad con ese código en el almacén.')
-      return
+    } else if (resultado.motivo === 'equipo-inexistente') {
+      setErrorRegistro('El equipo ya no está en el inventario.')
+    } else if (!resultado.ok) {
+      setErrorRegistro('No se pudo guardar la unidad en este navegador. Inténtalo de nuevo.')
     }
-    onRegistrar({ codigo: limpio, ubicacion })
   }
 
   return (
-    <div className="cp-overlay" onMouseDown={(e) => e.target === e.currentTarget && onCancelar()}>
-      <form className="cp-modal" role="dialog" aria-modal="true" aria-labelledby="cp-modal-titulo" onSubmit={enviar} noValidate>
+    <dialog
+      ref={dialogo}
+      className="cp-modal cp-modal-alta"
+      aria-labelledby="cp-modal-titulo"
+      aria-describedby="cp-modal-equipo"
+      onCancel={onCancelar}
+    >
+      <form onSubmit={enviar} noValidate>
         <h2 id="cp-modal-titulo">Nueva unidad</h2>
+        <p id="cp-modal-equipo" className="cp-modal-equipo">{nombreEquipo}</p>
 
         <div className="cp-modal-fila">
           <div className="cp-modal-campo">
@@ -441,15 +482,19 @@ function ModalAltaUnidad({ existentes, onCancelar, onRegistrar }) {
             <input
               id="cp-codigo"
               ref={campoCodigo}
-              className={`cp-input ${error ? 'cp-input-error' : ''}`}
+              className={`cp-input cp-codigo ${error ? 'cp-input-error' : ''}`}
               placeholder="INV-OSC-0047"
+              autoComplete="off"
               value={codigo}
+              required
+              aria-invalid={Boolean(error)}
+              aria-describedby="cp-codigo-ayuda"
               onChange={(e) => {
                 setCodigo(e.target.value)
                 setError('')
               }}
             />
-            <small className={error ? 'cp-ayuda cp-ayuda-error' : 'cp-ayuda'}>
+            <small id="cp-codigo-ayuda" className={error ? 'cp-ayuda cp-ayuda-error' : 'cp-ayuda'}>
               {error || 'Formato INV-XXX-0000, único en el almacén.'}
             </small>
           </div>
@@ -460,19 +505,39 @@ function ModalAltaUnidad({ existentes, onCancelar, onRegistrar }) {
             </label>
             <select
               id="cp-ubicacion"
-              className="cp-input"
+              className={`cp-input ${errorUbicacion ? 'cp-input-error' : ''}`}
               value={ubicacion}
-              onChange={(e) => setUbicacion(e.target.value)}
+              required
+              aria-invalid={Boolean(errorUbicacion)}
+              aria-describedby={errorUbicacion ? 'cp-ubicacion-error' : undefined}
+              onChange={(e) => {
+                setUbicacion(e.target.value)
+                setErrorUbicacion('')
+              }}
             >
+              <option value="" disabled>Selecciona una ubicación</option>
               {UBICACIONES.map((u) => (
                 <option key={u} value={u}>
                   {u}
                 </option>
               ))}
             </select>
+            {errorUbicacion && <small id="cp-ubicacion-error" className="cp-ayuda cp-ayuda-error">{errorUbicacion}</small>}
           </div>
         </div>
 
+        <div className="cp-modal-campo cp-modal-observaciones">
+          <label className="cp-etiqueta" htmlFor="cp-observaciones">Observaciones (opcional)</label>
+          <textarea
+            id="cp-observaciones"
+            className="cp-input"
+            rows={3}
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+          />
+        </div>
+
+        {errorRegistro && <p className="cp-aviso cp-aviso--registro-error" role="alert">{errorRegistro}</p>}
         <div className="cp-modal-acciones">
           <button type="button" className="cp-btn cp-btn-secundario" onClick={onCancelar}>
             Cancelar
@@ -482,6 +547,6 @@ function ModalAltaUnidad({ existentes, onCancelar, onRegistrar }) {
           </button>
         </div>
       </form>
-    </div>
+    </dialog>
   )
 }
