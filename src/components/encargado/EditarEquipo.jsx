@@ -49,8 +49,13 @@ function procesarImagen(archivo) {
         const canvas = document.createElement('canvas')
         canvas.width = salida
         canvas.height = salida
-        canvas.getContext('2d').drawImage(img, sx, sy, lado, lado, 0, 0, salida, salida)
-        resolve(canvas.toDataURL('image/jpeg', 0.85))
+        try {
+          if (!salida) throw new Error('imagen vacía')
+          canvas.getContext('2d').drawImage(img, sx, sy, lado, lado, 0, 0, salida, salida)
+          resolve(canvas.toDataURL('image/jpeg', 0.85))
+        } catch (error) {
+          reject(error)
+        }
       }
       img.src = lector.result
     }
@@ -110,7 +115,9 @@ function FormularioEquipo({ existente }) {
   const [nuevoAccesorio, setNuevoAccesorio] = useState('')
   const [errorAccesorio, setErrorAccesorio] = useState('')
   const [arrastrando, setArrastrando] = useState(false)
+  const [procesandoFotos, setProcesandoFotos] = useState(false)
   const inputFotos = useRef(null)
+  const lecturaEnCurso = useRef(false)
 
   const totalUnidades = PRODUCTOS.reduce((suma, p) => suma + (obtenerProducto(p.id)?.unidades.length || 0), 0)
   const cantErrores = Object.keys(errores).length
@@ -147,24 +154,31 @@ function FormularioEquipo({ existente }) {
 
   async function recibirArchivos(lista) {
     const archivos = Array.from(lista || [])
-    if (!archivos.length) return
+    if (!archivos.length || lecturaEnCurso.current) return
 
-    const validos = archivos.filter((a) => ['image/jpeg', 'image/png'].includes(a.type))
-    const descartados = archivos.length - validos.length
-    const cupo = MAX_FOTOS - form.fotos.length
+    const validos = archivos.filter((a) =>
+      /\.(jpe?g|png)$/i.test(a.name) && (!a.type || ['image/jpeg', 'image/png'].includes(a.type))
+    )
+    const cupo = Math.max(0, MAX_FOTOS - form.fotos.length)
+    const mensajes = []
+    if (validos.length !== archivos.length) mensajes.push('Solo se aceptan archivos JPG, JPEG o PNG.')
+    if (validos.length > cupo) mensajes.push(`Máximo ${MAX_FOTOS} fotografías por equipo.`)
 
-    let mensaje = ''
-    if (descartados) mensaje = 'Solo se aceptan archivos JPG o PNG.'
-    if (validos.length > cupo) mensaje = `Máximo ${MAX_FOTOS} fotografías por equipo.`
-    setMensajeFotos(mensaje)
+    const aceptados = validos.slice(0, cupo)
+    setMensajeFotos(mensajes.join(' '))
+    if (!aceptados.length) return
 
-    const aceptados = validos.slice(0, Math.max(0, cupo))
-    try {
-      const imagenes = await Promise.all(aceptados.map(procesarImagen))
+    lecturaEnCurso.current = true
+    setProcesandoFotos(true)
+    const resultados = await Promise.allSettled(aceptados.map(procesarImagen))
+    const imagenes = resultados.filter((r) => r.status === 'fulfilled').map((r) => r.value)
+    if (imagenes.length) {
       setForm((f) => ({ ...f, fotos: [...f.fotos, ...imagenes].slice(0, MAX_FOTOS) }))
-    } catch {
-      setMensajeFotos('No se pudo leer una de las imágenes. Prueba con otra.')
     }
+    if (imagenes.length !== aceptados.length) mensajes.push('No se pudieron leer algunas fotografías.')
+    setMensajeFotos(mensajes.join(' '))
+    lecturaEnCurso.current = false
+    setProcesandoFotos(false)
   }
 
   function alElegir(e) {
@@ -202,6 +216,7 @@ function FormularioEquipo({ existente }) {
 
   function guardarEquipo(evento) {
     evento.preventDefault()
+    if (lecturaEnCurso.current) return
 
     const datos = {
       ...form,
@@ -234,6 +249,7 @@ function FormularioEquipo({ existente }) {
   }
 
   function guardarBorrador() {
+    if (lecturaEnCurso.current) return
     try {
       localStorage.setItem(CLAVE_BORRADOR, JSON.stringify(form))
       setAvisoBorrador('Borrador guardado en este navegador.')
@@ -417,6 +433,7 @@ function FormularioEquipo({ existente }) {
                           className="eq-slot eq-slot--vacia"
                           onClick={() => inputFotos.current?.click()}
                           aria-label="Agregar fotografía"
+                          disabled={procesandoFotos}
                         >
                           {i === 0 && <span className="eq-slot__principal">principal</span>}
                         </button>
@@ -439,7 +456,7 @@ function FormularioEquipo({ existente }) {
                       type="button"
                       className="eq-btn eq-btn--sec eq-btn--chico"
                       onClick={() => inputFotos.current?.click()}
-                      disabled={form.fotos.length >= MAX_FOTOS}
+                      disabled={procesandoFotos || form.fotos.length >= MAX_FOTOS}
                     >
                       Elegir desde tu equipo
                     </button>
@@ -449,12 +466,13 @@ function FormularioEquipo({ existente }) {
                 <input
                   ref={inputFotos}
                   type="file"
-                  accept="image/jpeg,image/png"
+                  accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                   multiple
                   hidden
                   onChange={alElegir}
                 />
-                {mensajeFotos && <p className="eq-error">{mensajeFotos}</p>}
+                {procesandoFotos && <p className="eq-ayuda" role="status">Procesando fotografías…</p>}
+                {mensajeFotos && <p className="eq-error" role="alert">{mensajeFotos}</p>}
               </section>
 
               {/* Solo aparece cuando falla la validación */}
@@ -470,11 +488,11 @@ function FormularioEquipo({ existente }) {
               <div className="eq-acciones">
                 <Link to={RUTA_INVENTARIO} className="eq-cancelar">Cancelar</Link>
                 {!editando && (
-                  <button type="button" className="eq-btn eq-btn--sec" onClick={guardarBorrador}>
+                  <button type="button" className="eq-btn eq-btn--sec" onClick={guardarBorrador} disabled={procesandoFotos}>
                     Guardar borrador
                   </button>
                 )}
-                <button type="submit" className="eq-btn eq-btn--pri">Guardar equipo</button>
+                <button type="submit" className="eq-btn eq-btn--pri" disabled={procesandoFotos}>Guardar equipo</button>
               </div>
               {avisoBorrador && <p className="eq-ayuda eq-ayuda--der">{avisoBorrador}</p>}
             </div>
