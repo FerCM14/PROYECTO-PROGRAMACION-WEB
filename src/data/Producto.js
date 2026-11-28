@@ -171,13 +171,19 @@ for (let i = PRODUCTOS.length - 1; i >= 0; i -= 1) {
 }
 
 // ¿Ya existe un equipo con esa marca y modelo?
+export const MENSAJE_EQUIPO_DUPLICADO = 'Ya existe un equipo con esta marca y modelo.'
+
 export function existeEquipo(marca, modelo, ignorarId = null) {
   const normalizarIdentificacion = (texto) => normalizar(texto).replace(/\s+/g, ' ')
+  const marcaBuscada = normalizarIdentificacion(marca)
+  const modeloBuscado = normalizarIdentificacion(modelo)
+  if (!marcaBuscada || !modeloBuscado) return false
+
   return PRODUCTOS.some(
     (p) =>
       p.id !== Number(ignorarId) &&
-      normalizarIdentificacion(p.marca) === normalizarIdentificacion(marca) &&
-      normalizarIdentificacion(p.modelo) === normalizarIdentificacion(modelo)
+      normalizarIdentificacion(p.marca) === marcaBuscada &&
+      normalizarIdentificacion(p.modelo) === modeloBuscado
   )
 }
 
@@ -185,7 +191,7 @@ export function existeEquipo(marca, modelo, ignorarId = null) {
 // Devuelve { ok: true, producto } o { ok: false, errores: { campo: mensaje } }
 export function agregarProducto(datos) {
   if (existeEquipo(datos.marca, datos.modelo)) {
-    return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
+    return { ok: false, errores: { modelo: MENSAJE_EQUIPO_DUPLICADO } }
   }
 
   let nuevos
@@ -234,7 +240,7 @@ export function actualizarProducto(id, datos) {
   if (!producto) return { ok: false, errores: { general: 'No se encontró el equipo.' } }
 
   if (existeEquipo(datos.marca, datos.modelo, id)) {
-    return { ok: false, errores: { modelo: 'Ya existe un equipo con esta marca y modelo.' } }
+    return { ok: false, errores: { modelo: MENSAJE_EQUIPO_DUPLICADO } }
   }
 
   const cambiosProducto = {
@@ -342,12 +348,26 @@ export function eliminarProducto(id) {
 }
 
 export function cambiarEstadoUnidad(codigoUnidad, estado, motivo) {
-  const encontrada = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === codigoUnidad))
-  if (!encontrada) return { ok: false }
-  const cambios = leerJSON('inventario-estados', {})
-  cambios[codigoUnidad] = { ...cambios[codigoUnidad], estado, ...(motivo ? { nota: motivo, motivoBaja: motivo } : {}) }
-  if (motivo === '') cambios[codigoUnidad].nota = ''
-  return { ok: guardarJSON('inventario-estados', cambios) }
+  if (!['Disponible', 'Prestada', 'Mantenimiento', 'De baja'].includes(estado)) {
+    return { ok: false, motivo: 'estado-invalido' }
+  }
+
+  const fallo = { ok: false, motivo: 'almacenamiento' }
+  try {
+    const encontrada = PRODUCTOS.some((p) => obtenerProducto(p.id).unidades.some((u) => u.codigo === codigoUnidad))
+    if (!encontrada) return { ok: false, motivo: 'unidad-inexistente' }
+    const cambios = JSON.parse(localStorage.getItem('inventario-estados')) ?? {}
+    if (typeof cambios !== 'object' || Array.isArray(cambios)) return fallo
+
+    const cambio = { ...cambios[codigoUnidad], estado }
+    if (typeof motivo === 'string') cambio.nota = motivo
+    if (estado === 'De baja' && motivo) cambio.motivoBaja = motivo
+    cambios[codigoUnidad] = cambio
+
+    return guardarJSON('inventario-estados', cambios) ? { ok: true } : fallo
+  } catch {
+    return fallo
+  }
 }
 
 export function registrarUnidadProducto(id, unidad) {

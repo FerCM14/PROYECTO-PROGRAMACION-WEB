@@ -5,6 +5,7 @@ import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
+import ModalEstadoUnidad from './ModalEstadoUnidad'
 import './Inventario.css'
 
 const ESTADOS = ['Disponible', 'Prestada', 'Mantenimiento', 'De baja']
@@ -37,94 +38,6 @@ function ResumenUnidades({ conteo }) {
   ))
 }
 
-function ModalEstado({ producto, unidades, onCerrar, onGuardar }) {
-  const [codigo, setCodigo] = useState(unidades[0]?.codigo || '')
-  const unidad = unidades.find((u) => u.codigo === codigo)
-  const [estado, setEstado] = useState(unidad?.estado || 'Disponible')
-  const [nota, setNota] = useState(unidad?.nota || '')
-
-  useEffect(() => {
-    const alTeclear = (e) => e.key === 'Escape' && onCerrar()
-    window.addEventListener('keydown', alTeclear)
-    return () => window.removeEventListener('keydown', alTeclear)
-  }, [onCerrar])
-
-  function elegirUnidad(nuevoCodigo) {
-    const u = unidades.find((x) => x.codigo === nuevoCodigo)
-    setCodigo(nuevoCodigo)
-    setEstado(u?.estado || 'Disponible')
-    setNota(u?.nota || '')
-  }
-
-  return (
-    <div className="inv-modal__fondo" onClick={onCerrar}>
-      <div
-        className="inv-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="inv-modal-titulo"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 id="inv-modal-titulo" className="inv-modal__titulo">Cambiar el estado de la unidad</h2>
-        <p className="inv-modal__sub">{producto.nombre}</p>
-
-        <label className="inv-modal__label" htmlFor="inv-unidad">Unidad</label>
-        <select
-          id="inv-unidad"
-          className="inv-modal__select"
-          value={codigo}
-          onChange={(e) => elegirUnidad(e.target.value)}
-        >
-          {unidades.map((u) => (
-            <option key={u.codigo} value={u.codigo}>
-              {u.codigo}
-            </option>
-          ))}
-        </select>
-
-        <div className="inv-modal__estados" role="radiogroup" aria-label="Nuevo estado">
-          {ESTADOS.map((e) => (
-            <button
-              key={e}
-              type="button"
-              role="radio"
-              aria-checked={estado === e}
-              className={`inv-modal__estado ${estado === e ? 'is-activo' : ''}`}
-              onClick={() => setEstado(e)}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
-
-        <label className="inv-modal__label" htmlFor="inv-nota">Motivo (opcional)</label>
-        <textarea
-          id="inv-nota"
-          className="inv-modal__nota"
-          rows={2}
-          value={nota}
-          onChange={(e) => setNota(e.target.value)}
-          placeholder="Ej.: lente con hongos; enviada al servicio técnico."
-        />
-
-        <div className="inv-modal__acciones">
-          <button type="button" className="inv-btn inv-btn--sec" onClick={onCerrar}>
-            Cancelar
-          </button>
-          <button
-            type="button"
-            className="inv-btn inv-btn--pri"
-            disabled={!codigo}
-            onClick={() => onGuardar(codigo, estado, nota)}
-          >
-            Guardar estado
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function ModalEliminar({ producto, onCerrar, onConfirmar }) {
   const modal = useRef(null)
 
@@ -155,7 +68,7 @@ function ModalEliminar({ producto, onCerrar, onConfirmar }) {
 export default function Inventario() {
   const { pathname, search, hash, state } = useLocation()
   const navigate = useNavigate()
-  const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, cambiarEstadoUnidad, eliminarProducto } = useCatalogo()
+  const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, eliminarProducto, cambiarEstadoUnidadManual } = useCatalogo()
   const [seleccionado, setSeleccionado] = useState(null)
   const [pagina, setPagina] = useState(1)
   const [categoria, setCategoria] = useState('')
@@ -179,12 +92,13 @@ export default function Inventario() {
   })
 
   function guardar(codigo, estado, nota) {
-    const resultado = cambiarEstadoUnidad(codigo, estado, nota)
+    const resultado = cambiarEstadoUnidadManual(codigo, estado, nota)
+    if (!resultado.ok) return resultado
     setAviso({
-      error: !resultado.ok,
-      texto: resultado.ok ? `Se actualizó el estado de ${codigo}.` : `No se pudo guardar el estado de ${codigo}.`
+      texto: `Se actualizó el estado de ${codigo}.`
     })
     setSeleccionado(null)
+    return resultado
   }
 
   function buscar(codigo) {
@@ -329,6 +243,7 @@ export default function Inventario() {
                     <button
                       type="button"
                       className="inv-celda-estados"
+                      disabled={!conteo.Disponible && !conteo.Prestada && !conteo.Mantenimiento && !conteo['De baja']}
                       onClick={() => setSeleccionado(p.id)}
                       aria-label={`Cambiar estado de unidades de ${p.nombre}`}
                     >
@@ -418,8 +333,8 @@ export default function Inventario() {
         />
       )}
 
-      {filaModal && (
-        <ModalEstado
+      {filaModal && filaModal.unidades.length > 0 && (
+        <ModalEstadoUnidad
           key={filaModal.producto.id}
           producto={filaModal.producto}
           unidades={filaModal.unidades}

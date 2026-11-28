@@ -4,8 +4,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
-import { cambiarEstadoUnidad } from '../../data/Producto'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
+import ModalEstadoUnidad from './ModalEstadoUnidad'
 import { obtenerPrestamos } from '../../data/Identificacion'
 import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
 import './CondicionPrestamo.css'
@@ -62,18 +62,16 @@ export default function CondicionPrestamo() {
 }
 
 function CondicionEquipo({ producto, categoria, pestanaInicial }) {
-  const { registrarUnidadProducto, RECOJO } = useCatalogo()
+  const { registrarUnidadProducto, cambiarEstadoUnidadManual, RECOJO } = useCatalogo()
   const CLAVE_CONDICIONES = `condiciones-${producto.id}`
   const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
   const [condiciones, setCondiciones] = useState(guardadas)
   const unidades = producto.unidades.map((u) => ({ ...u, ubicacion: u.ubicacion || RECOJO.lugar }))
-  const disponibles = unidades.filter((u) => u.estado === 'Disponible').length
   const solicitudes = obtenerTodasLasSolicitudes()
   const [pestana, setPestana] = useState(pestanaInicial)
   const tituloCondiciones = useRef(null)
   const [modalAbierto, setModalAbierto] = useState(false)
-  const [baja, setBaja] = useState(null)
-  const [motivoBaja, setMotivoBaja] = useState('')
+  const [unidadSeleccionada, setUnidadSeleccionada] = useState(null)
   const [mensaje, setMensaje] = useState('')
 
   useEffect(() => {
@@ -119,12 +117,13 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
     return resultado
   }
 
-  function confirmarBaja(e) {
-    e.preventDefault()
-    if (obtenerPrestamos().some((p) => p.unidad === baja.codigo && p.estado !== 'Devuelto')) { setMensaje('No se puede dar de baja una unidad con un préstamo pendiente.'); setBaja(null); return }
-    cambiarEstadoUnidad(baja.codigo, 'De baja', motivoBaja.trim())
-    setBaja(null)
-    setMensaje('Unidad dada de baja. Se registró el motivo en el inventario.')
+  function guardarEstado(codigo, estado, motivo) {
+    const resultado = cambiarEstadoUnidadManual(codigo, estado, motivo)
+    if (resultado.ok) {
+      setMensaje(`Se actualizó el estado de ${codigo}.`)
+      setUnidadSeleccionada(null)
+    }
+    return resultado
   }
 
   const textoRenovacion = condiciones.admiteRenovacion ? 'Admite renovación.' : 'No admite renovación.'
@@ -151,10 +150,8 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
               <p>
                 {producto.marca} · {producto.modelo} · {unidades.length}{' '}
                 {unidades.length === 1 ? 'unidad registrada' : 'unidades registradas'}
-                {' · '}{disponibles} {disponibles === 1 ? 'disponible' : 'disponibles'}
+                {' · '}{RECOJO.lugar}
               </p>
-              <p>{producto.descripcion}</p>
-              <p>Accesorios: {producto.accesorios.join(', ') || 'Sin accesorios registrados'}</p>
             </div>
             <div className="cp-equipo-acciones">
               <Link
@@ -205,7 +202,7 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
               {pestana === 'historial' ? (
                 <TablaHistorial historial={historial} />
               ) : unidades.length > 0 && (
-                <TablaUnidades unidades={unidades} prestamos={prestamoPorUnidad} onBaja={(u) => { setBaja(u); setMotivoBaja('') }} />
+                <TablaUnidades unidades={unidades} prestamos={prestamoPorUnidad} onCambiarEstado={setUnidadSeleccionada} />
               )}
 
               {pestana !== 'historial' && (
@@ -298,7 +295,16 @@ function CondicionEquipo({ producto, categoria, pestanaInicial }) {
 
       <FooterEncargado />
 
-      {baja && <div className="cp-overlay"><form className="cp-modal" role="dialog" aria-modal="true" aria-labelledby="cp-baja-titulo" onSubmit={confirmarBaja}><h2 id="cp-baja-titulo">Dar de baja unidad</h2><p>{producto.nombre} · Modelo {producto.modelo} · {baja.codigo}</p><label className="cp-modal-campo">Motivo de baja<textarea autoFocus required className="cp-input" value={motivoBaja} onChange={(e) => setMotivoBaja(e.target.value)} /></label><div className="cp-modal-acciones"><button type="button" className="cp-btn cp-btn-secundario" onClick={() => setBaja(null)}>Cancelar</button><button type="submit" className="cp-btn cp-btn-peligro" disabled={!motivoBaja.trim()}>Dar de baja</button></div></form></div>}
+      {unidadSeleccionada && (
+        <ModalEstadoUnidad
+          key={unidadSeleccionada}
+          producto={producto}
+          unidades={unidades.filter((u) => u.codigo === unidadSeleccionada)}
+          codigoInicial={unidadSeleccionada}
+          onCerrar={() => setUnidadSeleccionada(null)}
+          onGuardar={guardarEstado}
+        />
+      )}
       {modalAbierto && (
         <ModalAltaUnidad
           nombreEquipo={producto.nombre}
@@ -333,7 +339,7 @@ function Estado({ estado }) {
   return <span className={`cp-estado cp-estado-${clase}`}>{estado}</span>
 }
 
-function TablaUnidades({ unidades, prestamos, onBaja }) {
+function TablaUnidades({ unidades, prestamos, onCambiarEstado }) {
   return (
     <div className="cp-tabla-caja">
       <table className="cp-tabla cp-tabla-unidades" aria-label="Unidades del equipo">
@@ -360,7 +366,7 @@ function TablaUnidades({ unidades, prestamos, onBaja }) {
                 {u.nota && <small className="cp-nota-estado">Nota de estado: {u.nota}</small>}
               </td>
               <td className="cp-codigo">{prestamos[u.codigo] || '—'}</td>
-              <td><button type="button" className="cp-btn cp-btn-secundario" disabled={u.estado === 'De baja'} onClick={() => onBaja(u)}>Dar de baja</button></td>
+              <td><button type="button" className="cp-btn cp-btn-secundario" aria-label={`Cambiar estado de ${u.codigo}`} onClick={() => onCambiarEstado(u.codigo)}>Cambiar estado</button></td>
             </tr>
           ))}
         </tbody>
