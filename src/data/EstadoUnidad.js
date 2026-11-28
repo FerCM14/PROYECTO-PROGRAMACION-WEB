@@ -1,12 +1,51 @@
 import { PRODUCTOS, cambiarEstadoUnidad, obtenerProducto } from './Producto.js'
 import { obtenerPrestamos } from './Identificacion.js'
+import { hoyISO } from './Reservas.js'
+
+function leerLista(clave) {
+  const datos = JSON.parse(localStorage.getItem(clave)) ?? []
+  if (!Array.isArray(datos)) throw new Error('Registros no disponibles')
+  return datos
+}
 
 export function consultarPrestamosUnidad(codigo) {
-  const almacenados = JSON.parse(localStorage.getItem('prestamos')) ?? []
-  if (!Array.isArray(almacenados)) throw new Error('Préstamos no disponibles')
+  leerLista('prestamos')
   return obtenerPrestamos().filter((p) =>
     p?.unidad === codigo && ['Pendiente de entrega', 'Entregado'].includes(p.estado)
   )
+}
+
+function reservasConCupo(reservas, capacidad) {
+  const confirmadas = []
+  for (const reserva of reservas) {
+    const fechas = [reserva.desde, ...confirmadas.map((r) => r.desde).filter((dia) => dia >= reserva.desde && dia <= reserva.hasta)]
+    if (fechas.every((dia) => confirmadas.filter((r) => r.desde <= dia && r.hasta >= dia).length < capacidad)) {
+      confirmadas.push(reserva)
+    }
+  }
+  return confirmadas
+}
+
+export function consultarReservasUnidad(producto, unidad, hoy = hoyISO()) {
+  const actuales = leerLista('reservas')
+  // El lector habitual migra el calendario. Aquí solo se consultan los registros.
+  const anteriores = leerLista('calendario-reservas')
+    .filter((r) => r?.tipo === 'Reservada' && !actuales.some((actual) => actual?.id === r.id))
+    .map((r) => ({ ...r, productoId: r.equipoId, desde: r.inicio, hasta: r.fin, creadaEn: Number(r.id) || 0 }))
+  const activas = [...actuales, ...anteriores]
+    .filter((r) => r && !r.cancelada && r.desde && r.hasta >= hoy && r.desde <= r.hasta)
+    .sort((a, b) => (a.creadaEn || 0) - (b.creadaEn || 0))
+  const directas = activas.filter((r) => r.unidad === unidad.codigo)
+
+  if (unidad.estado !== 'Disponible') return { directas, porModelo: [] }
+
+  const delModelo = activas.filter((r) => Number(r.productoId) === producto.id)
+    .map((r) => ({ ...r, desde: r.desde < hoy ? hoy : r.desde }))
+  const capacidad = producto.unidades.filter((u) => u.estado === 'Disponible').length
+  const conCupo = reservasConCupo(delModelo, capacidad)
+  const conCupoTrasRetiro = reservasConCupo(delModelo, capacidad - 1)
+  const porModelo = conCupo.filter((r) => !r.unidad && !conCupoTrasRetiro.includes(r))
+  return { directas, porModelo }
 }
 
 export function errorTransicionManual(actual, nuevo) {
@@ -19,7 +58,8 @@ export function errorTransicionManual(actual, nuevo) {
 }
 
 export function cambiarEstadoUnidadManual(codigo, estado, motivo) {
-  const unidad = PRODUCTOS.map((p) => obtenerProducto(p.id)).flatMap((p) => p.unidades).find((u) => u.codigo === codigo)
+  const producto = PRODUCTOS.map((p) => obtenerProducto(p.id)).find((p) => p.unidades.some((u) => u.codigo === codigo))
+  const unidad = producto?.unidades.find((u) => u.codigo === codigo)
   if (!unidad) return { ok: false, mensaje: 'No se encontró la unidad en el inventario.' }
 
   const mensaje = errorTransicionManual(unidad.estado, estado)
@@ -31,6 +71,17 @@ export function cambiarEstadoUnidadManual(codigo, estado, motivo) {
     }
   } catch {
     return { ok: false, mensaje: 'No se pudieron verificar los préstamos de esta unidad.' }
+  }
+
+  if (estado !== 'Disponible') {
+    try {
+      const reservas = consultarReservasUnidad(producto, unidad)
+      if (reservas.directas.length || reservas.porModelo.length) {
+        return { ok: false, mensaje: 'El cambio dejaría una reserva sin la unidad o el cupo necesario.' }
+      }
+    } catch {
+      return { ok: false, mensaje: 'No se pudieron verificar las reservas de este equipo.' }
+    }
   }
 
   const nota = (motivo ?? '').trim()

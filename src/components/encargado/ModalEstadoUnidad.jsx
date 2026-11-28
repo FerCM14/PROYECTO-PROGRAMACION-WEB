@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { consultarPrestamosUnidad, errorTransicionManual } from '../../data/EstadoUnidad'
+import { consultarPrestamosUnidad, consultarReservasUnidad, errorTransicionManual } from '../../data/EstadoUnidad'
 import './Inventario.css'
 
 const ESTADOS = [
@@ -19,11 +19,20 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   const motivoObligatorio = estado === 'Mantenimiento' || estado === 'De baja'
   let prestamos = []
   let errorConsulta = false
+  let reservas = { directas: [], porModelo: [] }
+  let errorReservas = false
+  const retiraUnidad = estado === 'Mantenimiento' || estado === 'De baja'
   try {
     if (unidad) prestamos = consultarPrestamosUnidad(unidad.codigo)
   } catch {
     errorConsulta = true
   }
+  try {
+    if (unidad) reservas = consultarReservasUnidad(producto, unidad)
+  } catch {
+    errorReservas = true
+  }
+  const reservaComprometida = reservas.directas.length > 0 || reservas.porModelo.length > 0
 
   useEffect(() => {
     const alTeclear = (e) => e.key === 'Escape' && onCerrar()
@@ -96,6 +105,8 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
         {bloqueada && <p className="inv-modal__label">{errorTransicionManual(unidad.estado, 'Disponible')}</p>}
         {prestamos.length > 0 && <p>Préstamos comprometidos: {prestamos.map((p) => p.codigo).join(', ')}.</p>}
         {errorConsulta && <p role="alert">No se pudieron verificar los préstamos de esta unidad.</p>}
+        {retiraUnidad && reservaComprometida && <p>El cambio dejaría una reserva sin unidad o cupo.</p>}
+        {retiraUnidad && errorReservas && <p role="alert">No se pudieron verificar las reservas de este equipo.</p>}
 
         <label className="inv-modal__label" htmlFor="inv-nota">
           Motivo del cambio{motivoObligatorio ? ' (obligatorio)' : ' (opcional)'}
@@ -122,7 +133,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           <button
             type="button"
             className="inv-btn inv-btn--pri"
-            disabled={!unidad || errorConsulta || prestamos.length > 0 || Boolean(errorTransicionManual(unidad.estado, estado))}
+            disabled={!unidad || errorConsulta || prestamos.length > 0 || (retiraUnidad && (reservaComprometida || errorReservas)) || Boolean(errorTransicionManual(unidad.estado, estado))}
             onClick={guardar}
           >
             Guardar estado
