@@ -132,6 +132,33 @@ export function normalizarPenalidadPrestamo(valor) {
   return Number.isFinite(importe) && importe.toFixed(2) === esperado ? importe : undefined
 }
 
+export function guardarCondicionesProducto(id, condiciones) {
+  const producto = PRODUCTOS.find((p) => p.id === Number(id))
+  const bajas = leerJSON(CLAVE_ELIMINADOS, [])
+  if (!producto || (Array.isArray(bajas) && bajas.includes(producto.id))) {
+    return { ok: false, mensaje: 'El equipo ya no está en el inventario.' }
+  }
+
+  const dias = normalizarDiasPrestamo(condiciones?.dias)
+  const penalizacion = normalizarPenalidadPrestamo(condiciones?.penalizacion)
+  if (dias === undefined || penalizacion === undefined ||
+      typeof condiciones.requiereAutorizacion !== 'boolean' || typeof condiciones.admiteRenovacion !== 'boolean') {
+    return { ok: false, mensaje: 'Revisa los datos de las condiciones antes de guardar.' }
+  }
+
+  const valores = {
+    dias,
+    penalizacion,
+    requiereAutorizacion: condiciones.requiereAutorizacion,
+    admiteRenovacion: condiciones.admiteRenovacion
+  }
+  if (!guardarJSON(`condiciones-${producto.id}`, valores)) {
+    return { ok: false, mensaje: 'No se pudieron guardar las condiciones en este navegador. Puedes volver a intentarlo.' }
+  }
+
+  return { ok: true, condiciones: valores }
+}
+
 /* ---------- Altas y ediciones (se guardan en localStorage) ---------- */
 // Los datos de ejemplo de arriba no cambian. Los equipos nuevos y las
 // ediciones se guardan aparte y se mezclan con ellos al cargar el módulo,
