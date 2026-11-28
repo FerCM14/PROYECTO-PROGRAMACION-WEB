@@ -35,6 +35,14 @@
 }
 
 /* Migas y encabezado del equipo */
+.cp-migas a {
+  color: inherit;
+}
+
+.cp-equipo-acciones a {
+  text-decoration: none;
+}
+
 .cp-migas {
   font-size: 12px;
   color: var(--cp-suave);

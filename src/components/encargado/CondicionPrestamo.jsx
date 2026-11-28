@@ -1,10 +1,10 @@
 import { imagenEquipo } from '../../data/imagenes'
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operaciones from '../Extra/Operacion'
-import { obtenerCategoria, registrarUnidadProducto, cambiarEstadoUnidad } from '../../data/Producto'
+import { registrarUnidadProducto, cambiarEstadoUnidad } from '../../data/Producto'
 import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import { obtenerPrestamos } from '../../data/Identificacion'
 import { useActualizacion } from '../../context/DatosContext'
@@ -40,7 +40,7 @@ function formatearSoles(valor) {
 }
 
 export default function CondicionPrestamo() {
-  const { obtenerProducto } = useCatalogo()
+  const { obtenerProducto, obtenerCategoria } = useCatalogo()
   const [params] = useSearchParams()
   const id = params.get('id')
   const pestanaInicial = params.get('pestana') === 'condiciones' ? 'condiciones' : 'unidades'
@@ -58,14 +58,13 @@ export default function CondicionPrestamo() {
       </div>
     )
   }
-  return <CondicionEquipo key={`${producto.id}-${pestanaInicial}`} producto={producto} pestanaInicial={pestanaInicial} />
+  const categoria = obtenerCategoria(producto.categoria)?.nombre || producto.categoria
+  return <CondicionEquipo key={`${producto.id}-${pestanaInicial}`} producto={producto} categoria={categoria} pestanaInicial={pestanaInicial} />
 }
 
-function CondicionEquipo({ producto, pestanaInicial }) {
+function CondicionEquipo({ producto, categoria, pestanaInicial }) {
   const { obtenerProducto } = useCatalogo()
   useActualizacion()
-  const navigate = useNavigate()
-  const EQUIPO = { ...producto, categoria: obtenerCategoria(producto.categoria)?.nombre || producto.categoria }
   const CLAVE_CONDICIONES = `condiciones-${producto.id}`
   const [guardadas, setGuardadas] = useState(() => leer(CLAVE_CONDICIONES, { dias:producto.duracionMax, requiereAutorizacion:producto.autorizacion, admiteRenovacion:producto.renovable, penalizacion:producto.penalizacion ?? 15 }))
   const [condiciones, setCondiciones] = useState(guardadas)
@@ -141,28 +140,27 @@ function CondicionEquipo({ producto, pestanaInicial }) {
 
         <main className="cp-main">
           <nav className="cp-migas" aria-label="Ruta de navegación">
-            Inventario / {EQUIPO.categoria} / {EQUIPO.nombre}
+            <Link to="/encargado/inventario">Inventario</Link> / {categoria} / {producto.nombre}
           </nav>
 
           <header className="cp-equipo">
             <div className="cp-equipo-foto"><img src={imagenEquipo(producto)} alt={producto.nombre} /></div>
             <div className="cp-equipo-datos">
-              <h1>{EQUIPO.nombre}</h1>
+              <h1>{producto.nombre}</h1>
               <p>
-                {EQUIPO.marca} · {EQUIPO.modelo} · {unidades.length}{' '}
-                {unidades.length === 1 ? 'unidad registrada' : 'unidades registradas'} · Almacén H-102
+                {producto.marca} · {producto.modelo} · {unidades.length}{' '}
+                {unidades.length === 1 ? 'unidad registrada' : 'unidades registradas'}
               </p>
               <p>{producto.descripcion}</p>
               <p>Accesorios: {producto.accesorios.join(', ') || 'Sin accesorios registrados'}</p>
             </div>
             <div className="cp-equipo-acciones">
-              <button
-                type="button"
+              <Link
                 className="cp-btn cp-btn-secundario"
-                onClick={() => navigate(`/encargado/editar-equipo?id=${producto.id}`)}
+                to={`/encargado/editar-equipo?id=${producto.id}`}
               >
                 Editar equipo
-              </button>
+              </Link>
               <button
                 type="button"
                 className="cp-btn cp-btn-primario"
