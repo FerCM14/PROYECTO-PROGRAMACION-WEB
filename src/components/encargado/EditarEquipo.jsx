@@ -84,6 +84,7 @@ function FormularioEquipo({ existente }) {
   const { CATEGORIAS,
   PRODUCTOS,
   obtenerProducto,
+  existeEquipo,
   agregarProducto,
   actualizarProducto } = useCatalogo()
   const navigate = useNavigate()
@@ -180,6 +181,9 @@ function FormularioEquipo({ existente }) {
     if (!CATEGORIAS.some((c) => c.id === datos.categoria)) e.categoria = 'Elige una categoría de la lista.'
     if (!datos.marca) e.marca = 'La marca es obligatoria.'
     if (!datos.modelo) e.modelo = 'El modelo es obligatorio.'
+    if (datos.marca && datos.modelo && existeEquipo(datos.marca, datos.modelo, idEditar)) {
+      e.modelo = 'Ya existe un equipo con esta marca y modelo.'
+    }
     return e
   }
 

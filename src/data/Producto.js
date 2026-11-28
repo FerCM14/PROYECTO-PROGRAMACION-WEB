@@ -172,11 +172,12 @@ for (let i = PRODUCTOS.length - 1; i >= 0; i -= 1) {
 
 // ¿Ya existe un equipo con esa marca y modelo?
 export function existeEquipo(marca, modelo, ignorarId = null) {
+  const normalizarIdentificacion = (texto) => normalizar(texto).replace(/\s+/g, ' ')
   return PRODUCTOS.some(
     (p) =>
       p.id !== Number(ignorarId) &&
-      normalizar(p.marca) === normalizar(marca) &&
-      normalizar(p.modelo) === normalizar(modelo)
+      normalizarIdentificacion(p.marca) === normalizarIdentificacion(marca) &&
+      normalizarIdentificacion(p.modelo) === normalizarIdentificacion(modelo)
   )
 }
 
