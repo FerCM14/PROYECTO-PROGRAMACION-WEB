@@ -112,6 +112,15 @@ function numeroGuardado(valor) {
   return Number.isFinite(valor) ? valor : undefined
 }
 
+export function normalizarDiasPrestamo(valor) {
+  if (valor === null) return null
+  if (typeof valor !== 'string' && typeof valor !== 'number') return undefined
+  const texto = String(valor).trim()
+  if (!texto) return null
+  const dias = Number(texto)
+  return /^\d+$/.test(texto) && dias >= 1 && dias <= 30 ? dias : undefined
+}
+
 /* ---------- Altas y ediciones (se guardan en localStorage) ---------- */
 // Los datos de ejemplo de arriba no cambian. Los equipos nuevos y las
 // ediciones se guardan aparte y se mezclan con ellos al cargar el módulo,

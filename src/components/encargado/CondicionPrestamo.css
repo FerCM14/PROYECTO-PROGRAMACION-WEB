@@ -336,6 +336,11 @@
   color: var(--cp-suave);
 }
 
+.cp-campos .cp-input-corto {
+  width: 7rem;
+  max-width: 100%;
+}
+
 .cp-input {
   font: inherit;
   font-size: 13px;

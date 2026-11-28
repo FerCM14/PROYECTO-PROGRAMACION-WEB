@@ -8,6 +8,7 @@ import { useCatalogo } from '../../context/catalogo/CatalogoContext'
 import ModalEstadoUnidad from './ModalEstadoUnidad'
 import { obtenerPrestamos } from '../../data/Identificacion'
 import { obtenerTodasLasSolicitudes } from '../../data/Solicitudes'
+import { normalizarDiasPrestamo } from '../../data/Producto'
 import './CondicionPrestamo.css'
 
 const UBICACIONES = [
@@ -97,6 +98,8 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   const historial = solicitudes.filter((s) => unidades.some((u) => u.codigo === s.unidad))
 
   const hayCambios = JSON.stringify(condiciones) !== JSON.stringify(guardadas)
+  const dias = normalizarDiasPrestamo(condiciones.dias)
+  const errorDias = dias === undefined ? 'Ingresa un número entero de 1 a 30 días o deja el campo vacío.' : ''
 
   function cambiarCondicion(campo, valor) {
     setCondiciones((previo) => ({ ...previo, [campo]: valor }))
@@ -107,7 +110,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
   }
 
   function guardarCondiciones() {
-    const dias = condiciones.dias === '' || condiciones.dias === null ? null : Math.min(30, Math.max(1, Number(condiciones.dias) || 1))
+    if (errorDias) return
     const penalizacion = Math.max(0, Number(condiciones.penalizacion) || 0)
     const nuevas = { ...condiciones, dias, penalizacion }
     guardar(CLAVE_CONDICIONES, nuevas)
@@ -226,15 +229,18 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
                       <div className="cp-dias">
                         <input
                           id="cp-dias"
-                          type="number"
-                          min="1"
-                          max="30"
-                          className="cp-input cp-input-corto"
+                          type="text"
+                          inputMode="numeric"
+                          className={`cp-input cp-input-corto ${errorDias ? 'cp-input-error' : ''}`}
                           value={condiciones.dias ?? ''} placeholder="Sin límite"
+                          aria-invalid={Boolean(errorDias)}
+                          aria-describedby={errorDias ? 'cp-dias-ayuda cp-dias-error' : 'cp-dias-ayuda'}
                           onChange={(e) => cambiarCondicion('dias', e.target.value)}
                         />
                         <span>días calendario</span>
                       </div>
+                      <small id="cp-dias-ayuda" className="cp-ayuda">Deja el campo vacío para prestar sin límite.</small>
+                      {errorDias && <small id="cp-dias-error" className="cp-ayuda cp-ayuda-error">{errorDias}</small>}
 
                       <Interruptor
                         id="cp-autorizacion"
@@ -289,7 +295,7 @@ function CondicionEquipo({ producto, categoria, pestana, cambiarPestana }) {
                       type="button"
                       className="cp-btn cp-btn-primario"
                       onClick={guardarCondiciones}
-                      disabled={!hayCambios}
+                      disabled={!hayCambios || Boolean(errorDias)}
                     >
                       Guardar condiciones
                     </button>
