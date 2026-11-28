@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { consultarPrestamosUnidad, consultarReservasUnidad, errorTransicionManual } from '../../data/EstadoUnidad'
 import './Inventario.css'
 
@@ -23,6 +23,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   const [error, setError] = useState('')
   const [errorMotivo, setErrorMotivo] = useState('')
   const [confirmandoBaja, setConfirmandoBaja] = useState(false)
+  const dialogo = useRef(null)
   const bloqueada = unidad?.estado === 'Prestada' || unidad?.estado === 'De baja'
   const motivoObligatorio = estado === 'Mantenimiento' || estado === 'De baja'
   let prestamos = []
@@ -42,11 +43,15 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   }
   const reservaComprometida = reservas.directas.length > 0 || reservas.porModelo.length > 0
 
+  const guardarDeshabilitado = !unidad || errorConsulta || prestamos.length > 0 ||
+    (retiraUnidad && (reservaComprometida || errorReservas)) ||
+    Boolean(errorTransicionManual(unidad?.estado, estado))
+
   useEffect(() => {
-    const alTeclear = (e) => e.key === 'Escape' && onCerrar()
-    window.addEventListener('keydown', alTeclear)
-    return () => window.removeEventListener('keydown', alTeclear)
-  }, [onCerrar])
+    const modal = dialogo.current
+    modal.showModal()
+    return () => modal.close()
+  }, [])
 
   function elegirUnidad(nuevoCodigo) {
     const u = unidades.find((x) => x.codigo === nuevoCodigo)
@@ -58,7 +63,10 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
     setConfirmandoBaja(false)
   }
 
-  function guardar() {
+  function guardar(evento) {
+    evento.preventDefault()
+    if (guardarDeshabilitado) return
+    setError('')
     if (estado === 'De baja' && !confirmandoBaja) {
       if (!nota.trim()) {
         setErrorMotivo('Ingresa un motivo para el cambio de estado.')
@@ -74,32 +82,22 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
   }
 
   return (
-    <div className="inv-modal__fondo" onClick={onCerrar}>
-      <div
-        className="inv-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="inv-modal-titulo"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <dialog ref={dialogo} className="inv-modal inv-modal--estado" aria-labelledby="inv-modal-titulo" onCancel={onCerrar}>
+      <form onSubmit={guardar}>
         <h2 id="inv-modal-titulo" className="inv-modal__titulo">Cambiar estado de la unidad</h2>
         <p className="inv-modal__sub">{producto.nombre} · <strong>{unidad?.codigo || codigo}</strong></p>
 
         {!codigoInicial && (
           <>
-        <label className="inv-modal__label" htmlFor="inv-unidad">Unidad</label>
-        <select
-          id="inv-unidad"
-          className="inv-modal__select"
-          value={codigo}
-          onChange={(e) => elegirUnidad(e.target.value)}
-        >
-          {unidades.map((u) => (
-            <option key={u.codigo} value={u.codigo}>
-              {u.codigo}
-            </option>
-          ))}
-        </select>
+            <label className="inv-modal__label" htmlFor="inv-unidad">Unidad</label>
+            <select
+              id="inv-unidad"
+              className="inv-modal__select"
+              value={codigo}
+              onChange={(e) => elegirUnidad(e.target.value)}
+            >
+              {unidades.map((u) => <option key={u.codigo} value={u.codigo}>{u.codigo}</option>)}
+            </select>
           </>
         )}
 
@@ -153,7 +151,7 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           onChange={(e) => { setNota(e.target.value); setErrorMotivo(''); setConfirmandoBaja(false) }}
           placeholder="Ej.: lente con hongos; enviada al servicio técnico."
         />
-        {errorMotivo && <p id="inv-error-motivo" role="alert">{errorMotivo}</p>}
+        {errorMotivo && <p id="inv-error-motivo" className="inv-modal__error" role="alert">{errorMotivo}</p>}
         {confirmandoBaja && (
           <div className="inv-modal__confirmacion" role="status">
             <strong>¿Confirmas la baja definitiva?</strong>
@@ -161,21 +159,20 @@ export default function ModalEstadoUnidad({ producto, unidades, codigoInicial, o
           </div>
         )}
 
-        {error && <p role="alert">{error}</p>}
+        {error && <p className="inv-modal__error" role="alert">{error}</p>}
         <div className="inv-modal__acciones">
           <button type="button" className="inv-btn inv-btn--sec" onClick={onCerrar}>
             Cancelar
           </button>
           <button
-            type="button"
+            type="submit"
             className={`inv-btn ${confirmandoBaja ? 'inv-btn--eliminar' : 'inv-btn--pri'}`}
-            disabled={!unidad || errorConsulta || prestamos.length > 0 || (retiraUnidad && (reservaComprometida || errorReservas)) || Boolean(errorTransicionManual(unidad.estado, estado))}
-            onClick={guardar}
+            disabled={guardarDeshabilitado}
           >
             {confirmandoBaja ? 'Confirmar baja' : 'Guardar estado'}
           </button>
         </div>
-      </div>
-    </div>
+      </form>
+    </dialog>
   )
 }

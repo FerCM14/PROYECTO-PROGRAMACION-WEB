@@ -15,10 +15,11 @@ export function consultarPrestamosUnidad(codigo) {
   )
 }
 
-function reservasConCupo(reservas, capacidad) {
+function reservasConCupo(reservas, capacidad, hoy) {
   const confirmadas = []
   for (const reserva of reservas) {
-    const fechas = [reserva.desde, ...confirmadas.map((r) => r.desde).filter((dia) => dia >= reserva.desde && dia <= reserva.hasta)]
+    const inicio = reserva.desde < hoy ? hoy : reserva.desde
+    const fechas = [inicio, ...confirmadas.map((r) => r.desde).filter((dia) => dia >= inicio && dia <= reserva.hasta)]
     if (fechas.every((dia) => confirmadas.filter((r) => r.desde <= dia && r.hasta >= dia).length < capacidad)) {
       confirmadas.push(reserva)
     }
@@ -40,10 +41,9 @@ export function consultarReservasUnidad(producto, unidad, hoy = hoyISO()) {
   if (unidad.estado !== 'Disponible') return { directas, porModelo: [] }
 
   const delModelo = activas.filter((r) => Number(r.productoId) === producto.id)
-    .map((r) => ({ ...r, desde: r.desde < hoy ? hoy : r.desde }))
   const capacidad = producto.unidades.filter((u) => u.estado === 'Disponible').length
-  const conCupo = reservasConCupo(delModelo, capacidad)
-  const conCupoTrasRetiro = reservasConCupo(delModelo, capacidad - 1)
+  const conCupo = reservasConCupo(delModelo, capacidad, hoy)
+  const conCupoTrasRetiro = reservasConCupo(delModelo, capacidad - 1, hoy)
   const porModelo = conCupo.filter((r) => !r.unidad && !conCupoTrasRetiro.includes(r))
   return { directas, porModelo }
 }
