@@ -1,9 +1,10 @@
 import './LoginPage.css'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import HeaderVisitante from '../Header/Header-Visitante'
 import FooterEstudiante from '../Footer/Footer-Estudiante'
 import { useAuth } from '../../context/cuentas/AuthContext'
+import { obtenerProducto } from '../../data/Producto'
 
 const DOMINIO = '@aloe.ulima.edu.pe o @ulima.edu.pe'
 const REGEX_CORREO = /^[^\s@]+@(?:aloe\.)?ulima\.edu\.pe$/i
@@ -77,9 +78,19 @@ function EstadoDeuda({ deuda }) {
 
 /* ---------- Página ---------- */
 
+function destinoTrasLogin(rol, desde) {
+  if (rol === 'encargado') return '/encargado/inventario'
+  if (rol !== 'estudiante' || typeof desde !== 'string') return '/cuenta'
+
+  const coincidencia = /^\/(?:equipo|visitante\/cata|catalogo)\/([0-9]+)$/.exec(desde)
+  const producto = coincidencia && obtenerProducto(coincidencia[1])
+  return producto ? `/catalogo/${producto.id}` : '/cuenta'
+}
+
 function LoginPage() {
   const { iniciarSesion } = useAuth()
   const navigate = useNavigate()
+  const { state } = useLocation()
 
   const [correo, setCorreo] = useState(leerCorreoRecordado)
   const [contrasena, setContrasena] = useState('')
@@ -144,7 +155,7 @@ function LoginPage() {
           return
         }
 
-        navigate(respuesta.cuenta.rol === 'encargado' ? '/encargado/inventario' : '/cuenta')
+        navigate(destinoTrasLogin(respuesta.cuenta.rol, state?.desde), { replace: true })
       } catch (error) {
         console.error('Error al iniciar sesión:', error)
         setCargando(false)
