@@ -23,6 +23,16 @@ const VACIO = {
   fotos: []
 }
 
+function normalizarFormulario(form) {
+  return {
+    ...form,
+    nombre: form.nombre.trim(),
+    categoria: form.categoria.trim(),
+    marca: form.marca.trim(),
+    modelo: form.modelo.trim()
+  }
+}
+
 function leerBorrador(clave) {
   try {
     const datos = JSON.parse(localStorage.getItem(clave))
@@ -132,12 +142,30 @@ function FormularioEquipo({ existente }) {
   const lecturaEnCurso = useRef(false)
 
   const totalUnidades = PRODUCTOS.reduce((suma, p) => suma + (obtenerProducto(p.id)?.unidades.length || 0), 0)
-  const cantErrores = Object.keys(errores).length
+  const cantErrores = Object.entries(errores).filter(([campo, mensaje]) => campo !== 'general' && mensaje).length
+  const cambiosSinGuardar = JSON.stringify(form) !== JSON.stringify(formGuardado) || Boolean(nuevoAccesorio.trim()) || procesandoFotos
 
   function cambiar(campo, valor) {
-    setForm((f) => ({ ...f, [campo]: valor }))
-    if (errores[campo]) setErrores((e) => ({ ...e, [campo]: undefined }))
+    const siguiente = { ...form, [campo]: valor }
+    setForm(siguiente)
+    if (errores[campo] || (campo === 'marca' && errores.modelo)) {
+      const revisados = validar(normalizarFormulario(siguiente))
+      const activos = { ...errores }
+      for (const nombre of campo === 'marca' ? ['marca', 'modelo'] : [campo]) {
+        if (!activos[nombre]) continue
+        if (revisados[nombre]) activos[nombre] = revisados[nombre]
+        else delete activos[nombre]
+      }
+      setErrores(activos)
+    }
     setAvisoBorrador(null)
+  }
+
+  function cancelar(evento) {
+    if (evento.ctrlKey || evento.metaKey || evento.shiftKey || evento.altKey) return
+    if (cambiosSinGuardar && !window.confirm('Hay cambios sin guardar. ¿Deseas salir del formulario?')) {
+      evento.preventDefault()
+    }
   }
 
   /* ---------- Accesorios ---------- */
@@ -237,13 +265,7 @@ function FormularioEquipo({ existente }) {
     evento.preventDefault()
     if (lecturaEnCurso.current) return
 
-    const datos = {
-      ...form,
-      nombre: form.nombre.trim(),
-      categoria: form.categoria.trim(),
-      marca: form.marca.trim(),
-      modelo: form.modelo.trim()
-    }
+    const datos = normalizarFormulario(form)
     const e = validar(datos)
     if (Object.keys(e).length) {
       setErrores(e)
@@ -257,12 +279,13 @@ function FormularioEquipo({ existente }) {
       return
     }
 
+    let avisoEquipo = editando ? 'Cambios del equipo guardados.' : 'Equipo registrado correctamente.'
     try {
       localStorage.removeItem(claveBorrador)
     } catch {
-      /* El equipo ya se guardó. */
+      avisoEquipo += ' No se pudo quitar el borrador guardado.'
     }
-    navigate(RUTA_INVENTARIO)
+    navigate(RUTA_INVENTARIO, { state: { avisoEquipo } })
   }
 
   function guardarBorrador() {
@@ -289,7 +312,7 @@ function FormularioEquipo({ existente }) {
 
         <main className="eq-contenido">
           <p className="eq-migas">
-            <Link to={RUTA_INVENTARIO}>Inventario</Link> / {editando ? 'Editar equipo' : 'Nuevo equipo'}
+            <Link to={RUTA_INVENTARIO} onClick={cancelar}>Inventario</Link> / {editando ? 'Editar equipo' : 'Nuevo equipo'}
           </p>
           <h1 className="eq-titulo">{editando ? 'Editar equipo' : 'Nuevo equipo'}</h1>
 
@@ -527,7 +550,7 @@ function FormularioEquipo({ existente }) {
 
               {errores.general && <p className="eq-banner" role="alert">{errores.general}</p>}
               <div className="eq-acciones">
-                <Link to={RUTA_INVENTARIO} className="eq-cancelar">Cancelar</Link>
+                <Link to={RUTA_INVENTARIO} className="eq-cancelar" onClick={cancelar}>Cancelar</Link>
                 <button
                   type="button"
                   className="eq-btn eq-btn--sec"
@@ -538,8 +561,8 @@ function FormularioEquipo({ existente }) {
                 </button>
                 <button type="submit" className="eq-btn eq-btn--pri" disabled={procesandoFotos}>Guardar equipo</button>
               </div>
-              {avisoBorrador && (
-                <p className={avisoBorrador.error ? 'eq-error' : 'eq-ayuda eq-ayuda--der'} role={avisoBorrador.error ? 'alert' : 'status'}>
+              {avisoBorrador && (avisoBorrador.error || form === formGuardado) && (
+                <p className={avisoBorrador.error ? 'eq-banner' : 'eq-aviso'} role={avisoBorrador.error ? 'alert' : 'status'}>
                   {avisoBorrador.texto}
                 </p>
               )}

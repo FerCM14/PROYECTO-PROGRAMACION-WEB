@@ -159,10 +159,6 @@
   color: #6b7a80;
 }
 
-.eq-ayuda--der {
-  text-align: right;
-}
-
 .eq-ayuda--descripcion {
   display: flex;
   justify-content: space-between;
@@ -346,6 +342,16 @@
   background: #fdeceb;
   font-size: 11px;
   color: #b3261e;
+}
+
+.eq-aviso {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background: #fff;
+  font-size: 11px;
+  color: #1e7f4d;
 }
 
 .eq-acciones {

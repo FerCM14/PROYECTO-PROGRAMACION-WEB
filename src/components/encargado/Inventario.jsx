@@ -1,6 +1,6 @@
 import { imagenEquipo } from '../../data/imagenes'
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import HeaderEncargado from '../Header/Header-Encargado'
 import FooterEncargado from '../Footer/Footer-Encargado'
 import Operacion from '../Extra/Operacion'
@@ -153,6 +153,8 @@ function ModalEliminar({ producto, onCerrar, onConfirmar }) {
 }
 
 export default function Inventario() {
+  const { pathname, search, hash, state } = useLocation()
+  const navigate = useNavigate()
   const { PRODUCTOS, CATEGORIAS, obtenerCategoria, obtenerProducto, cambiarEstadoUnidad, eliminarProducto } = useCatalogo()
   const [seleccionado, setSeleccionado] = useState(null)
   const [pagina, setPagina] = useState(1)
@@ -161,7 +163,15 @@ export default function Inventario() {
   const [busqueda, setBusqueda] = useState('')
   const [reinicioCabecera, setReinicioCabecera] = useState(0)
   const [equipoPorEliminar, setEquipoPorEliminar] = useState(null)
-  const [aviso, setAviso] = useState(null)
+  const [aviso, setAviso] = useState(() => state?.avisoEquipo ? { texto: state.avisoEquipo } : null)
+
+  useEffect(() => {
+    if (state?.avisoEquipo) {
+      const resto = { ...state }
+      delete resto.avisoEquipo
+      navigate({ pathname, search, hash }, { replace: true, state: resto })
+    }
+  }, [state, pathname, search, hash, navigate])
 
   const filas = PRODUCTOS.map((p) => {
     const producto = obtenerProducto(p.id)
